@@ -1,0 +1,156 @@
+<UserControl x:Class="FleetManager.Views.FuelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Titre -->
+        <TextBlock Grid.Row="0"
+                   Text="Gestion du Carburant"
+                   Style="{StaticResource TitleStyle}"/>
+
+        <!-- Barre d'outils -->
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Filtres -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <Label Content="Filtrer par véhicule :" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Vehicles}"
+                          SelectedItem="{Binding SelectedVehicle}"
+                          DisplayMemberPath="DisplayName"
+                          Width="200"
+                          Margin="5,0,10,0"
+                          VerticalAlignment="Center"/>
+                <Button Content="🔍 Filtrer"
+                        Command="{Binding FilterByVehicleCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        Margin="0,0,10,0"/>
+                <Button Content="📋 Tout afficher"
+                        Command="{Binding LoadDataCommand}"
+                        Style="{StaticResource SecondaryButton}"/>
+            </StackPanel>
+
+            <!-- Boutons d'action -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="⛽ Nouveau Plein"
+                        Command="{Binding AddFuelRecordCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Margin="0,0,10,0"/>
+                <Button Content="🗑️ Supprimer"
+                        Command="{Binding DeleteFuelRecordCommand}"
+                        CommandParameter="{Binding SelectedFuelRecord}"
+                        Background="{StaticResource DangerBrush}"
+                        Foreground="White"
+                        Padding="15,8"
+                        BorderThickness="0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Liste des enregistrements de carburant -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding FuelRecords}"
+                  SelectedItem="{Binding SelectedFuelRecord}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  GridLinesVisibility="None"
+                  HeadersVisibility="Column"
+                  AlternatingRowBackground="#F9F9F9"
+                  RowHeight="35">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date"
+                                    Binding="{Binding RefuelDate, StringFormat=dd/MM/yyyy}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Véhicule"
+                                    Binding="{Binding Vehicle.RegistrationNumber}"
+                                    Width="120"/>
+                <DataGridTextColumn Header="Type carburant"
+                                    Binding="{Binding FuelType}"
+                                    Width="110"/>
+                <DataGridTextColumn Header="Quantité (L)"
+                                    Binding="{Binding LitersRefueled, StringFormat=N2}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Prix/L (€)"
+                                    Binding="{Binding PricePerLiter, StringFormat=N3}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Coût total (€)"
+                                    Binding="{Binding TotalCost, StringFormat=N2}"
+                                    Width="120"/>
+                <DataGridTextColumn Header="Kilométrage"
+                                    Binding="{Binding Mileage, StringFormat=N0}"
+                                    Width="100"/>
+                <DataGridCheckBoxColumn Header="Plein complet"
+                                        Binding="{Binding IsFullTank}"
+                                        Width="100"/>
+                <DataGridTextColumn Header="Station"
+                                    Binding="{Binding Station}"
+                                    Width="120"/>
+                <DataGridTextColumn Header="Ajouté par"
+                                    Binding="{Binding Creator.FullName}"
+                                    Width="*"/>
+                <DataGridTemplateColumn Header="Actions" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="🗑️"
+                                        Command="{Binding DataContext.DeleteFuelRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Background="{StaticResource DangerBrush}"
+                                        Foreground="White"
+                                        Width="30"
+                                        Height="25"
+                                        Padding="2"
+                                        Margin="2"
+                                        BorderThickness="0"
+                                        ToolTip="Supprimer ce plein"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+
+            <!-- Style pour les en-têtes -->
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Padding" Value="10,8"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <!-- Style pour les lignes -->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Height" Value="35"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#E3F2FD"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+    </Grid>
+</UserControl>

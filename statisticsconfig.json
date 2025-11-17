@@ -1,0 +1,39 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "System": "Warning"
+    }
+  },
+  "Database": {
+    "AutoCreateTables": true,
+    "LogQueries": false
+  },
+  "Statistics": {
+    "DefaultPeriodDays": 365,
+    "TrendDays": 30,
+    "HistoryMonths": 12,
+    "TopVehicleCount": 5
+  },
+  "Alerts": {
+    "MaintenanceDueThresholdDays": 30,
+    "InspectionThresholdDays": 60,
+    "InsuranceThresholdDays": 30,
+    "HighConsumptionMultiplier": 1.3,
+    "CostThresholdPercentage": 20,
+    "InactiveVehicleThresholdDays": 90
+  },
+  "Export": {
+    "DefaultFormat": "CSV",
+    "DefaultPath": "./Exports/",
+    "MaxRowsPerFile": 10000,
+    "IncludeCharts": true
+  },
+  "UI": {
+    "RefreshIntervalSeconds": 300,
+    "ChartUpdateIntervalSeconds": 60,
+    "MaxItemsPerList": 100,
+    "EnableAnimations": true
+  }
+}

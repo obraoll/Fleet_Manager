@@ -1,0 +1,243 @@
+<Window x:Class="FleetManager.Views.AddVehicleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:FleetManager.Models"
+        mc:Ignorable="d"
+        Title="Ajouter un véhicule"
+        Height="700" Width="500"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Titre -->
+        <TextBlock Grid.Row="0"
+                   Text="🚗 Ajouter un nouveau véhicule"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   Foreground="#2C3E50"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,20"/>
+
+        <!-- Formulaire -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Border Background="White" CornerRadius="5" BorderBrush="#E0E0E0" BorderThickness="1">
+                <StackPanel>
+
+                    <!-- Section Informations générales -->
+                    <TextBlock Text="Informations générales"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#3498DB"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Immatriculation -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Immatriculation *" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="0" Grid.Column="2"
+                                 Text="{Binding RegistrationNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Ex: AB-123-CD"/>
+
+                        <!-- Marque et Modèle -->
+                        <Label Grid.Row="1" Grid.Column="0" Content="Marque *" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="1" Grid.Column="2"
+                                 Text="{Binding Brand, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Ex: Renault, Peugeot, Ford..."/>
+
+                        <Label Grid.Row="2" Grid.Column="0" Content="Modèle *" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="2" Grid.Column="2"
+                                 Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Ex: Clio, 308, Focus..."/>
+
+                        <!-- Année -->
+                        <Label Grid.Row="3" Grid.Column="0" Content="Année *" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="3" Grid.Column="2"
+                                 Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Ex: 2023"/>
+
+                        <!-- VIN -->
+                        <Label Grid.Row="4" Grid.Column="0" Content="N° VIN" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="4" Grid.Column="2"
+                                 Text="{Binding VIN, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Numéro d'identification du véhicule (17 caractères)"/>
+                    </Grid>
+
+                    <!-- Separator -->
+                    <Separator Margin="0,20"/>
+
+                    <!-- Section Caractéristiques techniques -->
+                    <TextBlock Text="Caractéristiques techniques"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#3498DB"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Type de véhicule -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Type de véhicule *" FontWeight="SemiBold"/>
+                        <ComboBox Grid.Row="0" Grid.Column="2"
+                                  SelectedItem="{Binding VehicleType}">
+                            <ComboBox.Items>
+                                <models:VehicleType>Voiture</models:VehicleType>
+                                <models:VehicleType>Camion</models:VehicleType>
+                                <models:VehicleType>Moto</models:VehicleType>
+                                <models:VehicleType>Utilitaire</models:VehicleType>
+                            </ComboBox.Items>
+                        </ComboBox>
+
+                        <!-- Type de carburant -->
+                        <Label Grid.Row="1" Grid.Column="0" Content="Type de carburant *" FontWeight="SemiBold"/>
+                        <ComboBox Grid.Row="1" Grid.Column="2"
+                                  SelectedItem="{Binding FuelType}">
+                            <ComboBox.Items>
+                                <models:FuelType>Essence</models:FuelType>
+                                <models:FuelType>Diesel</models:FuelType>
+                                <models:FuelType>Electrique</models:FuelType>
+                                <models:FuelType>Hybride</models:FuelType>
+                                <models:FuelType>GPL</models:FuelType>
+                            </ComboBox.Items>
+                        </ComboBox>
+
+                        <!-- Kilométrage initial -->
+                        <Label Grid.Row="2" Grid.Column="0" Content="Kilométrage initial" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="2" Grid.Column="2"
+                                 Text="{Binding CurrentMileage, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Kilométrage actuel du véhicule"/>
+
+                        <!-- Capacité du réservoir -->
+                        <Label Grid.Row="3" Grid.Column="0" Content="Capacité réservoir (L)" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="3" Grid.Column="2"
+                                 Text="{Binding FuelTankCapacity, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Capacité du réservoir en litres"/>
+
+                        <!-- Consommation moyenne -->
+                        <Label Grid.Row="4" Grid.Column="0" Content="Consommation moy. (L/100km)" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="4" Grid.Column="2"
+                                 Text="{Binding AverageFuelConsumption, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Consommation moyenne estimée"/>
+                    </Grid>
+
+                    <!-- Separator -->
+                    <Separator Margin="0,20"/>
+
+                    <!-- Section Acquisition -->
+                    <TextBlock Text="Informations d'acquisition"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#3498DB"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Date d'acquisition -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Date d'acquisition" FontWeight="SemiBold"/>
+                        <DatePicker Grid.Row="0" Grid.Column="2"
+                                    SelectedDate="{Binding AcquisitionDate}"
+                                    DisplayDateEnd="{x:Static sys:DateTime.Now}"
+                                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"/>
+
+                        <!-- Prix d'achat -->
+                        <Label Grid.Row="1" Grid.Column="0" Content="Prix d'achat (€)" FontWeight="SemiBold"/>
+                        <TextBox Grid.Row="1" Grid.Column="2"
+                                 Text="{Binding PurchasePrice, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Prix d'acquisition du véhicule"/>
+
+                        <!-- Statut -->
+                        <Label Grid.Row="2" Grid.Column="0" Content="Statut initial *" FontWeight="SemiBold"/>
+                        <ComboBox Grid.Row="2" Grid.Column="2"
+                                  SelectedItem="{Binding Status}">
+                            <ComboBox.Items>
+                                <models:VehicleStatus>Actif</models:VehicleStatus>
+                                <models:VehicleStatus>EnMaintenance</models:VehicleStatus>
+                                <models:VehicleStatus>HorsService</models:VehicleStatus>
+                            </ComboBox.Items>
+                        </ComboBox>
+                    </Grid>
+
+                    <!-- Separator -->
+                    <Separator Margin="0,20"/>
+
+                    <!-- Section Notes -->
+                    <TextBlock Text="Notes additionnelles"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#3498DB"/>
+
+                    <Label Content="Description / Remarques" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             Height="60"
+                             VerticalScrollBarVisibility="Auto"
+                             ToolTip="Informations complémentaires sur le véhicule"/>
+
+                    <!-- Messages de validation -->
+                    <TextBlock Text="{Binding ValidationMessage}"
+                               Foreground="#E74C3C"
+                               TextWrapping="Wrap"
+                               Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
+
+        <!-- Boutons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Annuler"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                    Background="#95A5A6"
+                    Foreground="White"
+                    Width="100"
+                    Margin="0,0,10,0"/>
+
+            <Button Content="Ajouter le véhicule"
+                    Command="{Binding SaveCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                    Background="#3498DB"
+                    Foreground="White"
+                    Width="150"
+                    IsEnabled="{Binding CanSave}"/>
+        </StackPanel>
+    </Grid>
+</Window>

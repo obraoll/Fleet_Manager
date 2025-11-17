@@ -1,0 +1,585 @@
+<UserControl x:Class="FleetManager.Views.StatisticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:FleetManager.Views"
+              xmlns:viewmodels="clr-namespace:FleetManager.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <!-- Styles personnalisés -->
+        <Style x:Key="StatCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Margin" Value="0,10,0,15"/>
+        </Style>
+
+        <Style x:Key="FilterButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#666666"/>
+            <Setter Property="Margin" Value="0,2"/>
+        </Style>
+
+        <Style x:Key="MetricValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#F8F9FA">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="📊 Statistiques avancées" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding LoadingMessage}" FontSize="12" Foreground="#666666"
+                               VerticalAlignment="Bottom" Margin="20,0,0,2"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="🔄 Actualiser" Command="{Binding RefreshCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"/>
+                    <Button Content="📄 Rapport PDF" Command="{Binding GenerateReportCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"/>
+                        <Button Content="📊 Export CSV" Command="{Binding ExportToCsvCommand}"
+                            Background="#FF9800" Foreground="White" BorderThickness="0"
+                            Padding="15,8" Margin="5"/>
+
+                    <ProgressBar IsIndeterminate="{Binding IsLoading}" Width="100" Height="4"
+                                 Margin="10,0" VerticalAlignment="Center"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Filtres et contrôles -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="20,10">
+            <Expander Header="🔍 Filtres et options" IsExpanded="{Binding ShowAdvancedFilters}">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Période -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,5">
+                        <TextBlock Text="Période:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                        <ComboBox ItemsSource="{Binding AvailablePeriods}"
+                                  SelectedItem="{Binding SelectedPeriod}"
+                                  Width="120" Margin="5,0"/>
+                        <DatePicker SelectedDate="{Binding StartDate}" Margin="10,0"/>
+                        <TextBlock Text="au" VerticalAlignment="Center" Margin="5,0"/>
+                        <DatePicker SelectedDate="{Binding EndDate}" Margin="5,0"/>
+                    </StackPanel>
+
+                    <!-- Filtres par type -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5">
+                        <TextBlock Text="Type véhicule:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                        <ComboBox ItemsSource="{Binding AvailableVehicleTypes}"
+                                  SelectedItem="{Binding SelectedVehicleType}"
+                                  Width="120" Margin="5,0"/>
+
+                        <TextBlock Text="Carburant:" VerticalAlignment="Center" Margin="20,0,10,0" FontWeight="SemiBold"/>
+                        <ComboBox ItemsSource="{Binding AvailableFuelTypes}"
+                                  SelectedItem="{Binding SelectedFuelType}"
+                                  Width="120" Margin="5,0"/>
+
+                        <TextBlock Text="Recherche:" VerticalAlignment="Center" Margin="20,0,10,0" FontWeight="SemiBold"/>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="200" Margin="5,0" Padding="5"/>
+                    </StackPanel>
+
+                    <!-- Actions de filtre -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,5">
+                        <Button Content="🔄 Réinitialiser" Command="{Binding ResetFiltersCommand}"
+                                Style="{StaticResource FilterButtonStyle}"/>
+                        <Button Content="🔍 Filtres avancés" Command="{Binding ToggleAdvancedFiltersCommand}"
+                                Style="{StaticResource FilterButtonStyle}"/>
+                        <Button Content="📊 Comparer véhicules" Command="{Binding CompareVehiclesCommand}"
+                                Style="{StaticResource FilterButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </Expander>
+        </Border>
+
+        <!-- Contenu principal -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="20">
+            <StackPanel>
+
+                <!-- Résumé des métriques globales -->
+                <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="📈 Vue d'ensemble"/>
+
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Coût total carburant -->
+                    <Border Grid.Column="0" Style="{StaticResource StatCardStyle}" Background="#E3F2FD">
+                        <StackPanel>
+                            <TextBlock Text="⛽" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalFuelCost, StringFormat={}{0:C}}"
+                                       Style="{StaticResource MetricValueStyle}"
+                                       Foreground="#1976D2" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Coût carburant total" Style="{StaticResource MetricLabelStyle}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding AverageCostPerRefuel, StringFormat={}{0:C}/plein}"
+                                       FontSize="10" Foreground="#666666" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Coût total maintenance -->
+                    <Border Grid.Column="1" Style="{StaticResource StatCardStyle}" Background="#E8F5E8">
+                        <StackPanel>
+                            <TextBlock Text="🔧" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalMaintenanceCost, StringFormat={}{0:C}}"
+                                       Style="{StaticResource MetricValueStyle}"
+                                       Foreground="#388E3C" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Coût maintenance" Style="{StaticResource MetricLabelStyle}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding AverageCostPerMaintenance, StringFormat={}{0:C}/intervention}"
+                                       FontSize="10" Foreground="#666666" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Consommation moyenne -->
+                    <Border Grid.Column="2" Style="{StaticResource StatCardStyle}" Background="#FFF3E0">
+                        <StackPanel>
+                            <TextBlock Text="📊" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding AverageConsumption, StringFormat={}{0:F2}}"
+                                       Style="{StaticResource MetricValueStyle}"
+                                       Foreground="#F57C00" HorizontalAlignment="Center"/>
+                            <TextBlock Text="L/100km moyen" Style="{StaticResource MetricLabelStyle}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Flotte complète" FontSize="10" Foreground="#666666" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Kilométrage total -->
+                    <Border Grid.Column="3" Style="{StaticResource StatCardStyle}" Background="#FCE4EC">
+                        <StackPanel>
+                            <TextBlock Text="🛣️" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalMileage, StringFormat={}{0:N0}}"
+                                       Style="{StaticResource MetricValueStyle}"
+                                       Foreground="#C2185B" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Km total" Style="{StaticResource MetricLabelStyle}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding CostPerKilometer, StringFormat={}{0:C}/km}"
+                                       FontSize="10" Foreground="#666666" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Ratio coûts -->
+                    <Border Grid.Column="4" Style="{StaticResource StatCardStyle}" Background="#F3E5F5">
+                        <StackPanel>
+                            <TextBlock Text="⚖️" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding FuelToMaintenanceRatio, StringFormat={}{0:F1}}"
+                                       Style="{StaticResource MetricValueStyle}"
+                                       Foreground="#7B1FA2" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Ratio C/M" Style="{StaticResource MetricLabelStyle}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Carburant/Maintenance" FontSize="10" Foreground="#666666" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Analyse comparative -->
+                <Grid Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Tableau détaillé des véhicules -->
+                    <Border Grid.Column="0" Style="{StaticResource StatCardStyle}" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="🚗 Analyse détaillée par véhicule"/>
+
+                            <DataGrid ItemsSource="{Binding VehicleStatistics}"
+                                      SelectedItem="{Binding SelectedVehicleStats}"
+                                      AutoGenerateColumns="False"
+                                      Background="White"
+                                      BorderThickness="0"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      RowBackground="White"
+                                      AlternatingRowBackground="#F8F9FA"
+                                      MaxHeight="400">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Véhicule" Binding="{Binding RegistrationNumber}" Width="100"/>
+                                    <DataGridTextColumn Header="Modèle" Binding="{Binding VehicleName}" Width="150"/>
+                                    <DataGridTextColumn Header="Km" Binding="{Binding CurrentMileage, StringFormat={}{0:N0}}" Width="80"/>
+                                    <DataGridTextColumn Header="Conso." Width="80">
+                                        <DataGridTextColumn.Binding>
+                                            <Binding Path="AverageConsumption" StringFormat="F2" />
+                                        </DataGridTextColumn.Binding>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Pleins" Binding="{Binding TotalRefuels}" Width="60"/>
+                                    <DataGridTextColumn Header="Coût Carb." Binding="{Binding TotalFuelCost, StringFormat={}{0:C}}" Width="80"/>
+                                    <DataGridTextColumn Header="Maintenance" Binding="{Binding TotalMaintenanceCost, StringFormat={}{0:C}}" Width="80"/>
+                                    <DataGridTextColumn Header="Total" Binding="{Binding TotalCost, StringFormat={}{0:C}}" Width="80"/>
+                                    <DataGridTextColumn Header="€/km" Binding="{Binding CostPerKilometer, StringFormat={}{0:C}}" Width="70"/>
+                                    <DataGridTextColumn Header="Efficacité" Binding="{Binding FuelEfficiency, StringFormat={}{0:F1} km/L}" Width="80"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Analyses et top performers -->
+                    <StackPanel Grid.Column="1">
+                        <!-- Top performers -->
+                        <Border Style="{StaticResource StatCardStyle}" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="⭐ Top efficaces"/>
+
+                                <ListView ItemsSource="{Binding TopPerformers}"
+                                          Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#E8F5E8" Padding="8" Margin="2" CornerRadius="4">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding RegistrationNumber}" FontWeight="Bold" FontSize="11"/>
+                                                        <TextBlock Text="{Binding VehicleName}" FontSize="9" Foreground="#666666"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding AverageConsumption, StringFormat={}{0:F1}L}"
+                                                               FontWeight="Bold" FontSize="11" Foreground="#4CAF50"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Bottom performers -->
+                        <Border Style="{StaticResource StatCardStyle}" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="⚠️ À surveiller"/>
+
+                                <ListView ItemsSource="{Binding BottomPerformers}"
+                                          Background="Transparent" BorderThickness="0" MaxHeight="150">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#FFEBEE" Padding="8" Margin="2" CornerRadius="4">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding RegistrationNumber}" FontWeight="Bold" FontSize="11"/>
+                                                        <TextBlock Text="{Binding VehicleName}" FontSize="9" Foreground="#666666"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding AverageConsumption, StringFormat={}{0:F1}L}"
+                                                               FontWeight="Bold" FontSize="11" Foreground="#F44336"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Prédictions -->
+                        <Border Style="{StaticResource StatCardStyle}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="🔮 Prédictions"/>
+
+                                <ItemsControl ItemsSource="{Binding Predictions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#F8F9FA" Padding="8" Margin="2" CornerRadius="4">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Category}" FontWeight="Bold" FontSize="10"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding CurrentValue, StringFormat={}{0:C}}" FontSize="10"/>
+                                                        <TextBlock Text="→" Margin="5,0" FontSize="10"/>
+                                                        <TextBlock Text="{Binding PredictedValue, StringFormat={}{0:C}}" FontSize="10"/>
+                                                        <TextBlock Text="{Binding ChangePercentage, StringFormat=({0:+0.0;-0.0}%)}"
+                                                                   FontSize="9" Margin="5,0" Foreground="#666666"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Trend}" FontSize="8"
+                                                                   Foreground="{Binding Trend, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Analyse par type et carburant -->
+                <Grid Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Statistiques par type de véhicule -->
+                    <Border Grid.Column="0" Style="{StaticResource StatCardStyle}" Margin="0,0,10,0">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="🚙 Par type de véhicule"/>
+
+                            <DataGrid ItemsSource="{Binding TypeStatistics}"
+                                      AutoGenerateColumns="False"
+                                      Background="White"
+                                      BorderThickness="0"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      MaxHeight="200">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding TypeName}" Width="100"/>
+                                    <DataGridTextColumn Header="Nb" Binding="{Binding Count}" Width="40"/>
+                                    <DataGridTextColumn Header="Conso. moy" Width="80">
+                                        <DataGridTextColumn.Binding>
+                                            <Binding Path="AverageConsumption" StringFormat="F1" />
+                                        </DataGridTextColumn.Binding>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Coût total" Binding="{Binding TotalCost, StringFormat={}{0:C}}" Width="80"/>
+                                    <DataGridTextColumn Header="Km moy" Binding="{Binding AverageMileage, StringFormat={}{0:N0}}" Width="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Statistiques par type de carburant -->
+                    <Border Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="⛽ Par type de carburant"/>
+
+                            <DataGrid ItemsSource="{Binding FuelStatistics}"
+                                      AutoGenerateColumns="False"
+                                      Background="White"
+                                      BorderThickness="0"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column"
+                                      MaxHeight="200">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Carburant" Binding="{Binding TypeName}" Width="80"/>
+                                    <DataGridTextColumn Header="Véh." Binding="{Binding VehicleCount}" Width="40"/>
+                                    <DataGridTextColumn Header="Litres" Binding="{Binding TotalLiters, StringFormat={}{0:N0}}" Width="60"/>
+                                    <DataGridTextColumn Header="Coût" Binding="{Binding TotalCost, StringFormat={}{0:C}}" Width="70"/>
+                                    <DataGridTextColumn Header="€/L moy" Binding="{Binding AveragePricePerLiter, StringFormat={}{0:C}}" Width="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Tendances temporelles -->
+                <Border Style="{StaticResource StatCardStyle}" Margin="0,20,0,0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="📈 Évolution mensuelle"/>
+
+                        <TabControl Background="Transparent" BorderThickness="0">
+                            <TabItem Header="Coûts mensuels">
+                                <Grid Height="250" Margin="10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="30" />
+                                    </Grid.RowDefinitions>
+                                    <!-- LiveCharts column chart for monthly costs -->
+                                    <lvc:CartesianChart x:Name="CostsChart" Series="{Binding MonthlyCostSeries}" Grid.Row="0" LegendPosition="Top"/>
+                                    <!-- Simulated X axis labels under the chart -->
+                                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                        <ItemsControl ItemsSource="{Binding MonthlyLabels}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}" FontSize="11" Margin="6,0" HorizontalAlignment="Center">
+                                                        <TextBlock.RenderTransform>
+                                                            <RotateTransform Angle="45"/>
+                                                        </TextBlock.RenderTransform>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </TabItem>
+
+                            <TabItem Header="Consommation">
+                                <Grid Height="250" Margin="10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="30" />
+                                    </Grid.RowDefinitions>
+                                    <!-- LiveCharts column chart for monthly consumption -->
+                                    <lvc:CartesianChart x:Name="ConsumptionChart" Series="{Binding MonthlyConsumptionSeries}" Grid.Row="0" LegendPosition="Top"/>
+                                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                        <ItemsControl ItemsSource="{Binding MonthlyLabels}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}" FontSize="11" Margin="6,0" HorizontalAlignment="Center">
+                                                        <TextBlock.RenderTransform>
+                                                            <RotateTransform Angle="45"/>
+                                                        </TextBlock.RenderTransform>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </TabItem>
+
+                            <TabItem Header="Activité">
+                                <Grid Height="250" Margin="10">
+                                    <DataGrid ItemsSource="{Binding MonthlyStatistics}"
+                                              AutoGenerateColumns="False"
+                                              Background="White" BorderThickness="0">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Mois" Binding="{Binding MonthName}" Width="100"/>
+                                            <DataGridTextColumn Header="Pleins" Binding="{Binding RefuelCount}" Width="60"/>
+                                            <DataGridTextColumn Header="Maintenance" Binding="{Binding MaintenanceCount}" Width="80"/>
+                                            <DataGridTextColumn Header="Litres" Binding="{Binding TotalLiters, StringFormat={}{0:N0}}" Width="70"/>
+                                            <DataGridTextColumn Header="Coût total" Binding="{Binding TotalCost, StringFormat={}{0:C}}" Width="80"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Comparaisons de performance -->
+                <Border Style="{StaticResource StatCardStyle}" Margin="0,20,0,0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="🏆 Comparaisons de performance"/>
+
+                        <DataGrid ItemsSource="{Binding PerformanceComparisons}"
+                                  AutoGenerateColumns="False"
+                                  Background="White"
+                                  BorderThickness="0"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  MaxHeight="300">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Véhicule" Binding="{Binding VehicleRegistration}" Width="100"/>
+                                <DataGridTextColumn Header="Note" Binding="{Binding PerformanceGrade}" Width="50"/>
+                                <DataGridTextColumn Header="Score" Binding="{Binding EfficiencyRating, StringFormat={}{0:F1}/5}" Width="70"/>
+                                <DataGridTextColumn Header="Conso vs Flotte" Width="120">
+                                    <DataGridTextColumn.Binding>
+                                        <Binding Path="ConsumptionVsFleet" StringFormat="{}{0:+0.0;-0.0}%" />
+                                    </DataGridTextColumn.Binding>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Coût vs Flotte" Width="110">
+                                    <DataGridTextColumn.Binding>
+                                        <Binding Path="CostVsFleet" StringFormat="{}{0:+0.0;-0.0}%" />
+                                    </DataGridTextColumn.Binding>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Recommandations" Binding="{Binding Recommendations}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Actions et exports -->
+                <Border Style="{StaticResource StatCardStyle}" Margin="0,20,0,20">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="📊 Actions et exports"/>
+
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,10">
+                            <Button Content="📈 Voir graphiques avancés"
+                                    Command="{Binding ShowAdvancedChartsCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"/>
+                            <Button Content="🔄 Recalculer tout"
+                                    Command="{Binding RefreshCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"/>
+                            <Button Content="📊 Comparer périodes"
+                                    Command="{Binding ComparePeriodCommand}"
+                                    Style="{StaticResource FilterButtonStyle}"/>
+                            <Button Content="📧 Envoyer rapport"
+                                    Command="{Binding SendReportCommand}"
+                                    Style="{StaticResource FilterButtonStyle}"/>
+                            <Button Content="🎯 Définir objectifs"
+                                    Command="{Binding SetTargetsCommand}"
+                                    Style="{StaticResource FilterButtonStyle}"/>
+                            <Button Content="⚙️ Paramètres d'analyse"
+                                    Command="{Binding AnalysisSettingsCommand}"
+                                    Style="{StaticResource FilterButtonStyle}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

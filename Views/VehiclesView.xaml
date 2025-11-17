@@ -1,0 +1,165 @@
+<UserControl x:Class="FleetManager.Views.VehiclesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Titre -->
+        <TextBlock Grid.Row="0"
+                   Text="Gestion des Véhicules"
+                   Style="{StaticResource TitleStyle}"/>
+
+        <!-- Barre d'outils -->
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Recherche -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Width="300"
+                         Margin="0,0,10,0"
+                         VerticalContentAlignment="Center"
+                         ToolTip="Rechercher par immatriculation, marque ou modèle"/>
+                <Button Content="🔍 Rechercher"
+                        Command="{Binding SearchCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        Margin="0,0,10,0"/>
+                <Button Content="🔄 Tout afficher"
+                        Command="{Binding LoadVehiclesCommand}"
+                        Style="{StaticResource SecondaryButton}"/>
+            </StackPanel>
+
+            <!-- Boutons d'action -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="➕ Nouveau Véhicule"
+                        Command="{Binding AddVehicleCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Margin="0,0,10,0"
+                        ToolTip="Ajouter un nouveau véhicule"/>
+
+                <Button Content="✏️ Modifier"
+                        Command="{Binding EditVehicleCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        Margin="0,0,10,0"/>
+                <Button Content="🗑️ Supprimer"
+                        Command="{Binding DeleteVehicleCommand}"
+                        Background="{StaticResource DangerBrush}"
+                        Foreground="White"
+                        Padding="15,8"
+                        BorderThickness="0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Liste des véhicules -->
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Vehicles}"
+                  SelectedItem="{Binding SelectedVehicle}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  GridLinesVisibility="None"
+                  HeadersVisibility="Column"
+                  AlternatingRowBackground="#F9F9F9"
+                  RowHeight="35">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Immatriculation"
+                                    Binding="{Binding RegistrationNumber}"
+                                    Width="150"/>
+                <DataGridTextColumn Header="Marque"
+                                    Binding="{Binding Brand}"
+                                    Width="120"/>
+                <DataGridTextColumn Header="Modèle"
+                                    Binding="{Binding Model}"
+                                    Width="150"/>
+                <DataGridTextColumn Header="Année"
+                                    Binding="{Binding Year}"
+                                    Width="80"/>
+                <DataGridTextColumn Header="Type"
+                                    Binding="{Binding VehicleType}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Carburant"
+                                    Binding="{Binding FuelType}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Kilométrage"
+                                    Binding="{Binding CurrentMileage, StringFormat=N0}"
+                                    Width="120"/>
+                <DataGridTextColumn Header="Conso. Moy."
+                                    Binding="{Binding AverageFuelConsumption, StringFormat=N2}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Statut"
+                                    Binding="{Binding Status}"
+                                    Width="120"/>
+                <DataGridTemplateColumn Header="Actions" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="✏️"
+                                        Command="{Binding DataContext.EditVehicleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Width="30"
+                                        Height="25"
+                                        Padding="2"
+                                        Margin="2"
+                                        ToolTip="Modifier le véhicule"/>
+                                <Button Content="🗑️"
+                                        Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Background="{StaticResource DangerBrush}"
+                                        Foreground="White"
+                                        Width="30"
+                                        Height="25"
+                                        Padding="2"
+                                        Margin="2"
+                                        BorderThickness="0"
+                                        ToolTip="Supprimer le véhicule"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+
+            <!-- Style pour les en-têtes -->
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Padding" Value="10,8"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <!-- Style pour les lignes -->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Height" Value="35"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#E3F2FD"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+    </Grid>
+</UserControl>

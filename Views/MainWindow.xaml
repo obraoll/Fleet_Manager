@@ -1,0 +1,147 @@
+<Window x:Class="FleetManager.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:FleetManager.Views"
+        xmlns:viewmodels="clr-namespace:FleetManager.ViewModels"
+        Title="Fleet Manager"
+        Height="700"
+        Width="1200"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête -->
+        <Border Grid.Row="0"
+                Background="{StaticResource PrimaryBrush}"
+                BorderBrush="{StaticResource PrimaryDarkBrush}"
+                BorderThickness="0,0,0,2">
+            <Grid Margin="20,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🚗 Fleet Manager"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               VerticalAlignment="Center"
+                               Margin="0,0,30,0"/>
+
+                    <!-- Navigation -->
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Tableau de bord"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="DashboardView"
+                                Style="{StaticResource NavButtonStyle}"
+                                Margin="0,0,5,0"/>
+
+                        <Button Content="Véhicules"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="VehiclesView"
+                                Style="{StaticResource NavButtonStyle}"
+                                Margin="5,0"/>
+
+                        <Button Content="Carburant"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="FuelView"
+                                Style="{StaticResource NavButtonStyle}"
+                                Margin="5,0"/>
+
+                        <Button Content="Entretien"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="MaintenanceView"
+                                Style="{StaticResource NavButtonStyle}"
+                                Margin="5,0"/>
+
+                        <Button Content="Statistiques"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="StatisticsView"
+                                Style="{StaticResource NavButtonStyle}"
+                                Margin="5,0"/>
+
+                        <Button Content="Utilisateurs"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="UsersView"
+                                Style="{StaticResource NavButtonStyle}"
+                                Margin="5,0"
+                                Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibility}}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center">
+                    <TextBlock Text="{Binding CurrentUserName}"
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"/>
+                    <TextBlock Text="|"
+                               Foreground="White"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding CurrentUserRole}"
+                               Foreground="White"
+                               VerticalAlignment="Center"
+                               Margin="0,0,20,0"/>
+                    <Button Content="Déconnexion"
+                            Command="{Binding LogoutCommand}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                            Style="{StaticResource NavButtonStyle}"
+                            Background="{StaticResource DangerBrush}"
+                            Foreground="White"
+                            Padding="15,8"
+                            BorderThickness="0"
+                            Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Contenu principal -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Menu latéral -->
+            <Border Grid.Column="0"
+                    Background="#F8F9FA"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,0,1,0">
+                <StackPanel Margin="0,20,0,0">
+                    <Button Content="🏠 Tableau de bord"
+                            Command="{Binding NavigateToDashboardCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="10,5"
+                            HorizontalAlignment="Stretch"/>
+
+                    <Button Content="🚗 Véhicules"
+                            Command="{Binding NavigateToVehiclesCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="10,5"
+                            HorizontalAlignment="Stretch"/>
+
+                    <Button Content="⛽ Carburant"
+                            Command="{Binding NavigateToFuelCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="10,5"
+                            HorizontalAlignment="Stretch"/>
+
+                    <Button Content="📊 Statistiques"
+                            Command="{Binding NavigateToStatisticsCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="10,5"
+                            HorizontalAlignment="Stretch"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Zone de contenu dynamique -->
+            <ContentControl Grid.Column="1"
+                           Content="{Binding CurrentView}"
+                           Margin="20"/>
+        </Grid>
+    </Grid>
+</Window>

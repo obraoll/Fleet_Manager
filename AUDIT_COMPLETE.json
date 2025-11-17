@@ -1,0 +1,664 @@
+{
+  "audit_metadata": {
+    "project": "FleetManager",
+    "framework": ".NET 8.0 WPF",
+    "date_generated": "2025-11-17",
+    "compilation_status": "SUCCESS",
+    "compilation_errors": 0,
+    "compilation_warnings": 32,
+    "total_missing_elements": 30,
+    "total_estimated_hours": 11,
+    "total_estimated_days": 3
+  },
+  
+  "missing_commands": {
+    "total": 9,
+    "priority": "HIGH",
+    "estimated_hours": 2,
+    "commands": [
+      {
+        "id": 1,
+        "view_model": "DashboardViewModel",
+        "command_name": "ViewDetailedStatisticsCommand",
+        "property_type": "ICommand",
+        "command_type": "AsyncRelayCommand",
+        "button_text": "📊 Voir statistiques détaillées",
+        "xaml_file": "DashboardView.xaml",
+        "xaml_line": 481,
+        "action": "Navigate to StatisticsView",
+        "implementation": "ViewDetailedStatistics()",
+        "priority": "HIGH",
+        "status": "MISSING",
+        "time_estimate": "10 minutes"
+      },
+      {
+        "id": 2,
+        "view_model": "DashboardViewModel",
+        "command_name": "GenerateReportCommand",
+        "property_type": "ICommand",
+        "command_type": "AsyncRelayCommand",
+        "button_text": "📝 Générer rapport",
+        "xaml_file": "DashboardView.xaml",
+        "xaml_line": 485,
+        "action": "Generate PDF report",
+        "implementation": "GenerateReportAsync()",
+        "service_required": "ExportService",
+        "priority": "HIGH",
+        "status": "MISSING",
+        "time_estimate": "15 minutes"
+      },
+      {
+        "id": 3,
+        "view_model": "DashboardViewModel",
+        "command_name": "ExportDataCommand",
+        "property_type": "ICommand",
+        "command_type": "AsyncRelayCommand",
+        "button_text": "📤 Exporter données",
+        "xaml_file": "DashboardView.xaml",
+        "xaml_line": 489,
+        "action": "Export to CSV",
+        "implementation": "ExportDataAsync()",
+        "service_required": "ExportService",
+        "priority": "HIGH",
+        "status": "MISSING",
+        "time_estimate": "10 minutes"
+      },
+      {
+        "id": 4,
+        "view_model": "DashboardViewModel",
+        "command_name": "OpenSettingsCommand",
+        "property_type": "ICommand",
+        "command_type": "RelayCommand",
+        "button_text": "⚙️ Configuration",
+        "xaml_file": "DashboardView.xaml",
+        "xaml_line": 493,
+        "action": "Open SettingsWindow",
+        "implementation": "OpenSettings()",
+        "window_required": "SettingsWindow",
+        "priority": "HIGH",
+        "status": "MISSING",
+        "time_estimate": "10 minutes"
+      },
+      {
+        "id": 5,
+        "view_model": "StatisticsViewModel",
+        "command_name": "ViewAdvancedChartsCommand",
+        "property_type": "ICommand",
+        "command_type": "RelayCommand",
+        "button_text": "📈 Voir graphiques avancés",
+        "xaml_file": "StatisticsView.xaml",
+        "xaml_line": 571,
+        "action": "Open AdvancedChartsWindow",
+        "implementation": "ViewAdvancedCharts()",
+        "window_required": "AdvancedChartsWindow",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "15 minutes"
+      },
+      {
+        "id": 6,
+        "view_model": "StatisticsViewModel",
+        "command_name": "ComparePeriodCommand",
+        "property_type": "ICommand",
+        "command_type": "RelayCommand",
+        "button_text": "📊 Comparer périodes",
+        "xaml_file": "StatisticsView.xaml",
+        "xaml_line": 576,
+        "action": "Open ComparePeriodWindow",
+        "implementation": "OpenComparePeriodWindow()",
+        "window_required": "ComparePeriodWindow",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "20 minutes"
+      },
+      {
+        "id": 7,
+        "view_model": "StatisticsViewModel",
+        "command_name": "SendReportCommand",
+        "property_type": "ICommand",
+        "command_type": "AsyncRelayCommand",
+        "button_text": "📧 Envoyer rapport",
+        "xaml_file": "StatisticsView.xaml",
+        "xaml_line": 578,
+        "action": "Send report via email",
+        "implementation": "SendReportAsync()",
+        "service_required": "EmailService",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "15 minutes"
+      },
+      {
+        "id": 8,
+        "view_model": "StatisticsViewModel",
+        "command_name": "SetTargetsCommand",
+        "property_type": "ICommand",
+        "command_type": "RelayCommand",
+        "button_text": "🎯 Définir objectifs",
+        "xaml_file": "StatisticsView.xaml",
+        "xaml_line": 580,
+        "action": "Open TargetsWindow",
+        "implementation": "OpenTargetsWindow()",
+        "window_required": "TargetsWindow",
+        "service_required": "TargetService",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "15 minutes"
+      },
+      {
+        "id": 9,
+        "view_model": "StatisticsViewModel",
+        "command_name": "AnalysisSettingsCommand",
+        "property_type": "ICommand",
+        "command_type": "RelayCommand",
+        "button_text": "⚙️ Paramètres d'analyse",
+        "xaml_file": "StatisticsView.xaml",
+        "xaml_line": 582,
+        "action": "Open AnalysisSettingsWindow",
+        "implementation": "OpenAnalysisSettings()",
+        "window_required": "AnalysisSettingsWindow",
+        "service_required": "ConfigurationService",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "15 minutes"
+      }
+    ]
+  },
+
+  "missing_services": {
+    "total": 3,
+    "priority": "MEDIUM",
+    "estimated_hours": 1.5,
+    "services": [
+      {
+        "id": 1,
+        "name": "EmailService",
+        "namespace": "FleetManager.Services",
+        "file": "Services/EmailService.cs",
+        "interface": "IEmailService",
+        "methods": [
+          {
+            "name": "SendEmailAsync",
+            "signature": "Task<(bool success, string message)> SendEmailAsync(string to, string subject, string body)",
+            "purpose": "Send email notification"
+          },
+          {
+            "name": "SendReportAsync",
+            "signature": "Task<(bool success, string message)> SendReportAsync(string to, string reportContent, string filename)",
+            "purpose": "Send report attachment"
+          }
+        ],
+        "di_registration": "services.AddSingleton<IEmailService, EmailService>();",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "30 minutes"
+      },
+      {
+        "id": 2,
+        "name": "ConfigurationService",
+        "namespace": "FleetManager.Services",
+        "file": "Services/ConfigurationService.cs",
+        "interface": "IConfigurationService",
+        "methods": [
+          {
+            "name": "GetDashboardSettings",
+            "signature": "Dictionary<string, object> GetDashboardSettings()",
+            "purpose": "Retrieve dashboard configuration"
+          },
+          {
+            "name": "SetDashboardSettings",
+            "signature": "void SetDashboardSettings(Dictionary<string, object> settings)",
+            "purpose": "Update dashboard configuration"
+          },
+          {
+            "name": "GetAlertThreshold",
+            "signature": "int GetAlertThreshold(string type)",
+            "purpose": "Get alert threshold by type"
+          }
+        ],
+        "di_registration": "services.AddSingleton<IConfigurationService, ConfigurationService>();",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "25 minutes"
+      },
+      {
+        "id": 3,
+        "name": "TargetService",
+        "namespace": "FleetManager.Services",
+        "file": "Services/TargetService.cs",
+        "interface": "ITargetService",
+        "model": "VehicleTarget",
+        "methods": [
+          {
+            "name": "GetVehicleTargetAsync",
+            "signature": "Task<VehicleTarget> GetVehicleTargetAsync(int vehicleId)",
+            "purpose": "Retrieve vehicle consumption/budget target"
+          },
+          {
+            "name": "SetVehicleTargetAsync",
+            "signature": "Task<bool> SetVehicleTargetAsync(VehicleTarget target)",
+            "purpose": "Set or update vehicle target"
+          }
+        ],
+        "di_registration": "services.AddSingleton<ITargetService, TargetService>();",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "25 minutes"
+      }
+    ]
+  },
+
+  "missing_converters": {
+    "total": 2,
+    "priority": "MEDIUM",
+    "estimated_hours": 0.75,
+    "converters": [
+      {
+        "id": 1,
+        "name": "PriorityToColorConverter",
+        "namespace": "FleetManager.Helpers",
+        "file": "Helpers/PriorityToColorConverter.cs",
+        "input_type": "AlertPriority (enum)",
+        "output_type": "SolidColorBrush",
+        "mapping": {
+          "Critical": "#F44336 (Red)",
+          "High": "#FF9800 (Orange)",
+          "Medium": "#FFC107 (Amber)",
+          "Low": "#4CAF50 (Green)",
+          "default": "#9E9E9E (Gray)"
+        },
+        "usage": "DashboardView.xaml - Alert background coloring",
+        "xaml_usage": "<Border Background=\"{Binding Priority, Converter={StaticResource PriorityToColorConverter}}\"/>",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "15 minutes"
+      },
+      {
+        "id": 2,
+        "name": "NumericToHeightConverter",
+        "namespace": "FleetManager.Helpers",
+        "file": "Helpers/NumericToHeightConverter.cs",
+        "input_type": "Decimal or Double",
+        "output_type": "Double (Height)",
+        "formula": "Height = Value × 0.5",
+        "usage": "StatisticsView.xaml - Chart bar height calculation",
+        "xaml_usage": "<Border Height=\"{Binding Value, Converter={StaticResource NumericToHeightConverter}}\"/>",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "15 minutes"
+      }
+    ]
+  },
+
+  "missing_windows": {
+    "total": 4,
+    "priority": "MEDIUM",
+    "estimated_hours": 4,
+    "windows": [
+      {
+        "id": 1,
+        "name": "SettingsWindow",
+        "xaml_file": "Views/SettingsWindow.xaml",
+        "xaml_cs_file": "Views/SettingsWindow.xaml.cs",
+        "viewmodel_file": "ViewModels/SettingsViewModel.cs",
+        "command_trigger": "OpenSettingsCommand",
+        "dialog_size": "500x400",
+        "content": [
+          "High consumption threshold (TextBox)",
+          "Cost alert threshold (TextBox)",
+          "Refresh interval in minutes (TextBox)",
+          "Show critical alerts (CheckBox)",
+          "Show real-time graphics (CheckBox)"
+        ],
+        "buttons": ["OK", "Cancel"],
+        "service_required": "ConfigurationService",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "1 hour"
+      },
+      {
+        "id": 2,
+        "name": "ComparePeriodWindow",
+        "xaml_file": "Views/ComparePeriodWindow.xaml",
+        "xaml_cs_file": "Views/ComparePeriodWindow.xaml.cs",
+        "viewmodel_file": "ViewModels/ComparePeriodViewModel.cs",
+        "command_trigger": "ComparePeriodCommand",
+        "dialog_size": "700x500",
+        "content": [
+          "Period 1 start/end date (DatePicker)",
+          "Period 2 start/end date (DatePicker)",
+          "Comparison visualization (Charts)",
+          "Detail table (DataGrid)"
+        ],
+        "buttons": ["Export", "Close"],
+        "service_required": "StatisticsService",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "1 hour"
+      },
+      {
+        "id": 3,
+        "name": "TargetsWindow",
+        "xaml_file": "Views/TargetsWindow.xaml",
+        "xaml_cs_file": "Views/TargetsWindow.xaml.cs",
+        "viewmodel_file": "ViewModels/TargetsViewModel.cs",
+        "command_trigger": "SetTargetsCommand",
+        "dialog_size": "600x400",
+        "content": [
+          "Vehicle selection (ComboBox)",
+          "Target consumption L/100km (TextBox)",
+          "Target monthly budget € (TextBox)",
+          "Current targets list (DataGrid)"
+        ],
+        "buttons": ["Add", "Edit", "Delete", "OK"],
+        "service_required": "TargetService",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "1 hour"
+      },
+      {
+        "id": 4,
+        "name": "AnalysisSettingsWindow",
+        "xaml_file": "Views/AnalysisSettingsWindow.xaml",
+        "xaml_cs_file": "Views/AnalysisSettingsWindow.xaml.cs",
+        "viewmodel_file": "ViewModels/AnalysisSettingsViewModel.cs",
+        "command_trigger": "AnalysisSettingsCommand",
+        "dialog_size": "550x450",
+        "content": [
+          "Include maintenance in costs (CheckBox)",
+          "Show predictions (CheckBox)",
+          "Compare with previous year (CheckBox)",
+          "Include suspended alerts (CheckBox)",
+          "Grouping: By month/Quarter/Global (RadioButton)",
+          "Metrics selection (CheckBox list)"
+        ],
+        "buttons": ["Apply", "Reset", "Close"],
+        "service_required": "ConfigurationService",
+        "priority": "MEDIUM",
+        "status": "MISSING",
+        "time_estimate": "1 hour"
+      }
+    ]
+  },
+
+  "missing_bindings": {
+    "total": 9,
+    "priority": "HIGH",
+    "estimated_hours": 0.25,
+    "bindings": [
+      {
+        "id": 1,
+        "file": "Views/DashboardView.xaml",
+        "line": 481,
+        "button_content": "📊 Voir statistiques détaillées",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding ViewDetailedStatisticsCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 2,
+        "file": "Views/DashboardView.xaml",
+        "line": 485,
+        "button_content": "📝 Générer rapport",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding GenerateReportCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 3,
+        "file": "Views/DashboardView.xaml",
+        "line": 489,
+        "button_content": "📤 Exporter données",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding ExportDataCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 4,
+        "file": "Views/DashboardView.xaml",
+        "line": 493,
+        "button_content": "⚙️ Configuration",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding OpenSettingsCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 5,
+        "file": "Views/StatisticsView.xaml",
+        "line": 571,
+        "button_content": "📈 Voir graphiques avancés",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding ViewAdvancedChartsCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 6,
+        "file": "Views/StatisticsView.xaml",
+        "line": 576,
+        "button_content": "📊 Comparer périodes",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding ComparePeriodCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 7,
+        "file": "Views/StatisticsView.xaml",
+        "line": 578,
+        "button_content": "📧 Envoyer rapport",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding SendReportCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 8,
+        "file": "Views/StatisticsView.xaml",
+        "line": 580,
+        "button_content": "🎯 Définir objectifs",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding SetTargetsCommand}\"",
+        "status": "MISSING"
+      },
+      {
+        "id": 9,
+        "file": "Views/StatisticsView.xaml",
+        "line": 582,
+        "button_content": "⚙️ Paramètres d'analyse",
+        "current": "<Button Content=\"...\" />",
+        "required": "Command=\"{Binding AnalysisSettingsCommand}\"",
+        "status": "MISSING"
+      }
+    ]
+  },
+
+  "missing_graphics": {
+    "total": 3,
+    "priority": "HIGH",
+    "estimated_hours": 2.5,
+    "graphics": [
+      {
+        "id": 1,
+        "file": "Views/DashboardView.xaml",
+        "line": 214,
+        "current_type": "Canvas",
+        "current_status": "Static bar chart (ConsumptionTrend)",
+        "replacement": "CartesianChart (LineChart)",
+        "package": "LiveChartsCore.SkiaSharpView.WPF",
+        "data_source": "ConsumptionTrend (ObservableCollection<TimeSeriesData>)",
+        "priority": "HIGH",
+        "status": "MISSING",
+        "time_estimate": "45 minutes"
+      },
+      {
+        "id": 2,
+        "file": "Views/DashboardView.xaml",
+        "line": 238,
+        "current_type": "Canvas",
+        "current_status": "Static bar chart (CostTrend)",
+        "replacement": "CartesianChart (LineChart)",
+        "package": "LiveChartsCore.SkiaSharpView.WPF",
+        "data_source": "CostTrend (ObservableCollection<TimeSeriesData>)",
+        "priority": "HIGH",
+        "status": "MISSING",
+        "time_estimate": "45 minutes"
+      },
+      {
+        "id": 3,
+        "file": "Views/StatisticsView.xaml",
+        "line": "458-502",
+        "current_type": "Canvas",
+        "current_status": "Static bar chart (MonthlyStatistics)",
+        "replacement": "CartesianChart (BarChart)",
+        "package": "LiveChartsCore.SkiaSharpView.WPF",
+        "data_source": "MonthlyStatistics (ObservableCollection<MonthlyStatistics>)",
+        "priority": "HIGH",
+        "status": "MISSING",
+        "time_estimate": "1 hour"
+      }
+    ]
+  },
+
+  "implementation_schedule": {
+    "total_days": 3,
+    "total_hours": 11,
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Commands & Graphics",
+        "priority": "HIGH",
+        "hours": 4.5,
+        "day": "Day 1-2",
+        "tasks": [
+          "Add 9 commands to ViewModels (2h)",
+          "Add 9 XAML bindings (15min)",
+          "Replace 3 Canvas with LiveCharts (2-3h)"
+        ],
+        "estimated_time": "4.5-5.5h"
+      },
+      {
+        "phase": 2,
+        "name": "Services & Converters",
+        "priority": "MEDIUM",
+        "hours": 2,
+        "day": "Day 2",
+        "tasks": [
+          "Create 3 Services (1.5h)",
+          "Create 2 Converters (30min)"
+        ],
+        "estimated_time": "2h"
+      },
+      {
+        "phase": 3,
+        "name": "Windows & ViewModels",
+        "priority": "MEDIUM",
+        "hours": 4,
+        "day": "Day 3",
+        "tasks": [
+          "Create SettingsWindow (1h)",
+          "Create ComparePeriodWindow (1h)",
+          "Create TargetsWindow (1h)",
+          "Create AnalysisSettingsWindow (1h)"
+        ],
+        "estimated_time": "4h"
+      },
+      {
+        "phase": 4,
+        "name": "Testing & Optimization",
+        "priority": "NORMAL",
+        "hours": 2,
+        "day": "Day 3+",
+        "tasks": [
+          "Integration testing (1h)",
+          "UI Polish and refinement (30min)",
+          "Performance validation (30min)"
+        ],
+        "estimated_time": "2h"
+      }
+    ]
+  },
+
+  "di_configuration": {
+    "file": "App.xaml.cs",
+    "method": "ConfigureServices()",
+    "registrations": [
+      {
+        "type": "Service",
+        "interface": "IEmailService",
+        "implementation": "EmailService",
+        "lifetime": "Singleton",
+        "code": "services.AddSingleton<IEmailService, EmailService>();"
+      },
+      {
+        "type": "Service",
+        "interface": "IConfigurationService",
+        "implementation": "ConfigurationService",
+        "lifetime": "Singleton",
+        "code": "services.AddSingleton<IConfigurationService, ConfigurationService>();"
+      },
+      {
+        "type": "Service",
+        "interface": "ITargetService",
+        "implementation": "TargetService",
+        "lifetime": "Singleton",
+        "code": "services.AddSingleton<ITargetService, TargetService>();"
+      },
+      {
+        "type": "ViewModel",
+        "name": "SettingsViewModel",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<SettingsViewModel>();"
+      },
+      {
+        "type": "ViewModel",
+        "name": "ComparePeriodViewModel",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<ComparePeriodViewModel>();"
+      },
+      {
+        "type": "ViewModel",
+        "name": "TargetsViewModel",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<TargetsViewModel>();"
+      },
+      {
+        "type": "ViewModel",
+        "name": "AnalysisSettingsViewModel",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<AnalysisSettingsViewModel>();"
+      },
+      {
+        "type": "View",
+        "name": "SettingsWindow",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<SettingsWindow>();"
+      },
+      {
+        "type": "View",
+        "name": "ComparePeriodWindow",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<ComparePeriodWindow>();"
+      },
+      {
+        "type": "View",
+        "name": "TargetsWindow",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<TargetsWindow>();"
+      },
+      {
+        "type": "View",
+        "name": "AnalysisSettingsWindow",
+        "lifetime": "Transient",
+        "code": "services.AddTransient<AnalysisSettingsWindow>();"
+      }
+    ]
+  },
+
+  "summary": {
+    "total_elements_missing": 30,
+    "compilation_ready": true,
+    "estimated_effort_hours": 11,
+    "estimated_effort_days": 3,
+    "critical_path": "Phase 1 (Commands) → Phase 5 (LiveCharts) → Phase 2/3",
+    "risk_level": "LOW",
+    "dependencies": "DI configuration is critical - must be done early",
+    "next_action": "Start with Phase 1 - Add 9 commands and 9 XAML bindings"
+  }
+}
