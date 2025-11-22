@@ -1,0 +1,56 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+*.cache
+*.pidb
+*.log
+
+# NuGet
+*.nupkg
+packages/
+*.snupkg
+
+# Compiled
+*.dll
+*.exe
+*.pdb
+
+# Publish
+publish/
+Release/
+Debug/
+
+# Configuration sensitive
+appsettings.Development.json
+appsettings.Local.json
+*.secret.json
+
+# Logs
+*.log
+
+# Backups / Temporary
+*.tmp
+*.temp
+*.bak
+*.old
+
+# OS junk
+Thumbs.db
+desktop.ini
+
+# Rider / Other IDE
+.idea/
+*.iml
+
+# Cache
+*.db-shm
+*.db-wal
+
+# Generated files
+*.generated.cs

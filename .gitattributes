@@ -1,0 +1,29 @@
+# Set default behavior to automatically normalize line endings.
+* text=auto
+
+# C# files
+*.cs text
+*.xaml text
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+# Fonts / media
+*.ttf binary
+*.woff binary
+*.mp4 binary
+*.mov binary
+
+# SQL files
+*.sql text
+
+# JSON / XML
+*.json text
+*.xml text
+
+# GitHub linguist override (optional)
+*.md linguist-documentation
