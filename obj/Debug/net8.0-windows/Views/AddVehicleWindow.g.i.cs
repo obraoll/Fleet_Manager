@@ -53,7 +53,7 @@ namespace FleetManager.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/FleetManager;component/views/addvehiclewindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/FleetManager;V1.0.0.0;component/views/addvehiclewindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\AddVehicleWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

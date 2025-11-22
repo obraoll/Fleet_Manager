@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FleetManager.Models;
@@ -34,7 +35,12 @@ namespace FleetManager.Services
         /// <summary>
         /// Vérifie si l'utilisateur actuel est administrateur
         /// </summary>
-        public bool IsAdmin => _currentUser?.Role == UserRole.Admin;
+        public bool IsAdmin => _currentUser?.Role == "Admin" || _currentUser?.Role == "SuperAdmin";
+
+        /// <summary>
+        /// Vérifie si l'utilisateur actuel est super administrateur
+        /// </summary>
+        public bool IsSuperAdmin => _currentUser?.Role == "SuperAdmin";
 
         /// <summary>
         /// Authentifie un utilisateur
@@ -134,7 +140,7 @@ namespace FleetManager.Services
                     PasswordHash = passwordHash,
                     FullName = fullName,
                     Email = email,
-                    Role = role,
+                    Role = role.ToString(),
                     IsActive = true,
                     CreatedAt = DateTime.Now
                 };
@@ -196,6 +202,9 @@ namespace FleetManager.Services
 
                 if (!await context.Users.AnyAsync())
                 {
+                    // Créer le super administrateur par défaut
+                    await CreateUserAsync("superadmin", "SuperAdmin123!", "Super Administrateur", "superadmin@fleetmanager.com", UserRole.SuperAdmin);
+
                     // Créer l'administrateur par défaut
                     await CreateUserAsync("admin", "admin123", "Administrateur", "admin@fleetmanager.com", UserRole.Admin);
 
@@ -206,6 +215,108 @@ namespace FleetManager.Services
             catch (Exception)
             {
                 // Ignorer les erreurs d'initialisation
+            }
+        }
+
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
+            return await context.Users.OrderBy(u => u.Username).ToListAsync();
+        }
+
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
+            return await context.Users.FindAsync(userId);
+        }
+
+        public async Task<bool> UpdateUserAsync(User user)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
+                
+                var existingUser = await context.Users.FindAsync(user.UserId);
+                if (existingUser == null) return false;
+
+                // Protection: Seul un SuperAdmin peut modifier un SuperAdmin
+                if (existingUser.Role == "SuperAdmin" && _currentUser?.Role != "SuperAdmin")
+                {
+                    return false;
+                }
+
+                // Protection: Un Admin ne peut pas promouvoir quelqu'un en SuperAdmin
+                if (user.Role == "SuperAdmin" && _currentUser?.Role != "SuperAdmin")
+                {
+                    return false;
+                }
+
+                existingUser.FullName = user.FullName;
+                existingUser.Email = user.Email;
+                existingUser.Role = user.Role;
+                existingUser.IsActive = user.IsActive;
+
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteUserAsync(int userId)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
+                
+                var user = await context.Users.FindAsync(userId);
+                if (user == null) return false;
+
+                // Protection: Un SuperAdmin ne peut jamais être supprimé
+                if (user.Role == "SuperAdmin")
+                {
+                    return false;
+                }
+
+                // Protection: Seul un SuperAdmin peut supprimer un Admin
+                if (user.Role == "Admin" && _currentUser?.Role != "SuperAdmin")
+                {
+                    return false;
+                }
+
+                context.Users.Remove(user);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ResetPasswordAsync(int userId, string newPassword)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
+                
+                var user = await context.Users.FindAsync(userId);
+                if (user == null) return false;
+
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

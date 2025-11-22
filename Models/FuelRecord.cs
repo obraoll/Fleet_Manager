@@ -11,55 +11,63 @@ namespace FleetManager.Models
     public class FuelRecord
     {
         [Key]
+        [Column("FuelRecordId")]
         public int FuelRecordId { get; set; }
 
         [Required]
+        [Column("VehicleId")]
         public int VehicleId { get; set; }
 
+        [Column("DriverId")]
+        public int? DriverId { get; set; }
+
         [Required]
+        [Column("RefuelDate")]
         public DateTime RefuelDate { get; set; } = DateTime.Now;
 
         [Required]
-        [Column(TypeName = "decimal(10,2)")]
+        [Column("Mileage", TypeName = "decimal(10,2)")]
         public decimal Mileage { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(8,2)")]
+        [Column("LitersRefueled", TypeName = "decimal(10,2)")]
         public decimal LitersRefueled { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(6,2)")]
+        [Column("PricePerLiter", TypeName = "decimal(5,3)")]
         public decimal PricePerLiter { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(10,2)")]
+        [Column("TotalCost", TypeName = "decimal(10,2)")]
         public decimal TotalCost { get; set; }
 
         [Required]
-        public FuelType FuelType { get; set; }
+        [Column("FuelType")]
+        public string FuelType { get; set; } = string.Empty;
 
+        [Column("IsFullTank")]
         public bool IsFullTank { get; set; } = true;
 
         [MaxLength(100)]
+        [Column("Station")]
         public string? Station { get; set; }
 
-        [Column(TypeName = "decimal(5,2)")]
+        [Column("CalculatedConsumption", TypeName = "decimal(5,2)")]
         public decimal? CalculatedConsumption { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal? DistanceSinceLastRefuel { get; set; }
+        [Column("PaymentMethod")]
+        public string? PaymentMethod { get; set; }
 
+        [Column("Notes")]
         public string? Notes { get; set; }
 
-        public int? CreatedBy { get; set; }
-
+        [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
         [ForeignKey("VehicleId")]
         public virtual Vehicle Vehicle { get; set; } = null!;
-
-        [ForeignKey("CreatedBy")]
-        public virtual User? Creator { get; set; }
+        [ForeignKey("DriverId")]
+        public virtual Driver? Driver { get; set; }
     }
 }

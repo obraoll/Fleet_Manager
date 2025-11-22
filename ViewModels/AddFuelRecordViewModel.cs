@@ -24,7 +24,7 @@ namespace FleetManager.ViewModels
         // Propriétés du plein
         private Vehicle? _selectedVehicle;
         private decimal _currentMileage;
-        private FuelType _fuelType = FuelType.Essence;
+        private string _fuelType = "Essence";
         private decimal _quantityLiters;
         private decimal _pricePerLiter;
         private decimal _totalCost;
@@ -93,7 +93,7 @@ namespace FleetManager.ViewModels
             }
         }
 
-        public FuelType FuelType
+        public string FuelType
         {
             get => _fuelType;
             set => SetProperty(ref _fuelType, value);
@@ -215,7 +215,7 @@ namespace FleetManager.ViewModels
                 var vehicles = await _vehicleService.GetAllVehiclesAsync();
 
                 // Filtrer les véhicules actifs uniquement
-                var activeVehicles = vehicles.Where(v => v.Status == VehicleStatus.Actif).ToList();
+                var activeVehicles = vehicles.Where(v => v.Status == "Actif").ToList();
 
                 AvailableVehicles = new ObservableCollection<Vehicle>(activeVehicles);
                 System.Diagnostics.Debug.WriteLine($"{activeVehicles.Count} véhicules actifs chargés");
@@ -235,7 +235,7 @@ namespace FleetManager.ViewModels
             try
             {
                 // Définir le type de carburant selon le véhicule
-                FuelType = SelectedVehicle.FuelType;
+                FuelType = SelectedVehicle.FuelType; // Already string
 
                 // Définir le kilométrage actuel du véhicule
                 CurrentMileage = SelectedVehicle.CurrentMileage;
@@ -394,14 +394,13 @@ namespace FleetManager.ViewModels
                     IsFullTank = IsFullTank,
                     Station = string.IsNullOrWhiteSpace(StationName) ? null : StationName.Trim(),
                     Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim(),
-                    CreatedBy = _authService.CurrentUser?.UserId,
                     CreatedAt = DateTime.Now
                 };
 
                 System.Diagnostics.Debug.WriteLine($"Création plein: {SelectedVehicle.RegistrationNumber} - {QuantityLiters}L à {PricePerLiter}€/L");
 
                 // Sauvegarder via le service
-                var (success, message) = await _fuelService.AddFuelRecordAsync(fuelRecord, _authService.CurrentUser?.UserId ?? 0);
+                var (success, message) = await _fuelService.AddFuelRecordAsync(fuelRecord);
 
                 if (success)
                 {

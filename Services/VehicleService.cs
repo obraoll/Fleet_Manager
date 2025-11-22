@@ -67,18 +67,6 @@ namespace FleetManager.Services
                     return (false, $"Un véhicule avec l'immatriculation '{vehicle.RegistrationNumber}' existe déjà.");
                 }
 
-                // Vérifier l'unicité du VIN si fourni
-                if (!string.IsNullOrWhiteSpace(vehicle.VIN))
-                {
-                    var existingVin = await _context.Vehicles
-                        .FirstOrDefaultAsync(v => v.VIN == vehicle.VIN);
-
-                    if (existingVin != null)
-                    {
-                        return (false, $"Un véhicule avec le VIN '{vehicle.VIN}' existe déjà.");
-                    }
-                }
-
                 // Ajouter le véhicule
                 _context.Vehicles.Add(vehicle);
                 await _context.SaveChangesAsync();
@@ -144,15 +132,14 @@ namespace FleetManager.Services
                 existing.VehicleType = vehicle.VehicleType;
                 existing.FuelType = vehicle.FuelType;
                 existing.CurrentMileage = vehicle.CurrentMileage;
+                existing.TankCapacity = vehicle.TankCapacity;
+                existing.AverageFuelConsumption = vehicle.AverageFuelConsumption;
                 existing.Status = vehicle.Status;
-                existing.Color = vehicle.Color;
-                existing.VIN = vehicle.VIN;
                 existing.PurchaseDate = vehicle.PurchaseDate;
                 existing.PurchasePrice = vehicle.PurchasePrice;
                 existing.InsuranceExpiryDate = vehicle.InsuranceExpiryDate;
                 existing.TechnicalInspectionDate = vehicle.TechnicalInspectionDate;
                 existing.Notes = vehicle.Notes;
-                existing.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
                 return (true, "Véhicule mis à jour avec succès.");
@@ -198,13 +185,13 @@ namespace FleetManager.Services
             if (vehicle == null)
                 return new VehicleStatistics();
 
+            var maintenanceRepo = new MaintenanceRepository(_context);
+
             var fuelRecords = await _context.FuelRecords
                 .Where(f => f.VehicleId == vehicleId)
                 .ToListAsync();
 
-            var maintenanceRecords = await _context.MaintenanceRecords
-                .Where(m => m.VehicleId == vehicleId)
-                .ToListAsync();
+            var maintenanceRecords = await maintenanceRepo.GetByVehicleIdAsync(vehicleId);
 
             var stats = new VehicleStatistics
             {

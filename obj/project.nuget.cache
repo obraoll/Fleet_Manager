@@ -151,7 +151,7 @@
     {
       "code": "NU1603",
       "level": "Warning",
-      "message": "FleetManager dépend de itext (>= 8.0.6) mais itext 8.0.6 est introuvable. itext 9.0.0 a été résolu à la place.",
+      "message": "FleetManager depends on itext (>= 8.0.6) but itext 8.0.6 was not found. itext 9.0.0 was resolved instead.",
       "projectPath": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",
@@ -163,7 +163,7 @@
     {
       "code": "NU1603",
       "level": "Warning",
-      "message": "FleetManager dépend de itext.bouncy-castle-adapter (>= 8.0.6) mais itext.bouncy-castle-adapter 8.0.6 est introuvable. itext.bouncy-castle-adapter 9.0.0 a été résolu à la place.",
+      "message": "FleetManager depends on itext.bouncy-castle-adapter (>= 8.0.6) but itext.bouncy-castle-adapter 8.0.6 was not found. itext.bouncy-castle-adapter 9.0.0 was resolved instead.",
       "projectPath": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",

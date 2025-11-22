@@ -8,9 +8,11 @@ namespace FleetManager.Views
     /// </summary>
     public partial class DashboardView : UserControl
     {
-        public DashboardView()
+        public DashboardView(DashboardViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
+            System.Diagnostics.Debug.WriteLine($"DashboardView créée avec ViewModel: {viewModel != null}");
         }
 
         /// <summary>

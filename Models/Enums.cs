@@ -5,6 +5,7 @@ namespace FleetManager.Models
     /// </summary>
     public enum UserRole
     {
+        SuperAdmin,
         Admin,
         User
     }

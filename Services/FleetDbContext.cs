@@ -16,7 +16,7 @@ namespace FleetManager.Services
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Vehicle> Vehicles { get; set; } = null!;
         public DbSet<FuelRecord> FuelRecords { get; set; } = null!;
-        public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; } = null!;
+        // MaintenanceRecord retiré du DbContext - utilisation d'ADO.NET uniquement
         public DbSet<Driver> Drivers { get; set; } = null!;
         public DbSet<VehicleAssignment> VehicleAssignments { get; set; } = null!;
 
@@ -24,57 +24,28 @@ namespace FleetManager.Services
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuration des enums pour MySQL
-            modelBuilder.Entity<User>()
-                .Property(u => u.Role)
-                .HasConversion<string>();
-
+            // Index
             modelBuilder.Entity<Vehicle>(entity =>
             {
-                entity.Property(v => v.VehicleType).HasConversion<string>();
-                entity.Property(v => v.FuelType).HasConversion<string>();
-                entity.Property(v => v.Status).HasConversion<string>();
-
-                // Index
                 entity.HasIndex(v => v.RegistrationNumber).IsUnique();
-                entity.HasIndex(v => v.VIN).IsUnique();
             });
 
             modelBuilder.Entity<FuelRecord>(entity =>
             {
-                entity.Property(f => f.FuelType).HasConversion<string>();
-
-                // Relations
                 entity.HasOne(f => f.Vehicle)
                     .WithMany(v => v.FuelRecords)
                     .HasForeignKey(f => f.VehicleId)
                     .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(f => f.Creator)
-                    .WithMany(u => u.FuelRecords)
-                    .HasForeignKey(f => f.CreatedBy)
+                entity.HasOne(f => f.Driver)
+                    .WithMany()
+                    .HasForeignKey(f => f.DriverId)
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            modelBuilder.Entity<MaintenanceRecord>(entity =>
-            {
-                entity.Property(m => m.MaintenanceType).HasConversion<string>();
-
-                // Relations
-                entity.HasOne(m => m.Vehicle)
-                    .WithMany(v => v.MaintenanceRecords)
-                    .HasForeignKey(m => m.VehicleId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(m => m.Creator)
-                    .WithMany(u => u.MaintenanceRecords)
-                    .HasForeignKey(m => m.CreatedBy)
-                    .OnDelete(DeleteBehavior.SetNull);
-            });
+            // MaintenanceRecord configuration retirée - table gérée uniquement par ADO.NET
 
             modelBuilder.Entity<Driver>(entity =>
             {
-                entity.Property(d => d.Status).HasConversion<string>();
                 entity.HasIndex(d => d.LicenseNumber).IsUnique();
             });
 
@@ -84,7 +55,6 @@ namespace FleetManager.Services
                     .WithMany(v => v.VehicleAssignments)
                     .HasForeignKey(va => va.VehicleId)
                     .OnDelete(DeleteBehavior.Cascade);
-
                 entity.HasOne(va => va.Driver)
                     .WithMany(d => d.VehicleAssignments)
                     .HasForeignKey(va => va.DriverId)

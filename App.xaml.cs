@@ -86,6 +86,13 @@ namespace FleetManager
             services.AddSingleton<ConfigurationService>();
             services.AddSingleton<ITargetService, TargetService>();
             services.AddTransient<IEmailService, EmailService>();
+            // Services et Repository pour Maintenance (ADO.NET)
+            services.AddTransient<MaintenanceRepository>(sp => 
+            {
+                var context = sp.GetRequiredService<FleetDbContext>();
+                return new MaintenanceRepository(context);
+            });
+            services.AddTransient<MaintenanceService>();
 
             // ViewModels
             services.AddTransient<LoginViewModel>();
@@ -96,6 +103,8 @@ namespace FleetManager
             services.AddTransient<StatisticsViewModel>();
             services.AddTransient<AddVehicleViewModel>();
             services.AddTransient<AddFuelRecordViewModel>();
+            services.AddTransient<MaintenanceViewModel>();
+            services.AddTransient<UsersViewModel>();
 
             // Views
             services.AddTransient<LoginWindow>();
@@ -105,6 +114,8 @@ namespace FleetManager
             services.AddTransient<FuelView>();
             services.AddTransient<StatisticsView>();
             services.AddTransient<AddVehicleWindow>();
+            services.AddTransient<MaintenanceView>();
+            services.AddTransient<UsersView>();
         }
 
         private async Task InitializeDatabaseAsync()
@@ -135,6 +146,16 @@ namespace FleetManager
                 // Créer les tables si elles n'existent pas
                 bool created = await Task.Run(() => dbContext.Database.EnsureCreated());
                 System.Diagnostics.Debug.WriteLine($"Tables créées/vérifiées : {created}");
+
+                // Exécuter la migration TankCapacity
+                System.Diagnostics.Debug.WriteLine("Vérification/ajout de la colonne TankCapacity...");
+                var migrationResult = await MigrationTankCapacity.ExecuteAsync(connectionString);
+                System.Diagnostics.Debug.WriteLine($"Migration TankCapacity: {migrationResult.Message}");
+
+                // Exécuter la migration SuperAdmin
+                System.Diagnostics.Debug.WriteLine("Vérification/ajout du compte SuperAdmin...");
+                var superAdminResult = await MigrationAddSuperAdmin.ExecuteAsync(dbContext);
+                System.Diagnostics.Debug.WriteLine($"Migration SuperAdmin: {superAdminResult.Message}");
 
                 System.Diagnostics.Debug.WriteLine("Initialisation des utilisateurs par défaut...");
                 // Initialiser les utilisateurs par défaut

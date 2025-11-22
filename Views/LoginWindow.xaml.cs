@@ -1,31 +1,27 @@
 using System.Windows;
+using FleetManager.Services;
 using FleetManager.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FleetManager.Views
 {
     public partial class LoginWindow : Window
     {
-        private readonly LoginViewModel _viewModel;
-
-        public LoginWindow(LoginViewModel viewModel)
+        public LoginWindow()
         {
             InitializeComponent();
-            _viewModel = viewModel;
-            DataContext = viewModel;
+            
+            // Récupérer le ViewModel depuis le service provider
+            var authService = App.ServiceProvider.GetRequiredService<AuthenticationService>();
+            DataContext = new LoginViewModel(authService);
+        }
 
-            // Lier le PasswordBox au ViewModel
-            PasswordBox.PasswordChanged += (s, e) =>
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is LoginViewModel viewModel)
             {
-                _viewModel.Password = PasswordBox.Password;
-            };
-
-            // S'assurer que le focus est sur le nom d'utilisateur au démarrage
-            Loaded += (s, e) =>
-            {
-                // Focus sur le TextBox du nom d'utilisateur
-                var usernameTextBox = FindName("UsernameTextBox") as System.Windows.Controls.TextBox;
-                usernameTextBox?.Focus();
-            };
+                viewModel.Password = PasswordBox.Password;
+            }
         }
     }
 }

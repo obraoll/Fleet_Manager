@@ -38,6 +38,7 @@
 
                 <Label Content="Mot de passe"/>
                 <PasswordBox x:Name="PasswordBox"
+                            PasswordChanged="PasswordBox_PasswordChanged"
                             Margin="0,0,0,10"/>
 
                 <!-- Message d'erreur -->

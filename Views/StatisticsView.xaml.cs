@@ -16,6 +16,11 @@ namespace FleetManager.Views
             InitializeComponent();
         }
 
+        public StatisticsView(StatisticsViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
+        }
+
         /// <summary>
         /// Événement Loaded - initier les animations ou configurations UI
         /// </summary>

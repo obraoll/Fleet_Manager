@@ -11,50 +11,56 @@ namespace FleetManager.Models
     public class MaintenanceRecord
     {
         [Key]
-        public int MaintenanceId { get; set; }
+        [Column("MaintenanceRecordId")]
+        public int MaintenanceRecordId { get; set; }
 
         [Required]
+        [Column("VehicleId")]
         public int VehicleId { get; set; }
 
-        [Required]
+        [Column("MaintenanceDate")]
         public DateTime MaintenanceDate { get; set; } = DateTime.Now;
 
-        [Required]
-        public MaintenanceType MaintenanceType { get; set; }
+        [Column("MaintenanceType")]
+        public string MaintenanceType { get; set; } = string.Empty;
 
         [Required]
+        [Column("Description")]
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        [Column(TypeName = "decimal(10,2)")]
+        [Column("Mileage", TypeName = "decimal(10,2)")]
         public decimal Mileage { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(10,2)")]
+        [Column("Cost", TypeName = "decimal(10,2)")]
         public decimal Cost { get; set; }
 
         [MaxLength(100)]
-        public string? Provider { get; set; }
+        [Column("Garage")]
+        public string? Garage { get; set; }
 
+        [Column("NextMaintenanceDate")]
         public DateTime? NextMaintenanceDate { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
+        [Column("NextMaintenanceMileage", TypeName = "decimal(10,2)")]
         public decimal? NextMaintenanceMileage { get; set; }
 
-        [MaxLength(50)]
-        public string? InvoiceNumber { get; set; }
+        [Column("Parts")]
+        public string? Parts { get; set; }
 
+        [Column("TechnicianName")]
+        public string? TechnicianName { get; set; }
+
+        [Column("Status")]
+        public string Status { get; set; } = "Terminée";
+
+        [Column("Notes")]
         public string? Notes { get; set; }
 
-        public int? CreatedBy { get; set; }
-
+        [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        // Navigation properties
-        [ForeignKey("VehicleId")]
-        public virtual Vehicle Vehicle { get; set; } = null!;
-
-        [ForeignKey("CreatedBy")]
-        public virtual User? Creator { get; set; }
+        // Navigation properties retirées - MaintenanceRecord géré uniquement par ADO.NET
     }
 }

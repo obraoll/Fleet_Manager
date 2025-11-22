@@ -47,11 +47,11 @@ namespace FleetManager.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> AddFuelRecordAsync(FuelRecord fuelRecord, int userId)
+        public async Task<(bool Success, string Message)> AddFuelRecordAsync(FuelRecord fuelRecord)
         {
             try
             {
-                fuelRecord.CreatedBy = userId;
+                // CreatedBy removed from model
                 fuelRecord.CreatedAt = DateTime.Now;
                 fuelRecord.TotalCost = fuelRecord.LitersRefueled * fuelRecord.PricePerLiter;
 
@@ -89,7 +89,7 @@ namespace FleetManager.Services
                 var distance = fuelRecord.Mileage - lastRecord.Mileage;
                 if (distance > 0)
                 {
-                    fuelRecord.DistanceSinceLastRefuel = distance;
+                    // DistanceSinceLastRefuel removed from model
                     fuelRecord.CalculatedConsumption = (fuelRecord.LitersRefueled / distance) * 100;
                 }
             }

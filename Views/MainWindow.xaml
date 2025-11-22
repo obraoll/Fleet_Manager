@@ -130,11 +130,24 @@
                             Margin="10,5"
                             HorizontalAlignment="Stretch"/>
 
+                    <Button Content="🔧 Entretien"
+                            Command="{Binding NavigateToMaintenanceCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="10,5"
+                            HorizontalAlignment="Stretch"/>
+
                     <Button Content="📊 Statistiques"
                             Command="{Binding NavigateToStatisticsCommand}"
                             Style="{StaticResource SecondaryButton}"
                             Margin="10,5"
                             HorizontalAlignment="Stretch"/>
+
+                    <Button Content="👥 Utilisateurs"
+                            Command="{Binding NavigateToUsersCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="10,5"
+                            HorizontalAlignment="Stretch"
+                            Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibility}}"/>
                 </StackPanel>
             </Border>
 

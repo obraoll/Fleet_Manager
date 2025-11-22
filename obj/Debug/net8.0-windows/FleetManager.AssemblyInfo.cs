@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Application de gestion de parc automobile")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+73f04fe727d1ad831d0e9fe05d9aa9213c445f89")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6bf9abac49037941d45d287ee308ac639b8a1b2e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Fleet Manager")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FleetManager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

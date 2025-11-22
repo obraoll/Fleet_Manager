@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FleetManager.Models;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 
 namespace FleetManager.Services
 {
@@ -13,10 +14,12 @@ namespace FleetManager.Services
     public class StatisticsService
     {
         private readonly FleetDbContext _context;
+        private readonly MaintenanceRepository _maintenanceRepo;
 
         public StatisticsService(FleetDbContext context)
         {
             _context = context;
+            _maintenanceRepo = new MaintenanceRepository(context);
         }
 
         /// <summary>
@@ -24,20 +27,61 @@ namespace FleetManager.Services
         /// </summary>
         public async Task<DashboardData> GetDashboardDataAsync()
         {
-            var dashboardData = new DashboardData
+            try
             {
-                FleetStats = await GetFleetStatisticsAsync(),
-                TopVehiclesByConsumption = await GetTopVehiclesByConsumptionAsync(5),
-                TopVehiclesByCost = await GetTopVehiclesByCostAsync(5),
-                MonthlyTrends = await GetMonthlyTrendsAsync(12),
-                TypeBreakdown = await GetVehicleTypeStatisticsAsync(),
-                FuelBreakdown = await GetFuelTypeStatisticsAsync(),
-                Alerts = await GetDashboardAlertsAsync(),
-                ConsumptionTrend = await GetConsumptionTrendAsync(30),
-                CostTrend = await GetCostTrendAsync(30)
-            };
+                System.Diagnostics.Debug.WriteLine("=== CHARGEMENT DASHBOARD DATA ===");
+                
+                var dashboardData = new DashboardData();
+                
+                System.Diagnostics.Debug.WriteLine("Chargement FleetStats...");
+                dashboardData.FleetStats = await GetFleetStatisticsAsync();
+                System.Diagnostics.Debug.WriteLine($"FleetStats: {dashboardData.FleetStats.TotalVehicles} véhicules");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement TopVehiclesByConsumption...");
+                dashboardData.TopVehiclesByConsumption = await GetTopVehiclesByConsumptionAsync(5);
+                System.Diagnostics.Debug.WriteLine($"TopConsumption: {dashboardData.TopVehiclesByConsumption.Count} véhicules");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement TopVehiclesByCost...");
+                dashboardData.TopVehiclesByCost = await GetTopVehiclesByCostAsync(5);
+                System.Diagnostics.Debug.WriteLine($"TopCost: {dashboardData.TopVehiclesByCost.Count} véhicules");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement MonthlyTrends...");
+                dashboardData.MonthlyTrends = await GetMonthlyTrendsAsync(12);
+                System.Diagnostics.Debug.WriteLine($"MonthlyTrends: {dashboardData.MonthlyTrends.Count} mois");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement TypeBreakdown...");
+                dashboardData.TypeBreakdown = await GetVehicleTypeStatisticsAsync();
+                System.Diagnostics.Debug.WriteLine($"TypeBreakdown: {dashboardData.TypeBreakdown.Count} types");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement FuelBreakdown...");
+                dashboardData.FuelBreakdown = await GetFuelTypeStatisticsAsync();
+                System.Diagnostics.Debug.WriteLine($"FuelBreakdown: {dashboardData.FuelBreakdown.Count} types");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement Alerts...");
+                dashboardData.Alerts = await GetDashboardAlertsAsync();
+                System.Diagnostics.Debug.WriteLine($"Alerts: {dashboardData.Alerts.Count} alertes");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement ConsumptionTrend...");
+                dashboardData.ConsumptionTrend = await GetConsumptionTrendAsync(30);
+                System.Diagnostics.Debug.WriteLine($"ConsumptionTrend: {dashboardData.ConsumptionTrend.Count} points");
+                
+                System.Diagnostics.Debug.WriteLine("Chargement CostTrend...");
+                dashboardData.CostTrend = await GetCostTrendAsync(30);
+                System.Diagnostics.Debug.WriteLine($"CostTrend: {dashboardData.CostTrend.Count} points");
 
-            return dashboardData;
+                System.Diagnostics.Debug.WriteLine("=== DASHBOARD DATA CHARGÉ AVEC SUCCÈS ===");
+                return dashboardData;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"=== ERREUR DASHBOARD DATA: {ex.Message} ===");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         /// <summary>
@@ -45,12 +89,22 @@ namespace FleetManager.Services
         /// </summary>
         public async Task<FleetStatistics> GetFleetStatisticsAsync()
         {
-            var vehicles = await _context.Vehicles.ToListAsync();
-            var fuelRecords = await _context.FuelRecords.ToListAsync();
-            var maintenanceRecords = await _context.MaintenanceRecords.ToListAsync();
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("GetFleetStatisticsAsync - Chargement des véhicules...");
+                var vehicles = await _context.Vehicles.AsNoTracking().ToListAsync();
+                System.Diagnostics.Debug.WriteLine($"Véhicules chargés: {vehicles.Count}");
+                
+                System.Diagnostics.Debug.WriteLine("GetFleetStatisticsAsync - Chargement des FuelRecords...");
+                var fuelRecords = await _context.FuelRecords.AsNoTracking().ToListAsync();
+                System.Diagnostics.Debug.WriteLine($"FuelRecords chargés: {fuelRecords.Count}");
+                
+                System.Diagnostics.Debug.WriteLine("GetFleetStatisticsAsync - Chargement des MaintenanceRecords avec ADO.NET...");
+                var maintenanceRecords = await _maintenanceRepo.GetAllAsync();
+                System.Diagnostics.Debug.WriteLine($"MaintenanceRecords chargés: {maintenanceRecords.Count}");
 
-            var currentMonth = DateTime.Now.Month;
-            var currentYear = DateTime.Now.Year;
+                var currentMonth = DateTime.Now.Month;
+                var currentYear = DateTime.Now.Year;
 
             var monthlyFuelRecords = fuelRecords.Where(f =>
                 f.RefuelDate.Month == currentMonth &&
@@ -63,9 +117,9 @@ namespace FleetManager.Services
             return new FleetStatistics
             {
                 TotalVehicles = vehicles.Count,
-                ActiveVehicles = vehicles.Count(v => v.Status == VehicleStatus.Actif),
-                VehiclesInMaintenance = vehicles.Count(v => v.Status == VehicleStatus.EnMaintenance),
-                OutOfServiceVehicles = vehicles.Count(v => v.Status == VehicleStatus.HorsService),
+                ActiveVehicles = vehicles.Count(v => v.Status == "Actif"),
+                VehiclesInMaintenance = vehicles.Count(v => v.Status == "EnMaintenance"),
+                OutOfServiceVehicles = vehicles.Count(v => v.Status == "HorsService"),
                 TotalFuelCost = fuelRecords.Sum(f => f.TotalCost),
                 TotalLiters = fuelRecords.Sum(f => f.LitersRefueled),
                 AverageFleetConsumption = CalculateAverageConsumption(fuelRecords),
@@ -77,6 +131,17 @@ namespace FleetManager.Services
                 AverageVehicleMileage = vehicles.Any() ? vehicles.Average(v => v.CurrentMileage) : 0
             };
         }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ERREUR GetFleetStatisticsAsync: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+            }
+            throw;
+        }
+    }
 
         /// <summary>
         /// Obtient les statistiques détaillées d'un véhicule
@@ -90,9 +155,7 @@ namespace FleetManager.Services
                 .Where(f => f.VehicleId == vehicleId)
                 .ToListAsync();
 
-            var maintenanceRecords = await _context.MaintenanceRecords
-                .Where(m => m.VehicleId == vehicleId)
-                .ToListAsync();
+            var maintenanceRecords = await _maintenanceRepo.GetByVehicleIdAsync(vehicleId);
 
             return new VehicleStatistics
             {
@@ -158,8 +221,10 @@ namespace FleetManager.Services
         {
             var vehicles = await _context.Vehicles
                 .Include(v => v.FuelRecords)
-                .Include(v => v.MaintenanceRecords)
                 .ToListAsync();
+            
+            // Charger MaintenanceRecords avec ADO.NET
+            var allMaintenanceRecords = await _maintenanceRepo.GetAllAsync();
 
             var statistics = vehicles.Select(vehicle => new VehicleStatistics
             {
@@ -167,7 +232,7 @@ namespace FleetManager.Services
                 VehicleName = $"{vehicle.Brand} {vehicle.Model}",
                 RegistrationNumber = vehicle.RegistrationNumber,
                 TotalFuelCost = vehicle.FuelRecords.Sum(f => f.TotalCost),
-                TotalMaintenanceCost = vehicle.MaintenanceRecords.Sum(m => m.Cost)
+                TotalMaintenanceCost = allMaintenanceRecords.Where(m => m.VehicleId == vehicle.VehicleId).Sum(m => m.Cost)
             }).ToList();
 
             return statistics.OrderByDescending(s => s.TotalCost).Take(count).ToList();
@@ -185,9 +250,7 @@ namespace FleetManager.Services
                 .Where(f => f.RefuelDate >= startDate)
                 .ToListAsync();
 
-            var maintenanceRecords = await _context.MaintenanceRecords
-                .Where(m => m.MaintenanceDate >= startDate)
-                .ToListAsync();
+            var maintenanceRecords = await _maintenanceRepo.GetSinceDateAsync(startDate);
 
             var monthlyStats = new List<MonthlyStatistics>();
 
@@ -222,8 +285,9 @@ namespace FleetManager.Services
         {
             var vehicles = await _context.Vehicles
                 .Include(v => v.FuelRecords)
-                .Include(v => v.MaintenanceRecords)
                 .ToListAsync();
+            
+            var allMaintenanceRecords = await _maintenanceRepo.GetAllAsync();
 
             return vehicles.GroupBy(v => v.VehicleType)
                 .Select(g => new VehicleTypeStatistics
@@ -235,7 +299,7 @@ namespace FleetManager.Services
                         .DefaultIfEmpty()
                         .Average(f => f?.CalculatedConsumption ?? 0),
                     TotalFuelCost = g.SelectMany(v => v.FuelRecords).Sum(f => f.TotalCost),
-                    TotalMaintenanceCost = g.SelectMany(v => v.MaintenanceRecords).Sum(m => m.Cost),
+                    TotalMaintenanceCost = allMaintenanceRecords.Where(m => g.Any(v => v.VehicleId == m.VehicleId)).Sum(m => m.Cost),
                     AverageMileage = g.Average(v => v.CurrentMileage)
                 }).OrderBy(t => t.Count).ToList();
         }
@@ -282,13 +346,15 @@ namespace FleetManager.Services
         {
             var alerts = new List<DashboardAlert>();
             var vehicles = await _context.Vehicles
-                .Include(v => v.MaintenanceRecords)
                 .ToListAsync();
+            
+            var allMaintenanceRecords = await _maintenanceRepo.GetAllAsync();
 
             foreach (var vehicle in vehicles)
             {
                 // Vérifier la maintenance due
-                var lastMaintenance = vehicle.MaintenanceRecords
+                var lastMaintenance = allMaintenanceRecords
+                    .Where(m => m.VehicleId == vehicle.VehicleId)
                     .OrderByDescending(m => m.MaintenanceDate)
                     .FirstOrDefault();
 
@@ -434,20 +500,26 @@ namespace FleetManager.Services
             }));
 
             // Maintenances récentes
-            var recentMaintenances = await _context.MaintenanceRecords
-                .Include(m => m.Vehicle)
+            var recentMaintenancesData = await _maintenanceRepo.GetAllAsync();
+            var recentMaintenances = recentMaintenancesData
                 .OrderByDescending(m => m.MaintenanceDate)
                 .Take(count / 2)
-                .ToListAsync();
+                .ToList();
+            
+            var vehicles = await _context.Vehicles.ToListAsync();
 
-            movements.AddRange(recentMaintenances.Select(m => new RecentMovement
+            movements.AddRange(recentMaintenances.Select(m =>
             {
-                VehicleName = $"{m.Vehicle.Brand} {m.Vehicle.Model} ({m.Vehicle.RegistrationNumber})",
-                MovementType = "Maintenance",
-                Date = m.MaintenanceDate,
-                Description = $"{m.MaintenanceType} - {m.Description}",
-                Cost = m.Cost,
-                Mileage = m.Mileage
+                var vehicle = vehicles.FirstOrDefault(v => v.VehicleId == m.VehicleId);
+                return new RecentMovement
+                {
+                    VehicleName = vehicle != null ? $"{vehicle.Brand} {vehicle.Model} ({vehicle.RegistrationNumber})" : "Véhicule inconnu",
+                    MovementType = "Maintenance",
+                    Date = m.MaintenanceDate,
+                    Description = $"{m.MaintenanceType} - {m.Description}",
+                    Cost = m.Cost,
+                    Mileage = m.Mileage
+                };
             }));
 
             return movements.OrderByDescending(m => m.Date).Take(count).ToList();
@@ -468,11 +540,14 @@ namespace FleetManager.Services
         private async Task<int> GetVehiclesDueMaintenanceCountAsync()
         {
             var vehicles = await _context.Vehicles
-                .Include(v => v.MaintenanceRecords)
                 .ToListAsync();
+            
+            // Charger MaintenanceRecords avec ADO.NET
+            var allMaintenanceRecords = await _maintenanceRepo.GetAllAsync();
 
             return vehicles.Count(v =>
-                v.MaintenanceRecords.Any(m =>
+                allMaintenanceRecords.Any(m =>
+                    m.VehicleId == v.VehicleId &&
                     m.NextMaintenanceDate.HasValue &&
                     m.NextMaintenanceDate.Value <= DateTime.Now.AddDays(30)));
         }

@@ -12,6 +12,36 @@ namespace FleetManager.ViewModels
 {
     public class EditVehicleViewModel : BaseViewModel
     {
+                // Propriétés d'affichage système
+                public string CreatedAtDisplay
+                {
+                    get => _createdAtDisplay;
+                    set => SetProperty(ref _createdAtDisplay, value);
+                }
+
+                public string UpdatedAtDisplay
+                {
+                    get => _updatedAtDisplay;
+                    set => SetProperty(ref _updatedAtDisplay, value);
+                }
+
+                public string ValidationMessage
+                {
+                    get => _validationMessage;
+                    set => SetProperty(ref _validationMessage, value);
+                }
+
+                public bool HasValidationError
+                {
+                    get => _hasValidationError;
+                    set => SetProperty(ref _hasValidationError, value);
+                }
+
+                public bool CanSave
+                {
+                    get => _canSave;
+                    set => SetProperty(ref _canSave, value);
+                }
         private readonly VehicleService _vehicleService;
         private readonly Vehicle _originalVehicle;
 
@@ -21,15 +51,13 @@ namespace FleetManager.ViewModels
         private string _brand = string.Empty;
         private string _model = string.Empty;
         private int _year = DateTime.Now.Year;
-        private string _vin = string.Empty;
-        private VehicleType _vehicleType = VehicleType.Voiture;
-        private FuelType _fuelType = FuelType.Essence;
+        private string _vehicleType = string.Empty;
+        private string _fuelType = string.Empty;
         private decimal _currentMileage;
         private decimal _averageFuelConsumption = 7;
         private DateTime? _purchaseDate;
         private decimal? _purchasePrice;
-        private VehicleStatus _status = VehicleStatus.Actif;
-        private string _color = string.Empty;
+        private string _status = string.Empty;
         private DateTime? _insuranceExpiryDate;
         private DateTime? _technicalInspectionDate;
         private string _notes = string.Empty;
@@ -107,23 +135,13 @@ namespace FleetManager.ViewModels
             }
         }
 
-        public string VIN
-        {
-            get => _vin;
-            set
-            {
-                SetProperty(ref _vin, value);
-                ValidateForm();
-            }
-        }
-
-        public VehicleType VehicleType
+        public string VehicleType
         {
             get => _vehicleType;
             set => SetProperty(ref _vehicleType, value);
         }
 
-        public FuelType FuelType
+        public string FuelType
         {
             get => _fuelType;
             set => SetProperty(ref _fuelType, value);
@@ -153,16 +171,10 @@ namespace FleetManager.ViewModels
             set => SetProperty(ref _purchasePrice, value);
         }
 
-        public VehicleStatus Status
+        public string Status
         {
             get => _status;
             set => SetProperty(ref _status, value);
-        }
-
-        public string Color
-        {
-            get => _color;
-            set => SetProperty(ref _color, value);
         }
 
         public DateTime? InsuranceExpiryDate
@@ -183,44 +195,9 @@ namespace FleetManager.ViewModels
             set => SetProperty(ref _notes, value);
         }
 
-        public string CreatedAtDisplay
-        {
-            get => _createdAtDisplay;
-            set => SetProperty(ref _createdAtDisplay, value);
-        }
-
-        public string UpdatedAtDisplay
-        {
-            get => _updatedAtDisplay;
-            set => SetProperty(ref _updatedAtDisplay, value);
-        }
-
-        #endregion
-
-        #region Propriétés de validation
-
-        public string ValidationMessage
-        {
-            get => _validationMessage;
-            set => SetProperty(ref _validationMessage, value);
-        }
-
-        public bool HasValidationError
-        {
-            get => _hasValidationError;
-            set => SetProperty(ref _hasValidationError, value);
-        }
-
-        public bool CanSave
-        {
-            get => _canSave;
-            set => SetProperty(ref _canSave, value);
-        }
-
         #endregion
 
         #region Commandes
-
         public AsyncRelayCommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
 
@@ -235,22 +212,20 @@ namespace FleetManager.ViewModels
             Brand = _originalVehicle.Brand;
             Model = _originalVehicle.Model;
             Year = _originalVehicle.Year;
-            VIN = _originalVehicle.VIN ?? string.Empty;
-            VehicleType = _originalVehicle.VehicleType;
-            FuelType = _originalVehicle.FuelType;
+            VehicleType = _originalVehicle.VehicleType ?? string.Empty;
+            FuelType = _originalVehicle.FuelType ?? string.Empty;
             CurrentMileage = _originalVehicle.CurrentMileage;
             AverageFuelConsumption = _originalVehicle.AverageFuelConsumption;
             PurchaseDate = _originalVehicle.PurchaseDate;
             PurchasePrice = _originalVehicle.PurchasePrice;
-            Status = _originalVehicle.Status;
-            Color = _originalVehicle.Color ?? string.Empty;
+            Status = _originalVehicle.Status ?? string.Empty;
             InsuranceExpiryDate = _originalVehicle.InsuranceExpiryDate;
             TechnicalInspectionDate = _originalVehicle.TechnicalInspectionDate;
             Notes = _originalVehicle.Notes ?? string.Empty;
 
             // Informations système
             CreatedAtDisplay = $"Créé le : {_originalVehicle.CreatedAt:dd/MM/yyyy à HH:mm}";
-            UpdatedAtDisplay = $"Modifié le : {_originalVehicle.UpdatedAt:dd/MM/yyyy à HH:mm}";
+            UpdatedAtDisplay = string.Empty;
 
             System.Diagnostics.Debug.WriteLine($"Données véhicule chargées: {RegistrationNumber} - {Brand} {Model}");
         }
@@ -294,11 +269,7 @@ namespace FleetManager.ViewModels
                 }
             }
 
-            // Validation du VIN (optionnel mais si renseigné, doit faire 17 caractères)
-            if (!string.IsNullOrWhiteSpace(VIN) && VIN.Length != 17)
-            {
-                errors.Add("Le numéro VIN doit contenir exactement 17 caractères");
-            }
+            // VIN validation removed
 
             // Validation des valeurs numériques
             if (CurrentMileage < 0)
@@ -354,7 +325,6 @@ namespace FleetManager.ViewModels
                     Brand = Brand.Trim(),
                     Model = Model.Trim(),
                     Year = Year,
-                    VIN = string.IsNullOrWhiteSpace(VIN) ? null : VIN.ToUpper().Trim(),
                     VehicleType = VehicleType,
                     FuelType = FuelType,
                     CurrentMileage = CurrentMileage,
@@ -362,12 +332,10 @@ namespace FleetManager.ViewModels
                     PurchaseDate = PurchaseDate,
                     PurchasePrice = PurchasePrice,
                     Status = Status,
-                    Color = string.IsNullOrWhiteSpace(Color) ? null : Color.Trim(),
                     InsuranceExpiryDate = InsuranceExpiryDate,
                     TechnicalInspectionDate = TechnicalInspectionDate,
                     Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim(),
-                    CreatedAt = _originalVehicle.CreatedAt,
-                    UpdatedAt = DateTime.Now
+                    CreatedAt = _originalVehicle.CreatedAt
                 };
 
                 System.Diagnostics.Debug.WriteLine($"Modification véhicule: {updatedVehicle.RegistrationNumber} - {updatedVehicle.Brand} {updatedVehicle.Model}");
@@ -430,22 +398,20 @@ namespace FleetManager.ViewModels
 
         private bool HasDataChanged()
         {
-            return RegistrationNumber != _originalVehicle.RegistrationNumber ||
-                   Brand != _originalVehicle.Brand ||
-                   Model != _originalVehicle.Model ||
-                   Year != _originalVehicle.Year ||
-                   VIN != (_originalVehicle.VIN ?? string.Empty) ||
-                   VehicleType != _originalVehicle.VehicleType ||
-                   FuelType != _originalVehicle.FuelType ||
-                   CurrentMileage != _originalVehicle.CurrentMileage ||
-                   AverageFuelConsumption != _originalVehicle.AverageFuelConsumption ||
-                   PurchaseDate != _originalVehicle.PurchaseDate ||
-                   PurchasePrice != _originalVehicle.PurchasePrice ||
-                   Status != _originalVehicle.Status ||
-                   Color != (_originalVehicle.Color ?? string.Empty) ||
-                   InsuranceExpiryDate != _originalVehicle.InsuranceExpiryDate ||
-                   TechnicalInspectionDate != _originalVehicle.TechnicalInspectionDate ||
-                   Notes != (_originalVehicle.Notes ?? string.Empty);
+                 return RegistrationNumber != _originalVehicle.RegistrationNumber ||
+                     Brand != _originalVehicle.Brand ||
+                     Model != _originalVehicle.Model ||
+                     Year != _originalVehicle.Year ||
+                     VehicleType != (_originalVehicle.VehicleType ?? string.Empty) ||
+                     FuelType != (_originalVehicle.FuelType ?? string.Empty) ||
+                     CurrentMileage != _originalVehicle.CurrentMileage ||
+                     AverageFuelConsumption != _originalVehicle.AverageFuelConsumption ||
+                     PurchaseDate != _originalVehicle.PurchaseDate ||
+                     PurchasePrice != _originalVehicle.PurchasePrice ||
+                     Status != (_originalVehicle.Status ?? string.Empty) ||
+                     InsuranceExpiryDate != _originalVehicle.InsuranceExpiryDate ||
+                     TechnicalInspectionDate != _originalVehicle.TechnicalInspectionDate ||
+                     Notes != (_originalVehicle.Notes ?? string.Empty);
         }
 
         #endregion

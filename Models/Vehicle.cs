@@ -12,73 +12,77 @@ namespace FleetManager.Models
     public class Vehicle
     {
         [Key]
+        [Column("VehicleId")]
         public int VehicleId { get; set; }
 
         [Required]
         [MaxLength(20)]
+        [Column("RegistrationNumber")]
         public string RegistrationNumber { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
+        [Column("Brand")]
         public string Brand { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
+        [Column("Model")]
         public string Model { get; set; } = string.Empty;
 
         [Required]
+        [Column("Year")]
         public int Year { get; set; }
 
         [Required]
-        public VehicleType VehicleType { get; set; }
+        [Column("VehicleType")]
+        public string VehicleType { get; set; } = string.Empty;
 
         [Required]
-        public FuelType FuelType { get; set; }
+        [Column("FuelType")]
+        public string FuelType { get; set; } = string.Empty;
 
-        [Column(TypeName = "decimal(10,2)")]
+        [Column("CurrentMileage", TypeName = "decimal(10,2)")]
         public decimal CurrentMileage { get; set; } = 0;
 
-        [Column(TypeName = "decimal(5,2)")]
+        [Column("TankCapacity", TypeName = "decimal(5,2)")]
+        public decimal TankCapacity { get; set; } = 0;
+
+        [Column("AverageFuelConsumption", TypeName = "decimal(5,2)")]
         public decimal AverageFuelConsumption { get; set; } = 0;
 
-        public VehicleStatus Status { get; set; } = VehicleStatus.Actif;
+        [Column("Status")]
+        public string Status { get; set; } = "Actif";
 
+        [Column("PurchaseDate")]
         public DateTime? PurchaseDate { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
+        [Column("PurchasePrice", TypeName = "decimal(10,2)")]
         public decimal? PurchasePrice { get; set; }
 
-        [MaxLength(30)]
-        public string? Color { get; set; }
-
-        [MaxLength(17)]
-        public string? VIN { get; set; }
-
+        [Column("InsuranceExpiryDate")]
         public DateTime? InsuranceExpiryDate { get; set; }
 
+        [Column("TechnicalInspectionDate")]
         public DateTime? TechnicalInspectionDate { get; set; }
 
+        [Column("Notes")]
         public string? Notes { get; set; }
 
+        [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
         public virtual ICollection<FuelRecord> FuelRecords { get; set; } = new List<FuelRecord>();
-        public virtual ICollection<MaintenanceRecord> MaintenanceRecords { get; set; } = new List<MaintenanceRecord>();
+        // MaintenanceRecords navigation property retirée - utilisation d'ADO.NET uniquement
         public virtual ICollection<VehicleAssignment> VehicleAssignments { get; set; } = new List<VehicleAssignment>();
 
         // Propriétés calculées
         [NotMapped]
         public string DisplayName => $"{Brand} {Model} ({RegistrationNumber})";
-
         [NotMapped]
-        public bool NeedsInspection => TechnicalInspectionDate.HasValue && 
-                                        TechnicalInspectionDate.Value < DateTime.Now.AddMonths(1);
-
+        public bool NeedsInspection => TechnicalInspectionDate.HasValue && TechnicalInspectionDate.Value < DateTime.Now.AddMonths(1);
         [NotMapped]
-        public bool InsuranceExpiringSoon => InsuranceExpiryDate.HasValue && 
-                                              InsuranceExpiryDate.Value < DateTime.Now.AddMonths(1);
+        public bool InsuranceExpiringSoon => InsuranceExpiryDate.HasValue && InsuranceExpiryDate.Value < DateTime.Now.AddMonths(1);
     }
 }

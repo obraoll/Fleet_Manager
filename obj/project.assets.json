@@ -8600,7 +8600,7 @@
       "code": "NU1603",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "FleetManager dépend de itext (>= 8.0.6) mais itext 8.0.6 est introuvable. itext 9.0.0 a été résolu à la place.",
+      "message": "FleetManager depends on itext (>= 8.0.6) but itext 8.0.6 was not found. itext 9.0.0 was resolved instead.",
       "libraryId": "itext",
       "targetGraphs": [
         "net8.0-windows7.0"
@@ -8610,7 +8610,7 @@
       "code": "NU1603",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "FleetManager dépend de itext.bouncy-castle-adapter (>= 8.0.6) mais itext.bouncy-castle-adapter 8.0.6 est introuvable. itext.bouncy-castle-adapter 9.0.0 a été résolu à la place.",
+      "message": "FleetManager depends on itext.bouncy-castle-adapter (>= 8.0.6) but itext.bouncy-castle-adapter 8.0.6 was not found. itext.bouncy-castle-adapter 9.0.0 was resolved instead.",
       "libraryId": "itext.bouncy-castle-adapter",
       "targetGraphs": [
         "net8.0-windows7.0"

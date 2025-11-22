@@ -39,8 +39,8 @@ namespace FleetManager.ViewModels
         private DateTime _startDate = DateTime.Now.AddYears(-1);
         private DateTime _endDate = DateTime.Now;
         private string _selectedPeriod = "Année";
-        private VehicleType? _selectedVehicleType;
-        private FuelType? _selectedFuelType;
+        private string? _selectedVehicleType;
+        private string? _selectedFuelType;
 
         // Statistiques globales
         private decimal _totalFuelCost;
@@ -251,7 +251,7 @@ namespace FleetManager.ViewModels
             }
         }
 
-        public VehicleType? SelectedVehicleType
+        public string? SelectedVehicleType
         {
             get => _selectedVehicleType;
             set
@@ -263,7 +263,7 @@ namespace FleetManager.ViewModels
             }
         }
 
-        public FuelType? SelectedFuelType
+        public string? SelectedFuelType
         {
             get => _selectedFuelType;
             set
@@ -677,15 +677,15 @@ namespace FleetManager.ViewModels
                 var filteredVehicles = Vehicles.AsEnumerable();
 
                 // Filtre par type de véhicule
-                if (SelectedVehicleType.HasValue)
+                if (SelectedVehicleType != null)
                 {
-                    filteredVehicles = filteredVehicles.Where(v => v.VehicleType == SelectedVehicleType.Value);
+                    filteredVehicles = filteredVehicles.Where(v => v.VehicleType == SelectedVehicleType);
                 }
 
                 // Filtre par type de carburant
-                if (SelectedFuelType.HasValue)
+                if (SelectedFuelType != null)
                 {
-                    filteredVehicles = filteredVehicles.Where(v => v.FuelType == SelectedFuelType.Value);
+                    filteredVehicles = filteredVehicles.Where(v => v.FuelType == SelectedFuelType);
                 }
 
                 // Filtre par recherche textuelle
@@ -811,22 +811,30 @@ namespace FleetManager.ViewModels
             {
                 var saveDialog = new SaveFileDialog
                 {
-                    Filter = "Fichiers Excel (*.xlsx)|*.xlsx",
-                    FileName = $"Statistiques_FleetManager_{DateTime.Now:yyyyMMdd}.xlsx"
+                    Filter = "Fichiers CSV (*.csv)|*.csv",
+                    FileName = $"Statistiques_FleetManager_{DateTime.Now:yyyyMMdd}.csv"
                 };
 
                 if (saveDialog.ShowDialog() == true)
                 {
-                    // Note: Vous devrez implémenter la méthode ExportToExcelAsync dans ExportService
-                    // var (success, message) = await _exportService.ExportToExcelAsync(data, saveDialog.FileName);
+                    // Export CSV comme alternative à Excel
+                    var (success, message) = await _exportService.ExportStatisticsToCsvAsync(
+                        VehicleStatistics.ToList(), saveDialog.FileName);
 
-                    MessageBox.Show("Fonctionnalité Excel en cours de développement",
-                        "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (success)
+                    {
+                        MessageBox.Show("Export réussi!\n\nLe fichier CSV peut être ouvert dans Excel.", "Succès",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show(message, "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de l'export Excel:\n\n{ex.Message}",
+                MessageBox.Show($"Erreur lors de l'export:\n\n{ex.Message}",
                     "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -850,9 +858,16 @@ namespace FleetManager.ViewModels
 
         private async Task CompareVehiclesAsync(object? parameter)
         {
-            // Cette méthode pourrait ouvrir une fenêtre de comparaison détaillée
-            MessageBox.Show("Fonctionnalité de comparaison détaillée en cours de développement",
-                "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                var window = new Views.CompareVehiclesWindow(_vehicleService, _statisticsService, _exportService);
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'ouverture de la comparaison:\n\n{ex.Message}",
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
             await Task.CompletedTask;
         }
 
@@ -989,47 +1004,29 @@ namespace FleetManager.ViewModels
         {
             try
             {
-                // Générer un fichier PDF temporaire
-                var tempPath = Path.Combine(Path.GetTempPath(), $"Rapport_Statistiques_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-                var content = GenerateReportContent();
-                var (pdfSuccess, pdfMessage) = _exportService.GeneratePdfReport(
-                    "Rapport Statistiques Fleet Manager",
-                    content,
-                    tempPath);
-
-                if (!pdfSuccess)
-                {
-                    MessageBox.Show(pdfMessage, "Erreur génération PDF", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // Destinataire (placeholder - pourrait venir d'une configuration ou d'un champ UI)
-                var recipient = "admin@example.com";
-                var (success, message) = await _emailService.SendReportAsync(recipient, tempPath, "Statistiques Fleet Manager");
-
-                if (success)
-                {
-                    MessageBox.Show("Rapport envoyé avec succès par email", "Succès",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    MessageBox.Show(message, "Erreur envoi email",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                var window = new Views.SendReportWindow(_statisticsService, _exportService, _emailService);
+                window.ShowDialog();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de l'envoi: {ex.Message}", "Erreur",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Erreur lors de l'ouverture:\n\n{ex.Message}",
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            await Task.CompletedTask;
         }
 
         private void SetTargets()
         {
-            MessageBox.Show("Définition des objectifs - En développement\n\n" +
-                "Vous pourrez définir les cibles de consommation et coûts par véhicule",
-                "Définir les Objectifs", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                var window = new Views.SetTargetsWindow();
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'ouverture:\n\n{ex.Message}",
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void OpenAnalysisSettings()

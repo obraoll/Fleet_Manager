@@ -69,6 +69,8 @@ namespace FleetManager.ViewModels
         public ICommand NavigateToVehiclesCommand { get; }
         public ICommand NavigateToFuelCommand { get; }
         public ICommand NavigateToStatisticsCommand { get; }
+        public ICommand NavigateToMaintenanceCommand { get; }
+        public ICommand NavigateToUsersCommand { get; }
 
         public MainViewModel(AuthenticationService authService, IServiceProvider serviceProvider)
         {
@@ -82,6 +84,8 @@ namespace FleetManager.ViewModels
             NavigateToVehiclesCommand = new RelayCommand(param => Navigate("VehiclesView"));
             NavigateToFuelCommand = new RelayCommand(param => Navigate("FuelView"));
             NavigateToStatisticsCommand = new RelayCommand(param => Navigate("StatisticsView"));
+            NavigateToMaintenanceCommand = new RelayCommand(param => Navigate("MaintenanceView"));
+            NavigateToUsersCommand = new RelayCommand(param => Navigate("UsersView"));
 
             // Initialisation des informations utilisateur
             InitializeUserInfo();
@@ -99,7 +103,7 @@ namespace FleetManager.ViewModels
                 {
                     CurrentUserName = currentUser.FullName ?? currentUser.Username;
                     CurrentUserRole = GetRoleDisplayName(currentUser.Role);
-                    IsAdmin = currentUser.Role == UserRole.Admin;
+                    IsAdmin = currentUser.Role == "Admin";
 
                     System.Diagnostics.Debug.WriteLine($"Utilisateur connecté: {CurrentUserName} ({CurrentUserRole}) - Admin: {IsAdmin}");
                 }
@@ -117,13 +121,13 @@ namespace FleetManager.ViewModels
             }
         }
 
-        private string GetRoleDisplayName(UserRole role)
+        private string GetRoleDisplayName(string role)
         {
             return role switch
             {
-                UserRole.Admin => "Administrateur",
-                UserRole.User => "Utilisateur",
-                _ => role.ToString()
+                "Admin" => "Administrateur",
+                "User" => "Utilisateur",
+                _ => role
             };
         }
 
@@ -144,7 +148,9 @@ namespace FleetManager.ViewModels
                 {
                     case "DashboardView":
                         System.Diagnostics.Debug.WriteLine("Récupération DashboardView...");
-                        var dashboardView = _serviceProvider.GetRequiredService<DashboardView>();
+                        var dashboardViewModel = _serviceProvider.GetRequiredService<DashboardViewModel>();
+                        var dashboardView = new DashboardView(dashboardViewModel);
+                        System.Diagnostics.Debug.WriteLine($"DashboardView DataContext: {dashboardView.DataContext?.GetType().Name}");
                         CurrentView = dashboardView;
                         System.Diagnostics.Debug.WriteLine("DashboardView chargée et assignée");
                         break;
@@ -159,29 +165,40 @@ namespace FleetManager.ViewModels
                         break;
 
                     case "FuelView":
-                        var fuelView = _serviceProvider.GetRequiredService<FuelView>();
+                        System.Diagnostics.Debug.WriteLine("Récupération FuelView...");
+                        var fuelViewModel = _serviceProvider.GetRequiredService<FuelViewModel>();
+                        var fuelView = new FuelView(fuelViewModel);
+                        System.Diagnostics.Debug.WriteLine($"FuelView DataContext: {fuelView.DataContext?.GetType().Name}");
                         CurrentView = fuelView;
-                        System.Diagnostics.Debug.WriteLine("FuelView chargée");
+                        System.Diagnostics.Debug.WriteLine("FuelView chargée et assignée");
                         break;
 
                     case "StatisticsView":
-                        // Créer une vue temporaire si StatisticsView n'existe pas encore
-                        CurrentView = CreateTemporaryStatisticsView();
-                        System.Diagnostics.Debug.WriteLine("StatisticsView temporaire chargée");
+                        var statisticsViewModel = _serviceProvider.GetRequiredService<StatisticsViewModel>();
+                        var statisticsView = new StatisticsView(statisticsViewModel);
+                        System.Diagnostics.Debug.WriteLine($"StatisticsView DataContext: {statisticsView.DataContext?.GetType().Name}");
+                        CurrentView = statisticsView;
+                        System.Diagnostics.Debug.WriteLine("StatisticsView chargée et assignée");
                         break;
 
                     case "MaintenanceView":
-                        // Créer une vue temporaire si MaintenanceView n'existe pas encore
-                        CurrentView = CreateTemporaryMaintenanceView();
-                        System.Diagnostics.Debug.WriteLine("MaintenanceView temporaire chargée");
+                        System.Diagnostics.Debug.WriteLine("Récupération MaintenanceView...");
+                        var maintenanceViewModel = _serviceProvider.GetRequiredService<MaintenanceViewModel>();
+                        var maintenanceView = new MaintenanceView(maintenanceViewModel);
+                        System.Diagnostics.Debug.WriteLine($"MaintenanceView DataContext: {maintenanceView.DataContext?.GetType().Name}");
+                        CurrentView = maintenanceView;
+                        System.Diagnostics.Debug.WriteLine("MaintenanceView chargée et assignée");
                         break;
 
                     case "UsersView":
                         if (IsAdmin)
                         {
-                            // Créer une vue temporaire si UsersView n'existe pas encore
-                            CurrentView = CreateTemporaryUsersView();
-                            System.Diagnostics.Debug.WriteLine("UsersView temporaire chargée");
+                            System.Diagnostics.Debug.WriteLine("Récupération UsersView...");
+                            var usersViewModel = _serviceProvider.GetRequiredService<UsersViewModel>();
+                            var usersView = new UsersView(usersViewModel);
+                            System.Diagnostics.Debug.WriteLine($"UsersView DataContext: {usersView.DataContext?.GetType().Name}");
+                            CurrentView = usersView;
+                            System.Diagnostics.Debug.WriteLine("UsersView chargée et assignée");
                         }
                         else
                         {

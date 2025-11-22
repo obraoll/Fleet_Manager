@@ -93,8 +93,8 @@ namespace FleetManager.Models
     /// </summary>
     public class VehicleTypeStatistics
     {
-        public VehicleType VehicleType { get; set; }
-        public string TypeName => VehicleType.ToString();
+        public string VehicleType { get; set; } = string.Empty;
+        public string TypeName => VehicleType;
         public int Count { get; set; }
         public decimal AverageConsumption { get; set; }
         public decimal TotalFuelCost { get; set; }
@@ -108,8 +108,8 @@ namespace FleetManager.Models
     /// </summary>
     public class FuelTypeStatistics
     {
-        public FuelType FuelType { get; set; }
-        public string TypeName => FuelType.ToString();
+        public string FuelType { get; set; } = string.Empty;
+        public string TypeName => FuelType;
         public int VehicleCount { get; set; }
         public decimal TotalLiters { get; set; }
         public decimal TotalCost { get; set; }

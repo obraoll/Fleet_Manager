@@ -1,0 +1,179 @@
+<Window x:Class="FleetManager.Views.CompareVehiclesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        Title="Comparaison de Véhicules" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+
+    <Window.Resources>
+        <Style TargetType="Border" x:Key="CardStyle">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="HeaderStyle">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#1976D2"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Titre -->
+        <TextBlock Grid.Row="0" Text="📊 Comparaison de Véhicules" 
+                   FontSize="24" FontWeight="Bold" 
+                   Foreground="#1976D2" Margin="0,0,0,20"/>
+
+        <!-- Sélection des véhicules -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="Sélectionner les véhicules à comparer" 
+                           Style="{StaticResource HeaderStyle}"/>
+                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ListBox Grid.Column="0" x:Name="VehicleListBox" 
+                             Height="150" SelectionMode="Multiple"
+                             ItemsSource="{Binding AvailableVehicles}"
+                             DisplayMemberPath="DisplayName"
+                             SelectedValuePath="VehicleId"/>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <Button Content="Comparer" Width="120" Height="35" 
+                                Command="{Binding CompareCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Margin="0,0,0,10"/>
+                        <Button Content="Réinitialiser" Width="120" Height="35"
+                                Command="{Binding ResetCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="{Binding SelectionMessage}" 
+                           Foreground="#666" Margin="0,10,0,0"
+                           FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Résultats de comparaison -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
+            <StackPanel>
+                <!-- Tableau de comparaison -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Tableau comparatif" Style="{StaticResource HeaderStyle}"/>
+                        <DataGrid ItemsSource="{Binding ComparisonResults}" 
+                                  AutoGenerateColumns="False" 
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  AlternatingRowBackground="#F9F9F9"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  Height="200">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Véhicule" Binding="{Binding VehicleName}" Width="*"/>
+                                <DataGridTextColumn Header="Immatriculation" Binding="{Binding RegistrationNumber}" Width="120"/>
+                                <DataGridTextColumn Header="Conso. (L/100km)" Binding="{Binding AverageConsumption, StringFormat='{}{0:F2}'}" Width="130"/>
+                                <DataGridTextColumn Header="Coût Carburant" Binding="{Binding TotalFuelCost, StringFormat='{}{0:C}'}" Width="130"/>
+                                <DataGridTextColumn Header="Coût Maint." Binding="{Binding TotalMaintenanceCost, StringFormat='{}{0:C}'}" Width="130"/>
+                                <DataGridTextColumn Header="Coût Total" Binding="{Binding TotalCost, StringFormat='{}{0:C}'}" Width="120"/>
+                                <DataGridTextColumn Header="€/km" Binding="{Binding CostPerKilometer, StringFormat='{}{0:F4}'}" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Graphiques de comparaison -->
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Graphique consommation -->
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Consommation Moyenne" Style="{StaticResource HeaderStyle}"/>
+                            <lvc:CartesianChart Series="{Binding ConsumptionSeries}" 
+                                              Height="250"
+                                              LegendPosition="Bottom"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Graphique coûts -->
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Coûts Totaux" Style="{StaticResource HeaderStyle}"/>
+                            <lvc:CartesianChart Series="{Binding CostSeries}" 
+                                              Height="250"
+                                              LegendPosition="Bottom"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Analyse et recommandations -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,10,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Analyse et Recommandations" Style="{StaticResource HeaderStyle}"/>
+                        <ItemsControl ItemsSource="{Binding Recommendations}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#FFF3E0" 
+                                            CornerRadius="5" 
+                                            Padding="10" 
+                                            Margin="0,0,0,5">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="💡" FontSize="16" 
+                                                       VerticalAlignment="Top" Margin="0,0,10,0"/>
+                                            <TextBlock Text="{Binding}" 
+                                                       TextWrapping="Wrap" 
+                                                       Foreground="#E65100"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Boutons d'action -->
+        <Border Grid.Row="3" Background="White" Padding="15" Margin="-20,10,-20,-20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="📊 Exporter CSV" Width="150" Height="40"
+                        Command="{Binding ExportCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="0,0,10,0"/>
+                <Button Content="📄 Générer PDF" Width="150" Height="40"
+                        Command="{Binding GeneratePdfCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="0,0,10,0"/>
+                <Button Content="Fermer" Width="120" Height="40"
+                        IsCancel="True"
+                        Click="CloseButton_Click"
+                        Style="{StaticResource SecondaryButtonStyle}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

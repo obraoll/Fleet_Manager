@@ -18,21 +18,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "FleetManager.csproj",
-              "DocumentMoniker": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",
-              "RelativeDocumentMoniker": "FleetManager.csproj",
-              "ToolTip": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",
-              "RelativeToolTip": "FleetManager.csproj",
-              "ViewState": "AgIAADkAAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-11-17T11:33:22.807Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -41,10 +28,22 @@
               "RelativeDocumentMoniker": "Views\\DashboardView.xaml.cs",
               "ToolTip": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\Views\\DashboardView.xaml.cs",
               "RelativeToolTip": "Views\\DashboardView.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-16T15:49:53.963Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FleetManager.csproj",
+              "DocumentMoniker": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",
+              "RelativeDocumentMoniker": "FleetManager.csproj",
+              "ToolTip": "C:\\Users\\smith\\Documents\\PROJET_BTS\\Fleet_Manager\\FleetManager\\FleetManager.csproj",
+              "RelativeToolTip": "FleetManager.csproj",
+              "ViewState": "AgIAADcAAAAAAAAAAIBZwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-11-17T11:33:22.807Z"
             }
           ]
         }

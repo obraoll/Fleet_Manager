@@ -20,15 +20,14 @@ namespace FleetManager.ViewModels
         private string _brand = string.Empty;
         private string _model = string.Empty;
         private int _year = DateTime.Now.Year;
-        private string _vin = string.Empty;
-        private VehicleType _vehicleType = VehicleType.Voiture;
-        private FuelType _fuelType = FuelType.Essence;
+        private string _vehicleType = "Berline";
+        private string _fuelType = "Essence";
         private double _currentMileage;
         private double _fuelTankCapacity = 50;
         private double _averageFuelConsumption = 7;
         private DateTime _acquisitionDate = DateTime.Now;
         private decimal _purchasePrice;
-        private VehicleStatus _status = VehicleStatus.Actif;
+        private string _status = "Actif";
         private string _description = string.Empty;
 
         // Propriétés de validation
@@ -91,23 +90,15 @@ namespace FleetManager.ViewModels
             }
         }
 
-        public string VIN
-        {
-            get => _vin;
-            set
-            {
-                SetProperty(ref _vin, value);
-                ValidateForm();
-            }
-        }
+        // VIN supprimé du modèle Vehicle, donc propriété non utilisée
 
-        public VehicleType VehicleType
+        public string VehicleType
         {
             get => _vehicleType;
             set => SetProperty(ref _vehicleType, value);
         }
 
-        public FuelType FuelType
+        public string FuelType
         {
             get => _fuelType;
             set => SetProperty(ref _fuelType, value);
@@ -143,7 +134,7 @@ namespace FleetManager.ViewModels
             set => SetProperty(ref _purchasePrice, value);
         }
 
-        public VehicleStatus Status
+        public string Status
         {
             get => _status;
             set => SetProperty(ref _status, value);
@@ -225,11 +216,7 @@ namespace FleetManager.ViewModels
                 }
             }
 
-            // Validation du VIN (optionnel mais si renseigné, doit faire 17 caractères)
-            if (!string.IsNullOrWhiteSpace(VIN) && VIN.Length != 17)
-            {
-                errors.Add("Le numéro VIN doit contenir exactement 17 caractères");
-            }
+            // VIN validation removed (VIN property no longer exists)
 
             // Validation des valeurs numériques
             if (CurrentMileage < 0)
@@ -281,10 +268,10 @@ namespace FleetManager.ViewModels
                     Brand = Brand.Trim(),
                     Model = Model.Trim(),
                     Year = Year,
-                    VIN = string.IsNullOrWhiteSpace(VIN) ? null : VIN.ToUpper().Trim(),
                     VehicleType = VehicleType,
                     FuelType = FuelType,
                     CurrentMileage = (decimal)CurrentMileage,
+                    TankCapacity = (decimal)FuelTankCapacity,
                     AverageFuelConsumption = (decimal)AverageFuelConsumption,
                     PurchaseDate = AcquisitionDate,
                     PurchasePrice = PurchasePrice,
