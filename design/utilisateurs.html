@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager - Utilisateurs</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .users-stats {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .user-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-color);
+            border-radius: var(--border-radius-sm);
+        }
+        
+        .user-stat-item span:first-child {
+            font-size: 20px;
+        }
+        
+        .user-stat-item strong {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .user-stat-item small {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        .user-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr 120px;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+        }
+        
+        .user-row:hover {
+            background: var(--bg-color);
+        }
+        
+        .user-row:last-child {
+            border-bottom: none;
+        }
+        
+        .user-row-header {
+            background: var(--bg-color);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .user-row-header:hover {
+            background: var(--bg-color);
+        }
+        
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .role-admin {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+        
+        .role-superadmin {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+        
+        .role-user {
+            background: #DBEAFE;
+            color: #2563EB;
+        }
+        
+        .status-active {
+            color: var(--success-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-inactive {
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .pagination-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .pagination-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .search-filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .search-filters .form-group {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">🚗</div>
+                    <div class="sidebar-logo-text">
+                        <h1>Fleet Manager</h1>
+                        <span>Gestion de flotte</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu principal</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <span class="nav-item-icon">📊</span>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a href="vehicules.html" class="nav-item">
+                        <span class="nav-item-icon">🚙</span>
+                        <span>Véhicules</span>
+                        <span class="nav-item-badge">5</span>
+                    </a>
+                    <a href="carburant-trajet.html" class="nav-item">
+                        <span class="nav-item-icon">⛽</span>
+                        <span>Carburant & Trajets</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="utilisateurs.html" class="nav-item active">
+                        <span class="nav-item-icon">👥</span>
+                        <span>Utilisateurs</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">NA</div>
+                    <div class="user-details">
+                        <h4>Nathan Audet</h4>
+                        <span>Administrateur</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <div class="page-title">
+                        <h2>Gestion des Utilisateurs</h2>
+                        <p>Gérez les accès et les rôles</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-secondary">
+                        📥 Exporter
+                    </button>
+                    <button class="btn btn-primary" onclick="openModal('addUserModal')">
+                        + Nouvel utilisateur
+                    </button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats rapides -->
+                <div class="users-stats" style="margin-bottom: 24px;">
+                    <div class="user-stat-item">
+                        <span>👥</span>
+                        <div>
+                            <strong>6</strong>
+                            <small>Utilisateurs</small>
+                        </div>
+                    </div>
+                    <div class="user-stat-item">
+                        <span>✅</span>
+                        <div>
+                            <strong>5</strong>
+                            <small>Actifs</small>
+                        </div>
+                    </div>
+                    <div class="user-stat-item">
+                        <span>🔑</span>
+                        <div>
+                            <strong>2</strong>
+                            <small>Admins</small>
+                        </div>
+                    </div>
+                    <div class="user-stat-item">
+                        <span>⭐</span>
+                        <div>
+                            <strong>1</strong>
+                            <small>Super Admin</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tableau des utilisateurs -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Liste des utilisateurs</div>
+                            <div class="card-subtitle">6 utilisateurs enregistrés</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtres -->
+                    <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color);">
+                        <div class="search-filters">
+                            <div class="form-group" style="flex: 1;">
+                                <input type="text" class="form-control" placeholder="🔍 Rechercher par nom, email...">
+                            </div>
+                            <div class="form-group" style="width: 180px;">
+                                <select class="form-control form-select">
+                                    <option value="">Tous les rôles</option>
+                                    <option value="superadmin">Super Admin</option>
+                                    <option value="admin">Administrateur</option>
+                                    <option value="user">Utilisateur</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="width: 150px;">
+                                <select class="form-control form-select">
+                                    <option value="">Tous statuts</option>
+                                    <option value="active">Actifs</option>
+                                    <option value="inactive">Inactifs</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body" style="padding: 0;">
+                        <!-- Header du tableau -->
+                        <div class="user-row user-row-header">
+                            <div>Utilisateur</div>
+                            <div>Email</div>
+                            <div>Rôle</div>
+                            <div>Statut</div>
+                            <div>Dernière connexion</div>
+                            <div>Actions</div>
+                        </div>
+                        
+                        <!-- Lignes utilisateurs -->
+                        <div class="user-row">
+                            <div class="user-cell">
+                                <div class="user-cell-avatar">SA</div>
+                                <div class="user-cell-info">
+                                    <h4>Super Admin</h4>
+                                    <span>superadmin</span>
+                                </div>
+                            </div>
+                            <div>superadmin@fleet-manager.com</div>
+                            <div><span class="role-badge role-superadmin">⭐ Super Admin</span></div>
+                            <div class="status-active">
+                                <span class="badge-dot" style="background: var(--success-color);"></span>
+                                Actif
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px;">Aujourd'hui, 14:30</div>
+                            <div class="table-actions">
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('editUserModal')" title="Modifier">✏️</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" title="Désactiver">🔒</button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-row">
+                            <div class="user-cell">
+                                <div class="user-cell-avatar">AS</div>
+                                <div class="user-cell-info">
+                                    <h4>Admin Système</h4>
+                                    <span>admin</span>
+                                </div>
+                            </div>
+                            <div>admin@fleet-manager.com</div>
+                            <div><span class="role-badge role-admin">🔑 Admin</span></div>
+                            <div class="status-active">
+                                <span class="badge-dot" style="background: var(--success-color);"></span>
+                                Actif
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px;">Aujourd'hui, 09:15</div>
+                            <div class="table-actions">
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('editUserModal')" title="Modifier">✏️</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" title="Désactiver">🔒</button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-row">
+                            <div class="user-cell">
+                                <div class="user-cell-avatar" style="background: linear-gradient(135deg, #10B981, #059669);">NA</div>
+                                <div class="user-cell-info">
+                                    <h4>Nathan Audet</h4>
+                                    <span>nathan</span>
+                                </div>
+                            </div>
+                            <div>lana@gmail.com</div>
+                            <div><span class="role-badge role-admin">🔑 Admin</span></div>
+                            <div class="status-active">
+                                <span class="badge-dot" style="background: var(--success-color);"></span>
+                                Actif
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px;">En ligne</div>
+                            <div class="table-actions">
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('editUserModal')" title="Modifier">✏️</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" title="Désactiver">🔒</button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-row">
+                            <div class="user-cell">
+                                <div class="user-cell-avatar" style="background: linear-gradient(135deg, #F59E0B, #D97706);">SB</div>
+                                <div class="user-cell-info">
+                                    <h4>Sophie Bernard</h4>
+                                    <span>sophie_bernard</span>
+                                </div>
+                            </div>
+                            <div>sophie.bernard@company.com</div>
+                            <div><span class="role-badge role-user">👤 Utilisateur</span></div>
+                            <div class="status-active">
+                                <span class="badge-dot" style="background: var(--success-color);"></span>
+                                Actif
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px;">Hier, 17:45</div>
+                            <div class="table-actions">
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('editUserModal')" title="Modifier">✏️</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" title="Désactiver">🔒</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('deleteModal')" title="Supprimer">🗑️</button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-row">
+                            <div class="user-cell">
+                                <div class="user-cell-avatar" style="background: linear-gradient(135deg, #3B82F6, #2563EB);">MD</div>
+                                <div class="user-cell-info">
+                                    <h4>Marie Dupont</h4>
+                                    <span>marie_dupont</span>
+                                </div>
+                            </div>
+                            <div>marie.dupont@company.com</div>
+                            <div><span class="role-badge role-user">👤 Utilisateur</span></div>
+                            <div class="status-active">
+                                <span class="badge-dot" style="background: var(--success-color);"></span>
+                                Actif
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px;">20/11/2025</div>
+                            <div class="table-actions">
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('editUserModal')" title="Modifier">✏️</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" title="Désactiver">🔒</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('deleteModal')" title="Supprimer">🗑️</button>
+                            </div>
+                        </div>
+                        
+                        <div class="user-row">
+                            <div class="user-cell">
+                                <div class="user-cell-avatar" style="background: linear-gradient(135deg, #94A3B8, #64748B);">JM</div>
+                                <div class="user-cell-info">
+                                    <h4>Jean Martin</h4>
+                                    <span>jean_martin</span>
+                                </div>
+                            </div>
+                            <div>jean.martin@company.com</div>
+                            <div><span class="role-badge role-user">👤 Utilisateur</span></div>
+                            <div class="status-inactive">
+                                <span class="badge-dot" style="background: var(--text-light);"></span>
+                                Inactif
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 13px;">15/10/2025</div>
+                            <div class="table-actions">
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('editUserModal')" title="Modifier">✏️</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" title="Réactiver">🔓</button>
+                                <button class="btn btn-icon btn-sm btn-secondary" onclick="openModal('deleteModal')" title="Supprimer">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <div class="pagination-info">
+                            Affichage de 1 à 6 sur 6 utilisateurs
+                        </div>
+                        <div class="pagination-buttons">
+                            <button class="pagination-btn" disabled>← Précédent</button>
+                            <button class="pagination-btn active">1</button>
+                            <button class="pagination-btn" disabled>Suivant →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Ajouter Utilisateur -->
+    <div class="modal-overlay" id="addUserModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Nouvel utilisateur</h3>
+                <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nom d'utilisateur <span class="required">*</span></label>
+                    <input type="text" class="form-control" placeholder="Ex: jean_dupont">
+                    <div class="form-hint">Sera utilisé pour la connexion</div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Prénom <span class="required">*</span></label>
+                        <input type="text" class="form-control" placeholder="Ex: Jean">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nom <span class="required">*</span></label>
+                        <input type="text" class="form-control" placeholder="Ex: Dupont">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email <span class="required">*</span></label>
+                    <input type="email" class="form-control" placeholder="Ex: jean.dupont@company.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mot de passe <span class="required">*</span></label>
+                    <input type="password" class="form-control" placeholder="Minimum 8 caractères">
+                    <div class="form-hint">Le mot de passe doit contenir au moins 8 caractères</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rôle <span class="required">*</span></label>
+                    <select class="form-control form-select">
+                        <option value="user">Utilisateur</option>
+                        <option value="admin">Administrateur</option>
+                        <option value="superadmin">Super Admin</option>
+                    </select>
+                    <div class="form-hint">
+                        <strong>Utilisateur :</strong> Peut voir et ajouter des données<br>
+                        <strong>Admin :</strong> Peut modifier et supprimer<br>
+                        <strong>Super Admin :</strong> Accès complet
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addUserModal')">Annuler</button>
+                <button class="btn btn-primary">Créer l'utilisateur</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Modifier Utilisateur -->
+    <div class="modal-overlay" id="editUserModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Modifier l'utilisateur</h3>
+                <button class="modal-close" onclick="closeModal('editUserModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nom d'utilisateur</label>
+                    <input type="text" class="form-control" value="sophie_bernard">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" class="form-control" value="Sophie">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-control" value="Bernard">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" value="sophie.bernard@company.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nouveau mot de passe</label>
+                    <input type="password" class="form-control" placeholder="Laisser vide pour ne pas modifier">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rôle</label>
+                    <select class="form-control form-select">
+                        <option value="user" selected>Utilisateur</option>
+                        <option value="admin">Administrateur</option>
+                        <option value="superadmin">Super Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Statut</label>
+                    <select class="form-control form-select">
+                        <option value="active" selected>Actif</option>
+                        <option value="inactive">Inactif</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editUserModal')">Annuler</button>
+                <button class="btn btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmation Suppression -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmer la suppression</h3>
+                <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <p style="font-size: 16px; margin-bottom: 8px;">Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+                <p style="color: var(--text-secondary);">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Annuler</button>
+                <button class="btn btn-danger">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

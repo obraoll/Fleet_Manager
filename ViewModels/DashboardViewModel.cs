@@ -57,7 +57,18 @@ namespace FleetManager.ViewModels
         {
             new ColumnSeries<double> { Values = new double[] { }, Name = "Coûts" }
         };
+        private IEnumerable<ISeries> _monthlyTrendsSeries = new List<ISeries>
+        {
+            new ColumnSeries<double> { Values = new double[] { }, Name = "Carburant" },
+            new ColumnSeries<double> { Values = new double[] { }, Name = "Maintenance" }
+        };
         private string[] _trendLabels = Array.Empty<string>();
+
+        // Propriétés pour les statistiques annuelles
+        private decimal _yearlyFuelTotal;
+        private decimal _yearlyMaintenanceTotal;
+        private decimal _yearlyOperatingCost;
+        private decimal _monthlyAverageCost;
 
         // État de chargement
         private bool _isLoading;
@@ -212,10 +223,41 @@ namespace FleetManager.ViewModels
             set => SetProperty(ref _costSeries, value);
         }
 
+        public IEnumerable<ISeries> MonthlyTrendsSeries
+        {
+            get => _monthlyTrendsSeries;
+            set => SetProperty(ref _monthlyTrendsSeries, value);
+        }
+
         public string[] TrendLabels
         {
             get => _trendLabels;
             set => SetProperty(ref _trendLabels, value);
+        }
+
+        // Propriétés pour les statistiques annuelles
+        public decimal YearlyFuelTotal
+        {
+            get => _yearlyFuelTotal;
+            set => SetProperty(ref _yearlyFuelTotal, value);
+        }
+
+        public decimal YearlyMaintenanceTotal
+        {
+            get => _yearlyMaintenanceTotal;
+            set => SetProperty(ref _yearlyMaintenanceTotal, value);
+        }
+
+        public decimal YearlyOperatingCost
+        {
+            get => _yearlyOperatingCost;
+            set => SetProperty(ref _yearlyOperatingCost, value);
+        }
+
+        public decimal MonthlyAverageCost
+        {
+            get => _monthlyAverageCost;
+            set => SetProperty(ref _monthlyAverageCost, value);
         }
 
         #endregion
@@ -315,12 +357,63 @@ namespace FleetManager.ViewModels
                             YToolTipLabelFormatter = point => $"{TrendLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
                         }
                     };
+
+                    // Créer les séries pour l'évolution mensuelle (12 mois)
+                    if (MonthlyTrends != null && MonthlyTrends.Any())
+                    {
+                        var fuelCostValues = MonthlyTrends.Select(m => (double)m.FuelCost).ToArray();
+                        var maintenanceCostValues = MonthlyTrends.Select(m => (double)m.MaintenanceCost).ToArray();
+                        var monthLabels = MonthlyTrends.Select(m => m.Month).ToArray();
+
+                        MonthlyTrendsSeries = new ISeries[]
+                        {
+                            new ColumnSeries<double>
+                            {
+                                Values = fuelCostValues,
+                                Name = "Carburant",
+                                Fill = new SolidColorPaint(new SKColor(76, 175, 80)),
+                                Stroke = new SolidColorPaint(new SKColor(56, 142, 60), 1),
+                                YToolTipLabelFormatter = point => $"{monthLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
+                            },
+                            new ColumnSeries<double>
+                            {
+                                Values = maintenanceCostValues,
+                                Name = "Maintenance",
+                                Fill = new SolidColorPaint(new SKColor(255, 152, 0)),
+                                Stroke = new SolidColorPaint(new SKColor(245, 124, 0), 1),
+                                YToolTipLabelFormatter = point => $"{monthLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
+                            }
+                        };
+
+                        // Calculer les totaux annuels
+                        YearlyFuelTotal = MonthlyTrends.Sum(m => m.FuelCost);
+                        YearlyMaintenanceTotal = MonthlyTrends.Sum(m => m.MaintenanceCost);
+                        YearlyOperatingCost = YearlyFuelTotal + YearlyMaintenanceTotal;
+                        MonthlyAverageCost = MonthlyTrends.Count > 0 ? YearlyOperatingCost / MonthlyTrends.Count : 0;
+                    }
+                    else
+                    {
+                        MonthlyTrendsSeries = new ISeries[]
+                        {
+                            new ColumnSeries<double> { Values = new double[] { }, Name = "Carburant" },
+                            new ColumnSeries<double> { Values = new double[] { }, Name = "Maintenance" }
+                        };
+                        YearlyFuelTotal = 0;
+                        YearlyMaintenanceTotal = 0;
+                        YearlyOperatingCost = 0;
+                        MonthlyAverageCost = 0;
+                    }
                 }
                 catch
                 {
                     TrendLabels = Array.Empty<string>();
                     ConsumptionSeries = Array.Empty<ISeries>();
                     CostSeries = Array.Empty<ISeries>();
+                    MonthlyTrendsSeries = Array.Empty<ISeries>();
+                    YearlyFuelTotal = 0;
+                    YearlyMaintenanceTotal = 0;
+                    YearlyOperatingCost = 0;
+                    MonthlyAverageCost = 0;
                 }
 
                 // Charger les mouvements récents séparément

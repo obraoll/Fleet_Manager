@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager - Véhicules</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Styles spécifiques à cette page */
+        .vehicles-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 24px;
+            height: calc(100vh - var(--header-height) - 64px);
+        }
+        
+        .vehicles-list-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .vehicles-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .vehicle-detail-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        
+        .vehicle-header-card {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        
+        .vehicle-header-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-light);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        .vehicle-header-info {
+            flex: 1;
+        }
+        
+        .vehicle-header-info h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .vehicle-header-info p {
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .vehicle-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .vehicle-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        
+        .info-item {
+            background: var(--bg-color);
+            padding: 16px;
+            border-radius: var(--border-radius-sm);
+        }
+        
+        .info-item-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .info-item-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">🚗</div>
+                    <div class="sidebar-logo-text">
+                        <h1>Fleet Manager</h1>
+                        <span>Gestion de flotte</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu principal</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <span class="nav-item-icon">📊</span>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a href="vehicules.html" class="nav-item active">
+                        <span class="nav-item-icon">🚙</span>
+                        <span>Véhicules</span>
+                        <span class="nav-item-badge">5</span>
+                    </a>
+                    <a href="carburant-trajet.html" class="nav-item">
+                        <span class="nav-item-icon">⛽</span>
+                        <span>Carburant & Trajets</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="utilisateurs.html" class="nav-item">
+                        <span class="nav-item-icon">👥</span>
+                        <span>Utilisateurs</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">NA</div>
+                    <div class="user-details">
+                        <h4>Nathan Audet</h4>
+                        <span>Administrateur</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <div class="page-title">
+                        <h2>Véhicules</h2>
+                        <p>Gestion et suivi de vos véhicules</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-search">
+                        <span class="header-search-icon">🔍</span>
+                        <input type="text" placeholder="Rechercher un véhicule...">
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('addVehicleModal')">
+                        + Ajouter un véhicule
+                    </button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="vehicles-layout">
+                    <!-- Liste des véhicules -->
+                    <div class="vehicles-list-panel">
+                        <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">Liste des Véhicules</div>
+                                    <div class="card-subtitle">5 véhicules enregistrés</div>
+                                </div>
+                                <select class="form-control form-select" style="width: auto;">
+                                    <option>Tous les statuts</option>
+                                    <option>En service</option>
+                                    <option>En maintenance</option>
+                                    <option>Disponible</option>
+                                </select>
+                            </div>
+                            <div class="card-body" style="flex: 1; overflow-y: auto; padding: 16px;">
+                                <div class="vehicles-list">
+                                    <div class="vehicle-card selected">
+                                        <div class="vehicle-icon">🚐</div>
+                                        <div class="vehicle-info">
+                                            <h4>Citroën Berlingo</h4>
+                                            <p>IJ-789-KL • 2020 • Diesel</p>
+                                        </div>
+                                        <div class="vehicle-meta">
+                                            <div class="vehicle-km">125 450 km</div>
+                                            <span class="badge badge-success">
+                                                <span class="badge-dot"></span>
+                                                En service
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="vehicle-card">
+                                        <div class="vehicle-icon">🚗</div>
+                                        <div class="vehicle-info">
+                                            <h4>Peugeot 308</h4>
+                                            <p>AB-123-CD • 2022 • Essence</p>
+                                        </div>
+                                        <div class="vehicle-meta">
+                                            <div class="vehicle-km">45 320 km</div>
+                                            <span class="badge badge-success">
+                                                <span class="badge-dot"></span>
+                                                En service
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="vehicle-card">
+                                        <div class="vehicle-icon">🚙</div>
+                                        <div class="vehicle-info">
+                                            <h4>Renault Espace</h4>
+                                            <p>EF-456-GH • 2021 • Diesel</p>
+                                        </div>
+                                        <div class="vehicle-meta">
+                                            <div class="vehicle-km">72 840 km</div>
+                                            <span class="badge badge-success">
+                                                <span class="badge-dot"></span>
+                                                En service
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="vehicle-card">
+                                        <div class="vehicle-icon">🚗</div>
+                                        <div class="vehicle-info">
+                                            <h4>Toyota Yaris</h4>
+                                            <p>QR-345-ST • 2022 • Essence</p>
+                                        </div>
+                                        <div class="vehicle-meta">
+                                            <div class="vehicle-km">35 670 km</div>
+                                            <span class="badge badge-warning">
+                                                <span class="badge-dot"></span>
+                                                Maintenance
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="vehicle-card">
+                                        <div class="vehicle-icon">🚐</div>
+                                        <div class="vehicle-info">
+                                            <h4>VW Transporter</h4>
+                                            <p>MN-012-OP • 2023 • Diesel</p>
+                                        </div>
+                                        <div class="vehicle-meta">
+                                            <div class="vehicle-km">18 900 km</div>
+                                            <span class="badge badge-success">
+                                                <span class="badge-dot"></span>
+                                                En service
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Détail du véhicule sélectionné -->
+                    <div class="vehicle-detail-panel">
+                        <!-- Header du véhicule -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="vehicle-header-card">
+                                    <div class="vehicle-header-icon">🚐</div>
+                                    <div class="vehicle-header-info">
+                                        <h2>Citroën Berlingo</h2>
+                                        <p>Immatriculation : IJ-789-KL</p>
+                                        <div class="vehicle-tags">
+                                            <span class="badge badge-success">
+                                                <span class="badge-dot"></span>
+                                                En service
+                                            </span>
+                                            <span class="badge badge-info">Diesel</span>
+                                            <span class="badge" style="background: #F1F5F9;">2020</span>
+                                        </div>
+                                    </div>
+                                    <div class="vehicle-actions">
+                                        <button class="btn btn-secondary btn-sm">✏️ Modifier</button>
+                                        <button class="btn btn-danger btn-sm">🗑️ Supprimer</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-grid mt-4">
+                                    <div class="info-item">
+                                        <div class="info-item-label">Kilométrage actuel</div>
+                                        <div class="info-item-value">125 450 km</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-item-label">Consommation moyenne</div>
+                                        <div class="info-item-value">7.2 L/100km</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-item-label">Total carburant</div>
+                                        <div class="info-item-value">2 340 €</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-item-label">Dernière révision</div>
+                                        <div class="info-item-value">15/09/2025</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graphique d'évolution -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">Évolution du kilométrage</div>
+                                    <div class="card-subtitle">Basé sur les pleins et trajets enregistrés</div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container" style="height: 200px;">
+                                    <canvas id="kmEvolutionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Historique -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">Historique</div>
+                                    <div class="card-subtitle">Pleins, trajets et modifications</div>
+                                </div>
+                                <div class="tabs" style="border: none; margin: 0;">
+                                    <button class="tab active">Tout</button>
+                                    <button class="tab">Pleins</button>
+                                    <button class="tab">Trajets</button>
+                                    <button class="tab">Maintenance</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot fuel"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">21 novembre 2025 - 14:30</div>
+                                            <div class="timeline-title">Plein de carburant</div>
+                                            <div class="timeline-description">
+                                                45L Diesel • 78,50 € • Station Total Autoroute A6
+                                                <br>Kilométrage : 125 450 km
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot trip"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">20 novembre 2025 - 08:00</div>
+                                            <div class="timeline-title">Trajet effectué</div>
+                                            <div class="timeline-description">
+                                                Lyon → Marseille • 315 km parcourus
+                                                <br>Kilométrage départ : 125 135 km → Arrivée : 125 450 km
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot fuel"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">18 novembre 2025 - 17:45</div>
+                                            <div class="timeline-title">Plein de carburant</div>
+                                            <div class="timeline-description">
+                                                52L Diesel • 89,44 € • Station Leclerc Drive
+                                                <br>Kilométrage : 125 135 km
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot maintenance"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">15 septembre 2025 - 10:00</div>
+                                            <div class="timeline-title">Maintenance - Révision 120 000 km</div>
+                                            <div class="timeline-description">
+                                                Vidange + filtres + freins avant • 385,00 €
+                                                <br>Garage : Auto Service Lyon
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot trip"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">10 septembre 2025 - 06:30</div>
+                                            <div class="timeline-title">Trajet effectué</div>
+                                            <div class="timeline-description">
+                                                Paris → Lyon • 465 km parcourus
+                                                <br>Kilométrage départ : 119 450 km → Arrivée : 119 915 km
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn btn-secondary btn-sm">Charger plus d'historique</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Ajouter Véhicule -->
+    <div class="modal-overlay" id="addVehicleModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Ajouter un véhicule</h3>
+                <button class="modal-close" onclick="closeModal('addVehicleModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Marque <span class="required">*</span></label>
+                        <input type="text" class="form-control" placeholder="Ex: Renault">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Modèle <span class="required">*</span></label>
+                        <input type="text" class="form-control" placeholder="Ex: Clio">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Immatriculation <span class="required">*</span></label>
+                        <input type="text" class="form-control" placeholder="Ex: AB-123-CD">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Année <span class="required">*</span></label>
+                        <input type="number" class="form-control" placeholder="Ex: 2023" min="1990" max="2025">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Type de carburant <span class="required">*</span></label>
+                        <select class="form-control form-select">
+                            <option value="">Sélectionner...</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="essence">Essence</option>
+                            <option value="electrique">Électrique</option>
+                            <option value="hybride">Hybride</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kilométrage initial</label>
+                        <input type="number" class="form-control" placeholder="Ex: 0" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Statut initial</label>
+                    <select class="form-control form-select">
+                        <option value="disponible">Disponible</option>
+                        <option value="en_service">En service</option>
+                        <option value="maintenance">En maintenance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control form-textarea" placeholder="Informations supplémentaires..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addVehicleModal')">Annuler</button>
+                <button class="btn btn-primary">Ajouter le véhicule</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748B';
+
+        // Graphique évolution kilométrage
+        const kmEvolutionCtx = document.getElementById('kmEvolutionChart').getContext('2d');
+        new Chart(kmEvolutionCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov'],
+                datasets: [{
+                    label: 'Kilométrage',
+                    data: [112000, 114500, 116200, 117800, 119000, 120500, 121800, 122900, 124000, 125000, 125450],
+                    borderColor: '#4F46E5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#4F46E5',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: '#E2E8F0'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return (value / 1000) + 'k km';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Modal functions
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

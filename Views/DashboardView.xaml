@@ -439,46 +439,89 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Statistiques mensuelles -->
+                <!-- Statistiques mensuelles - Évolution sur 12 mois -->
                 <Border Style="{StaticResource MetricCardStyle}" Margin="0,20,0,0">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionTitleStyle}" Text="📅 Évolution sur 12 mois"/>
 
-                        <Grid Height="150">
-                            <!-- Graphique simplifié des tendances mensuelles -->
-                            <Canvas Background="#F8F9FA">
-                                <ItemsControl ItemsSource="{Binding MonthlyTrends}" Canvas.Left="50" Canvas.Top="20">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Width="80" Margin="5">
-                                                <Border Background="#4CAF50" Height="{Binding FuelCost}"
-                                                        Width="15" VerticalAlignment="Bottom" CornerRadius="2"/>
-                                                <Border Background="#FF9800" Height="{Binding MaintenanceCost}"
-                                                        Width="15" VerticalAlignment="Bottom" CornerRadius="2" Margin="20,0,0,0"/>
-                                                <TextBlock Text="{Binding Month}" FontSize="8" HorizontalAlignment="Center"
-                                                           Margin="0,5,0,0"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                        <Grid Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="300"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                                <!-- Légende -->
-                                <StackPanel Canvas.Right="20" Canvas.Top="20">
-                                    <StackPanel Orientation="Horizontal" Margin="0,2">
-                                        <Border Background="#4CAF50" Width="12" Height="12" CornerRadius="2"/>
-                                        <TextBlock Text="Carburant" FontSize="10" Margin="5,0"/>
+                            <!-- Graphique avec LiveCharts -->
+                            <lvc:CartesianChart x:Name="MonthlyTrendsChart" 
+                                                Series="{Binding MonthlyTrendsSeries}"
+                                                Grid.Row="0"
+                                                LegendPosition="Top"
+                                                TooltipPosition="Top">
+                            </lvc:CartesianChart>
+
+                            <!-- Tableau récapitulatif des données mensuelles -->
+                            <Border Grid.Row="1" 
+                                    Background="#F8F9FA" 
+                                    CornerRadius="6" 
+                                    Padding="15" 
+                                    Margin="0,15,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Totaux -->
+                                    <StackPanel Grid.Column="0" Margin="5">
+                                        <TextBlock Text="💰 Carburant Total" 
+                                                   FontSize="11" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="#4CAF50"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock Text="{Binding YearlyFuelTotal, StringFormat={}{0:C0}}" 
+                                                   FontSize="18" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="#2E7D32"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,2">
-                                        <Border Background="#FF9800" Width="12" Height="12" CornerRadius="2"/>
-                                        <TextBlock Text="Maintenance" FontSize="10" Margin="5,0"/>
+
+                                    <StackPanel Grid.Column="1" Margin="5">
+                                        <TextBlock Text="🔧 Maintenance Total" 
+                                                   FontSize="11" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="#FF9800"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock Text="{Binding YearlyMaintenanceTotal, StringFormat={}{0:C0}}" 
+                                                   FontSize="18" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="#E65100"/>
                                     </StackPanel>
-                                </StackPanel>
-                            </Canvas>
+
+                                    <StackPanel Grid.Column="2" Margin="5">
+                                        <TextBlock Text="📊 Coût Total Annuel" 
+                                                   FontSize="11" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="#2196F3"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock Text="{Binding YearlyOperatingCost, StringFormat={}{0:C0}}" 
+                                                   FontSize="18" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="#0D47A1"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="3" Margin="5">
+                                        <TextBlock Text="📈 Moyenne Mensuelle" 
+                                                   FontSize="11" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="#9C27B0"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock Text="{Binding MonthlyAverageCost, StringFormat={}{0:C0}}" 
+                                                   FontSize="18" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="#6A1B9A"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                         </Grid>
                     </StackPanel>
                 </Border>

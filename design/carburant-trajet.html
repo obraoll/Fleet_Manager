@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager - Carburant & Trajets</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .fuel-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .selected-vehicle-banner {
+            background: linear-gradient(135deg, var(--primary-color), #7C3AED);
+            color: white;
+            padding: 20px 24px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        
+        .selected-vehicle-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .selected-vehicle-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        
+        .selected-vehicle-details h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .selected-vehicle-details p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .selected-vehicle-stats {
+            display: flex;
+            gap: 32px;
+        }
+        
+        .vehicle-stat {
+            text-align: center;
+        }
+        
+        .vehicle-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .vehicle-stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .quick-add-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .quick-add-card {
+            background: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-add-card:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+        
+        .quick-add-card.active {
+            border-style: solid;
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+        
+        .quick-add-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .quick-add-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .quick-add-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .history-filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .filter-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-chip:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .filter-chip.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .history-icon.fuel {
+            background: var(--success-light);
+        }
+        
+        .history-icon.trip {
+            background: var(--info-light);
+        }
+        
+        .history-content {
+            flex: 1;
+        }
+        
+        .history-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .history-details {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .history-meta {
+            text-align: right;
+        }
+        
+        .history-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .history-amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">🚗</div>
+                    <div class="sidebar-logo-text">
+                        <h1>Fleet Manager</h1>
+                        <span>Gestion de flotte</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu principal</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <span class="nav-item-icon">📊</span>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a href="vehicules.html" class="nav-item">
+                        <span class="nav-item-icon">🚙</span>
+                        <span>Véhicules</span>
+                        <span class="nav-item-badge">5</span>
+                    </a>
+                    <a href="carburant-trajet.html" class="nav-item active">
+                        <span class="nav-item-icon">⛽</span>
+                        <span>Carburant & Trajets</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="utilisateurs.html" class="nav-item">
+                        <span class="nav-item-icon">👥</span>
+                        <span>Utilisateurs</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">NA</div>
+                    <div class="user-details">
+                        <h4>Nathan Audet</h4>
+                        <span>Administrateur</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <div class="page-title">
+                        <h2>Carburant & Trajets</h2>
+                        <p>Enregistrez les pleins et trajets de vos véhicules</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="form-group" style="margin: 0; min-width: 280px;">
+                        <select class="form-control form-select" id="vehicleSelector">
+                            <option value="">Sélectionner un véhicule...</option>
+                            <option value="1" selected>Citroën Berlingo - IJ-789-KL</option>
+                            <option value="2">Peugeot 308 - AB-123-CD</option>
+                            <option value="3">Renault Espace - EF-456-GH</option>
+                            <option value="4">Toyota Yaris - QR-345-ST</option>
+                            <option value="5">VW Transporter - MN-012-OP</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Bannière véhicule sélectionné -->
+                <div class="selected-vehicle-banner">
+                    <div class="selected-vehicle-info">
+                        <div class="selected-vehicle-icon">🚐</div>
+                        <div class="selected-vehicle-details">
+                            <h3>Citroën Berlingo</h3>
+                            <p>IJ-789-KL • Diesel • 2020</p>
+                        </div>
+                    </div>
+                    <div class="selected-vehicle-stats">
+                        <div class="vehicle-stat">
+                            <div class="vehicle-stat-value">125 450</div>
+                            <div class="vehicle-stat-label">km actuels</div>
+                        </div>
+                        <div class="vehicle-stat">
+                            <div class="vehicle-stat-value">7.2 L</div>
+                            <div class="vehicle-stat-label">/ 100 km</div>
+                        </div>
+                        <div class="vehicle-stat">
+                            <div class="vehicle-stat-value">2 340 €</div>
+                            <div class="vehicle-stat-label">total carburant</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Choix rapide : Plein ou Trajet -->
+                <div class="quick-add-section">
+                    <div class="quick-add-card active" onclick="showForm('fuel')">
+                        <div class="quick-add-icon">⛽</div>
+                        <div class="quick-add-title">Nouveau Plein</div>
+                        <div class="quick-add-desc">Enregistrer un ravitaillement</div>
+                    </div>
+                    <div class="quick-add-card" onclick="showForm('trip')">
+                        <div class="quick-add-icon">🛣️</div>
+                        <div class="quick-add-title">Nouveau Trajet</div>
+                        <div class="quick-add-desc">Enregistrer un déplacement</div>
+                    </div>
+                </div>
+
+                <div class="fuel-layout">
+                    <!-- Formulaire Plein de carburant -->
+                    <div class="card" id="fuelForm">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">⛽ Nouveau Plein</div>
+                                <div class="card-subtitle">Enregistrez un ravitaillement</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Date du plein <span class="required">*</span></label>
+                                <input type="date" class="form-control" value="2025-11-21">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Quantité (litres) <span class="required">*</span></label>
+                                    <input type="number" class="form-control" placeholder="Ex: 45" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Prix au litre (€)</label>
+                                    <input type="number" class="form-control" placeholder="Ex: 1.75" step="0.001">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Coût total (€) <span class="required">*</span></label>
+                                <input type="number" class="form-control" placeholder="Ex: 78.50" step="0.01">
+                                <div class="form-hint">Sera calculé automatiquement si quantité et prix sont renseignés</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Kilométrage au compteur <span class="required">*</span></label>
+                                <input type="number" class="form-control" placeholder="Ex: 125450">
+                                <div class="form-hint">Dernier kilométrage enregistré : 125 135 km</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Station / Lieu</label>
+                                <input type="text" class="form-control" placeholder="Ex: Station Total Autoroute A6">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control form-textarea" placeholder="Remarques éventuelles..."></textarea>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-secondary">Réinitialiser</button>
+                            <button class="btn btn-primary" style="margin-left: auto;">
+                                ✓ Enregistrer le plein
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire Trajet (caché par défaut) -->
+                    <div class="card" id="tripForm" style="display: none;">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">🛣️ Nouveau Trajet</div>
+                                <div class="card-subtitle">Enregistrez un déplacement</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Date du trajet <span class="required">*</span></label>
+                                <input type="date" class="form-control" value="2025-11-21">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Lieu de départ <span class="required">*</span></label>
+                                    <input type="text" class="form-control" placeholder="Ex: Lyon">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Lieu d'arrivée <span class="required">*</span></label>
+                                    <input type="text" class="form-control" placeholder="Ex: Marseille">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Km au départ <span class="required">*</span></label>
+                                    <input type="number" class="form-control" placeholder="Ex: 125135">
+                                    <div class="form-hint">Dernier km : 125 135</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Km à l'arrivée <span class="required">*</span></label>
+                                    <input type="number" class="form-control" placeholder="Ex: 125450">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Distance parcourue</label>
+                                <input type="text" class="form-control" value="— km" disabled style="background: var(--bg-color);">
+                                <div class="form-hint">Calculée automatiquement</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Motif du trajet</label>
+                                <select class="form-control form-select">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="professionnel">Professionnel</option>
+                                    <option value="livraison">Livraison</option>
+                                    <option value="client">Visite client</option>
+                                    <option value="autre">Autre</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control form-textarea" placeholder="Remarques éventuelles..."></textarea>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-secondary">Réinitialiser</button>
+                            <button class="btn btn-primary" style="margin-left: auto;">
+                                ✓ Enregistrer le trajet
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Historique récent -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Historique récent</div>
+                                <div class="card-subtitle">Pour ce véhicule</div>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="history-filters" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color);">
+                                <span class="filter-chip active">Tout</span>
+                                <span class="filter-chip">Pleins</span>
+                                <span class="filter-chip">Trajets</span>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-icon fuel">⛽</div>
+                                <div class="history-content">
+                                    <div class="history-title">Plein de carburant</div>
+                                    <div class="history-details">45L Diesel • Station Total • 125 450 km</div>
+                                </div>
+                                <div class="history-meta">
+                                    <div class="history-date">21/11/2025</div>
+                                    <div class="history-amount">78,50 €</div>
+                                </div>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-icon trip">🛣️</div>
+                                <div class="history-content">
+                                    <div class="history-title">Lyon → Marseille</div>
+                                    <div class="history-details">315 km • Trajet professionnel</div>
+                                </div>
+                                <div class="history-meta">
+                                    <div class="history-date">20/11/2025</div>
+                                    <div class="history-amount">315 km</div>
+                                </div>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-icon fuel">⛽</div>
+                                <div class="history-content">
+                                    <div class="history-title">Plein de carburant</div>
+                                    <div class="history-details">52L Diesel • Station Leclerc • 125 135 km</div>
+                                </div>
+                                <div class="history-meta">
+                                    <div class="history-date">18/11/2025</div>
+                                    <div class="history-amount">89,44 €</div>
+                                </div>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-icon trip">🛣️</div>
+                                <div class="history-content">
+                                    <div class="history-title">Paris → Lyon</div>
+                                    <div class="history-details">465 km • Visite client</div>
+                                </div>
+                                <div class="history-meta">
+                                    <div class="history-date">15/11/2025</div>
+                                    <div class="history-amount">465 km</div>
+                                </div>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-icon fuel">⛽</div>
+                                <div class="history-content">
+                                    <div class="history-title">Plein de carburant</div>
+                                    <div class="history-details">48L Diesel • Station BP • 124 670 km</div>
+                                </div>
+                                <div class="history-meta">
+                                    <div class="history-date">12/11/2025</div>
+                                    <div class="history-amount">82,08 €</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="vehicules.html" class="btn btn-secondary btn-sm">Voir tout l'historique</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function showForm(type) {
+            const fuelForm = document.getElementById('fuelForm');
+            const tripForm = document.getElementById('tripForm');
+            const cards = document.querySelectorAll('.quick-add-card');
+            
+            cards.forEach(card => card.classList.remove('active'));
+            
+            if (type === 'fuel') {
+                fuelForm.style.display = 'block';
+                tripForm.style.display = 'none';
+                cards[0].classList.add('active');
+            } else {
+                fuelForm.style.display = 'none';
+                tripForm.style.display = 'block';
+                cards[1].classList.add('active');
+            }
+        }
+        
+        // Filter chips
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

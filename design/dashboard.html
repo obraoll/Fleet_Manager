@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager - Tableau de Bord</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">🚗</div>
+                    <div class="sidebar-logo-text">
+                        <h1>Fleet Manager</h1>
+                        <span>Gestion de flotte</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu principal</div>
+                    <a href="dashboard.html" class="nav-item active">
+                        <span class="nav-item-icon">📊</span>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a href="vehicules.html" class="nav-item">
+                        <span class="nav-item-icon">🚙</span>
+                        <span>Véhicules</span>
+                        <span class="nav-item-badge">5</span>
+                    </a>
+                    <a href="carburant-trajet.html" class="nav-item">
+                        <span class="nav-item-icon">⛽</span>
+                        <span>Carburant & Trajets</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="utilisateurs.html" class="nav-item">
+                        <span class="nav-item-icon">👥</span>
+                        <span>Utilisateurs</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">NA</div>
+                    <div class="user-details">
+                        <h4>Nathan Audet</h4>
+                        <span>Administrateur</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <div class="page-title">
+                        <h2>Tableau de Bord</h2>
+                        <p>Vue d'ensemble de votre flotte</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-search">
+                        <span class="header-search-icon">🔍</span>
+                        <input type="text" placeholder="Rechercher...">
+                    </div>
+                    <button class="header-btn">
+                        🔔
+                        <span class="badge"></span>
+                    </button>
+                    <button class="header-btn">❓</button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon primary">🚗</div>
+                            <div class="stat-card-trend up">+2 ce mois</div>
+                        </div>
+                        <div class="stat-card-value">12</div>
+                        <div class="stat-card-label">Total Véhicules</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon success">✓</div>
+                        </div>
+                        <div class="stat-card-value">9</div>
+                        <div class="stat-card-label">En Service</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon warning">🔧</div>
+                        </div>
+                        <div class="stat-card-value">2</div>
+                        <div class="stat-card-label">En Maintenance</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon info">📋</div>
+                        </div>
+                        <div class="stat-card-value">1</div>
+                        <div class="stat-card-label">Disponibles</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon danger">⛽</div>
+                            <div class="stat-card-trend down">+12%</div>
+                        </div>
+                        <div class="stat-card-value">2 847 €</div>
+                        <div class="stat-card-label">Coût Carburant Total</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-2 gap-4 mb-4" style="grid-template-columns: 2fr 1fr;">
+                    <!-- Graphique dépenses carburant -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Dépenses Carburant</div>
+                                <div class="card-subtitle">Évolution sur les 12 derniers mois</div>
+                            </div>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background: #4F46E5;"></span>
+                                    Diesel
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background: #10B981;"></span>
+                                    Essence
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="fuelExpensesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Répartition par type de carburant -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Répartition</div>
+                                <div class="card-subtitle">Par type de carburant</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height: 250px;">
+                                <canvas id="fuelTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Stats Section -->
+                <div class="grid grid-cols-2 gap-4" style="grid-template-columns: 1fr 2fr;">
+                    <!-- Sélection véhicule -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Suivi par Véhicule</div>
+                                <div class="card-subtitle">Sélectionnez un véhicule</div>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 12px;">
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <select class="form-control form-select" id="vehicleSelect">
+                                    <option value="">Choisir un véhicule...</option>
+                                    <option value="1" selected>Citroën Berlingo - IJ-789-KL</option>
+                                    <option value="2">Peugeot 308 - AB-123-CD</option>
+                                    <option value="3">Renault Espace - EF-456-GH</option>
+                                    <option value="4">Toyota Yaris - QR-345-ST</option>
+                                    <option value="5">VW Transporter - MN-012-OP</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Vehicle Info Card -->
+                            <div class="vehicle-card selected" style="margin-bottom: 12px;">
+                                <div class="vehicle-icon">🚐</div>
+                                <div class="vehicle-info">
+                                    <h4>Citroën Berlingo</h4>
+                                    <p>IJ-789-KL • 2020 • Diesel</p>
+                                </div>
+                                <div class="vehicle-meta">
+                                    <div class="vehicle-km">125 450 km</div>
+                                    <span class="badge badge-success">
+                                        <span class="badge-dot"></span>
+                                        En service
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Quick Stats -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div style="background: var(--bg-color); padding: 16px; border-radius: var(--border-radius-sm);">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--primary-color);">847 €</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Carburant ce mois</div>
+                                </div>
+                                <div style="background: var(--bg-color); padding: 16px; border-radius: var(--border-radius-sm);">
+                                    <div style="font-size: 24px; font-weight: 700; color: var(--success-color);">7.2 L</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Conso. /100km</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graphique évolution véhicule -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Évolution du Véhicule</div>
+                                <div class="card-subtitle">Kilométrage et consommation</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="btn btn-secondary btn-sm">7 jours</button>
+                                <button class="btn btn-primary btn-sm">30 jours</button>
+                                <button class="btn btn-secondary btn-sm">90 jours</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="vehicleEvolutionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Activité Récente</div>
+                            <div class="card-subtitle">Dernières opérations sur la flotte</div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm">Voir tout</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Véhicule</th>
+                                        <th>Type</th>
+                                        <th>Détails</th>
+                                        <th>Coût</th>
+                                        <th>Kilométrage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>21/11/2025</td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <span>🚐</span>
+                                                <span>Citroën Berlingo</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge badge-success"><span class="badge-dot"></span> Plein</span></td>
+                                        <td>45L Diesel - Station Total</td>
+                                        <td><strong>78,50 €</strong></td>
+                                        <td>125 450 km</td>
+                                    </tr>
+                                    <tr>
+                                        <td>20/11/2025</td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <span>🚗</span>
+                                                <span>Peugeot 308</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge badge-info"><span class="badge-dot"></span> Trajet</span></td>
+                                        <td>Paris → Lyon</td>
+                                        <td>-</td>
+                                        <td>45 320 → 45 785 km</td>
+                                    </tr>
+                                    <tr>
+                                        <td>19/11/2025</td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <span>🚙</span>
+                                                <span>Toyota Yaris</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge badge-warning"><span class="badge-dot"></span> Maintenance</span></td>
+                                        <td>Révision 30 000 km</td>
+                                        <td><strong>245,00 €</strong></td>
+                                        <td>35 670 km</td>
+                                    </tr>
+                                    <tr>
+                                        <td>18/11/2025</td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <span>🚐</span>
+                                                <span>VW Transporter</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge badge-success"><span class="badge-dot"></span> Plein</span></td>
+                                        <td>60L Diesel - Station BP</td>
+                                        <td><strong>102,30 €</strong></td>
+                                        <td>18 900 km</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Configuration commune des graphiques
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748B';
+
+        // Graphique des dépenses carburant
+        const fuelExpensesCtx = document.getElementById('fuelExpensesChart').getContext('2d');
+        new Chart(fuelExpensesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                datasets: [
+                    {
+                        label: 'Diesel',
+                        data: [180, 220, 195, 240, 210, 235, 190, 215, 245, 230, 260, 250],
+                        borderColor: '#4F46E5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Essence',
+                        data: [80, 95, 88, 110, 92, 105, 85, 98, 115, 108, 120, 112],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#E2E8F0'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + ' €';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Graphique répartition type carburant
+        const fuelTypeCtx = document.getElementById('fuelTypeChart').getContext('2d');
+        new Chart(fuelTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Diesel', 'Essence', 'Électrique'],
+                datasets: [{
+                    data: [65, 30, 5],
+                    backgroundColor: ['#4F46E5', '#10B981', '#F59E0B'],
+                    borderWidth: 0,
+                    spacing: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // Graphique évolution véhicule
+        const vehicleEvolutionCtx = document.getElementById('vehicleEvolutionChart').getContext('2d');
+        new Chart(vehicleEvolutionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['1 Nov', '5 Nov', '10 Nov', '15 Nov', '20 Nov', '21 Nov'],
+                datasets: [
+                    {
+                        label: 'Kilométrage ajouté',
+                        data: [320, 0, 450, 280, 0, 520],
+                        backgroundColor: '#4F46E5',
+                        borderRadius: 6,
+                        barThickness: 20
+                    },
+                    {
+                        label: 'Litres pleins',
+                        data: [45, 0, 52, 0, 48, 45],
+                        backgroundColor: '#10B981',
+                        borderRadius: 6,
+                        barThickness: 20
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#E2E8F0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
