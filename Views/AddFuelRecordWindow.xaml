@@ -21,18 +21,18 @@
         <!-- Titre -->
         <TextBlock Grid.Row="0"
                    Text="⛽ Ajouter un plein de carburant"
-                   Style="{StaticResource TitleStyle}"
+                   Style="{StaticResource H1}"
                    HorizontalAlignment="Center"
                    Margin="0,0,0,20"/>
 
         <!-- Formulaire -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Border Style="{StaticResource CardStyle}">
+            <Border Style="{StaticResource ModernCard}">
                 <StackPanel>
 
                     <!-- Section Véhicule -->
                     <TextBlock Text="Sélection du véhicule"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
@@ -66,7 +66,7 @@
 
                     <!-- Section Carburant -->
                     <TextBlock Text="Informations sur le carburant"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
@@ -113,7 +113,7 @@
                         <TextBox Grid.Row="3" Grid.Column="2"
                                  Text="{Binding TotalCost, UpdateSourceTrigger=PropertyChanged}"
                                  IsReadOnly="True"
-                                 Background="#F5F5F5"
+                                 Background="{StaticResource BackgroundLightBrush}"
                                  ToolTip="Calculé automatiquement"/>
 
                         <!-- Date du plein -->
@@ -129,7 +129,7 @@
 
                     <!-- Section Station -->
                     <TextBlock Text="Informations station-service"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
@@ -163,7 +163,7 @@
 
                     <!-- Section Consommation -->
                     <TextBlock Text="Calculs de consommation"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
@@ -182,7 +182,7 @@
                         <TextBox Grid.Row="0" Grid.Column="2"
                                  Text="{Binding DistanceTraveled}"
                                  IsReadOnly="True"
-                                 Background="#F5F5F5"
+                                 Background="{StaticResource BackgroundLightBrush}"
                                  ToolTip="Calculé automatiquement depuis le dernier plein"/>
 
                         <!-- Consommation -->
@@ -190,7 +190,7 @@
                         <TextBox Grid.Row="1" Grid.Column="2"
                                  Text="{Binding FuelConsumption}"
                                  IsReadOnly="True"
-                                 Background="#F5F5F5"
+                                 Background="{StaticResource BackgroundLightBrush}"
                                  ToolTip="Calculé automatiquement"/>
                     </Grid>
 
@@ -198,7 +198,7 @@
                     <Separator Margin="0,20"/>
 
                     <TextBlock Text="Remarques"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Label Content="Notes / Commentaires" FontWeight="SemiBold"/>
