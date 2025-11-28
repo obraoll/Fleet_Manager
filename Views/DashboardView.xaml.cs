@@ -6,7 +6,7 @@ namespace FleetManager.Views
     /// <summary>
     /// Code-behind pour DashboardView
     /// </summary>
-    public partial class DashboardView : UserControlj
+    public partial class DashboardView : UserControl
     {
         public DashboardView(DashboardViewModel viewModel)
         {

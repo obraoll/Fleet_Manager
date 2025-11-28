@@ -103,12 +103,15 @@ namespace FleetManager.ViewModels
 
                     try
                     {
+                        System.Diagnostics.Debug.WriteLine("=== DÉBUT CRÉATION MAINWINDOW ===");
+                        
                         // Ouvrir la fenêtre principale
                         var mainWindow = App.ServiceProvider.GetRequiredService<MainWindow>();
                         System.Diagnostics.Debug.WriteLine("MainWindow récupérée du ServiceProvider");
 
+                        System.Diagnostics.Debug.WriteLine("Appel de mainWindow.Show()...");
                         mainWindow.Show();
-                        System.Diagnostics.Debug.WriteLine("MainWindow.Show() appelée");
+                        System.Diagnostics.Debug.WriteLine("MainWindow.Show() appelée avec succès");
 
                         // Fermer la fenêtre de login
                         if (parameter is Window loginWindow)
@@ -125,8 +128,28 @@ namespace FleetManager.ViewModels
                     catch (Exception windowEx)
                     {
                         System.Diagnostics.Debug.WriteLine($"ERREUR lors de l'ouverture de MainWindow: {windowEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Type d'exception: {windowEx.GetType().FullName}");
                         System.Diagnostics.Debug.WriteLine($"Stack trace: {windowEx.StackTrace}");
+                        
+                        if (windowEx.InnerException != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"=== INNER EXCEPTION ===");
+                            System.Diagnostics.Debug.WriteLine($"Message: {windowEx.InnerException.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Type: {windowEx.InnerException.GetType().FullName}");
+                            System.Diagnostics.Debug.WriteLine($"Stack: {windowEx.InnerException.StackTrace}");
+                        }
+                        
                         ErrorMessage = $"Erreur lors de l'ouverture de la fenêtre principale: {windowEx.Message}";
+                        
+                        // Afficher aussi une MessageBox avec plus de détails
+                        MessageBox.Show(
+                            $"Impossible d'ouvrir la fenêtre principale.\n\n" +
+                            $"Erreur: {windowEx.Message}\n\n" +
+                            $"Détails: {windowEx.InnerException?.Message ?? "Aucun"}\n\n" +
+                            $"Type: {windowEx.GetType().Name}",
+                            "Erreur d'ouverture",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                     }
                 }
                 else

@@ -30,6 +30,7 @@ namespace FleetManager.Services
         public async Task<List<FuelRecord>> GetFuelRecordsByVehicleAsync(int vehicleId)
         {
             return await _context.FuelRecords
+                .Include(f => f.Vehicle)
                 .Where(f => f.VehicleId == vehicleId)
                 .OrderByDescending(f => f.RefuelDate)
                 .ToListAsync();
@@ -92,6 +93,47 @@ namespace FleetManager.Services
                     // DistanceSinceLastRefuel removed from model
                     fuelRecord.CalculatedConsumption = (fuelRecord.LitersRefueled / distance) * 100;
                 }
+            }
+        }
+
+        public async Task<(bool Success, string Message)> UpdateFuelRecordAsync(FuelRecord fuelRecord)
+        {
+            try
+            {
+                var existing = await _context.FuelRecords.FindAsync(fuelRecord.FuelRecordId);
+                if (existing == null)
+                    return (false, "Enregistrement introuvable.");
+
+                // Mettre à jour les propriétés
+                existing.VehicleId = fuelRecord.VehicleId;
+                existing.RefuelDate = fuelRecord.RefuelDate;
+                existing.FuelType = fuelRecord.FuelType;
+                existing.LitersRefueled = fuelRecord.LitersRefueled;
+                existing.PricePerLiter = fuelRecord.PricePerLiter;
+                existing.TotalCost = fuelRecord.LitersRefueled * fuelRecord.PricePerLiter;
+                existing.Mileage = fuelRecord.Mileage;
+                existing.Station = fuelRecord.Station;
+                existing.IsFullTank = fuelRecord.IsFullTank;
+                existing.Notes = fuelRecord.Notes;
+
+                // Recalculer la consommation
+                await CalculateConsumptionAsync(existing);
+
+                await _context.SaveChangesAsync();
+
+                // Mettre à jour le kilométrage du véhicule si nécessaire
+                var vehicle = await _context.Vehicles.FindAsync(fuelRecord.VehicleId);
+                if (vehicle != null && fuelRecord.Mileage > vehicle.CurrentMileage)
+                {
+                    vehicle.CurrentMileage = fuelRecord.Mileage;
+                    await _context.SaveChangesAsync();
+                }
+
+                return (true, "Plein de carburant modifié avec succès.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Erreur: {ex.Message}");
             }
         }
 

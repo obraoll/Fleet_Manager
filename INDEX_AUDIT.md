@@ -1,5 +1,3 @@
-
-
 # 📚 INDEX COMPLET - Tous les documents d'audit générés
 
 ## 🎯 Sélectionner le document selon votre besoin
@@ -211,3 +209,11 @@ Total: 3 jours d'implémentation
 
 *Index généré le 17/11/2025 | FleetManager WPF*
 *10 documents d'audit complètement générés et documentés ✅*
+
+<Grid> (Main - line 61)
+  <Border Grid.Row="0">...</Border> (Header)
+  <ScrollViewer Grid.Row="1">
+    ...
+  </ScrollViewer>
+</Grid> (Main closes)
+</Window>

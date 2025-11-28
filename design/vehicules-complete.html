@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager - Gestion des Véhicules</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .page-title h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .page-title p {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .filters-bar {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            min-width: 140px;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #6366F1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 280px;
+            margin-left: auto;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 44px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .vehicles-table {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            overflow: hidden;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 80px 160px 1fr 100px 120px 140px 120px;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #F3F4F6;
+            transition: background 0.2s;
+        }
+
+        .table-row:hover {
+            background: #F0F9FF;
+        }
+
+        .table-header {
+            background: #F9FAFB;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6B7280;
+            padding: 14px 16px;
+        }
+
+        .vehicle-image {
+            width: 56px;
+            height: 56px;
+            background: #F3F4F6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .registration-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #EEF2FF;
+            color: #6366F1;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .vehicle-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .vehicle-info p {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.success {
+            background: #D1FAE5;
+            color: #10B981;
+        }
+
+        .status-badge.warning {
+            background: #FEF3C7;
+            color: #F59E0B;
+        }
+
+        .status-badge.danger {
+            background: #FEE2E2;
+            color: #EF4444;
+        }
+
+        .status-badge.info {
+            background: #DBEAFE;
+            color: #3B82F6;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #F9FAFB;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #EEF2FF;
+            color: #6366F1;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 32px;
+        }
+
+        .pagination-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #E5E7EB;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover {
+            border-color: #6366F1;
+            color: #6366F1;
+        }
+
+        .pagination-btn.active {
+            background: #6366F1;
+            color: white;
+            border-color: #6366F1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">🚗</div>
+                    <div class="sidebar-logo-text">
+                        <h1>Fleet Manager</h1>
+                        <span>Gestion de flotte</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <span class="nav-item-icon">🚗</span>
+                    <span>Véhicules</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">⛽</span>
+                    <span>Suivi Carburant</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📈</span>
+                    <span>Kilométrage</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📊</span>
+                    <span>Rapports</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">👥</span>
+                    <span>Utilisateurs</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">⚙️</span>
+                    <span>Paramètres</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">JD</div>
+                    <div class="user-details">
+                        <h4>John Doe</h4>
+                        <span>Administrateur</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <div class="page-title">
+                        <h2>Véhicules</h2>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-search">
+                        <span class="header-search-icon">🔍</span>
+                        <input type="text" placeholder="Rechercher...">
+                    </div>
+                    <button class="header-btn">
+                        🔔
+                        <span class="badge"></span>
+                    </button>
+                    <button class="header-btn">
+                        👤
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Parc de Véhicules</h1>
+                        <p>Gérez l'ensemble de votre flotte de véhicules</p>
+                    </div>
+                    <button class="btn btn-primary">
+                        ➕ Ajouter Véhicule
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <select class="filter-select">
+                        <option>Tous les types</option>
+                        <option>Voiture</option>
+                        <option>Utilitaire</option>
+                        <option>Camion</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Tous les statuts</option>
+                        <option>Disponible</option>
+                        <option>En service</option>
+                        <option>Maintenance</option>
+                        <option>Hors service</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Toutes les marques</option>
+                        <option>Renault</option>
+                        <option>Peugeot</option>
+                        <option>Citroën</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Toutes les années</option>
+                        <option>2023</option>
+                        <option>2022</option>
+                        <option>2021</option>
+                    </select>
+                    <div class="search-box">
+                        <input type="text" placeholder="Rechercher...">
+                    </div>
+                </div>
+
+                <!-- Vehicles Table -->
+                <div class="vehicles-table">
+                    <div class="table-row table-header">
+                        <div></div>
+                        <div>IMMATRICULATION</div>
+                        <div>VÉHICULE</div>
+                        <div>ANNÉE</div>
+                        <div>KILOMÉTRAGE</div>
+                        <div>STATUT</div>
+                        <div>ACTIONS</div>
+                    </div>
+                    
+                    <div class="table-row">
+                        <div class="vehicle-image">🚗</div>
+                        <div>
+                            <span class="registration-badge">VH-001</span>
+                        </div>
+                        <div class="vehicle-info">
+                            <h4>Renault Clio</h4>
+                            <p>Clio V 1.5 dCi</p>
+                        </div>
+                        <div>2022</div>
+                        <div>45,230 km</div>
+                        <div>
+                            <span class="status-badge success">Disponible</span>
+                        </div>
+                        <div class="table-actions">
+                            <button class="action-btn" title="Voir détails">👁</button>
+                            <button class="action-btn" title="Modifier">✏️</button>
+                            <button class="action-btn" title="Supprimer">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="vehicle-image">🚙</div>
+                        <div>
+                            <span class="registration-badge">VH-002</span>
+                        </div>
+                        <div class="vehicle-info">
+                            <h4>Peugeot 308</h4>
+                            <p>308 SW 1.6 BlueHDi</p>
+                        </div>
+                        <div>2021</div>
+                        <div>78,450 km</div>
+                        <div>
+                            <span class="status-badge info">En service</span>
+                        </div>
+                        <div class="table-actions">
+                            <button class="action-btn">👁</button>
+                            <button class="action-btn">✏️</button>
+                            <button class="action-btn">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="vehicle-image">🚐</div>
+                        <div>
+                            <span class="registration-badge">VH-003</span>
+                        </div>
+                        <div class="vehicle-info">
+                            <h4>Citroën Berlingo</h4>
+                            <p>Berlingo Enterprise</p>
+                        </div>
+                        <div>2023</div>
+                        <div>12,580 km</div>
+                        <div>
+                            <span class="status-badge warning">Maintenance</span>
+                        </div>
+                        <div class="table-actions">
+                            <button class="action-btn">👁</button>
+                            <button class="action-btn">✏️</button>
+                            <button class="action-btn">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="vehicle-image">🚚</div>
+                        <div>
+                            <span class="registration-badge">VH-004</span>
+                        </div>
+                        <div class="vehicle-info">
+                            <h4>Renault Master</h4>
+                            <p>Master L2H2 2.3 dCi</p>
+                        </div>
+                        <div>2020</div>
+                        <div>125,420 km</div>
+                        <div>
+                            <span class="status-badge danger">Hors service</span>
+                        </div>
+                        <div class="table-actions">
+                            <button class="action-btn">👁</button>
+                            <button class="action-btn">✏️</button>
+                            <button class="action-btn">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="pagination-btn">←</button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <span style="padding: 0 8px; color: #6B7280;">...</span>
+                    <button class="pagination-btn">10</button>
+                    <button class="pagination-btn">→</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+

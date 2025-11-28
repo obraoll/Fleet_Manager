@@ -3,163 +3,300 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:FleetManager.Helpers"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="900">
+             d:DesignHeight="600" d:DesignWidth="900"
+             Background="#F8FAFC">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <helpers:VehicleImagePathConverter x:Key="VehicleImagePathConverter"/>
+        <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+    </UserControl.Resources>
 
-        <!-- Titre -->
-        <TextBlock Grid.Row="0"
-                   Text="Gestion des Véhicules"
-                   Style="{StaticResource TitleStyle}"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <!-- EN-TÊTE Dashboard Style -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Véhicules" 
+                              FontFamily="Inter, Segoe UI"
+                              FontSize="28" 
+                              FontWeight="Bold" 
+                              Foreground="#0F172A" 
+                              Margin="0,0,0,6"/>
+                    <TextBlock Text="Gérez votre flotte de véhicules" 
+                              FontSize="14" 
+                              Foreground="#64748B"/>
+                </StackPanel>
 
-        <!-- Barre d'outils -->
-        <Grid Grid.Row="1" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border Background="Transparent"
+                           BorderBrush="#E2E8F0"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Padding="12,8"
+                           Height="40"
+                           Margin="0,0,12,0"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="#475569"
+                               FontSize="14"
+                               Padding="0"
+                               Content="🔄 Actualiser"
+                               Command="{Binding LoadVehiclesCommand}"
+                               Cursor="Hand"/>
+                    </Border>
+                    <Border Background="#3B82F6"
+                           CornerRadius="8"
+                           Padding="12,8"
+                           Height="40"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="White"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Padding="0"
+                               Content="➕ Nouveau Véhicule"
+                               Command="{Binding AddVehicleCommand}"
+                               Cursor="Hand"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
 
-            <!-- Recherche -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         Width="300"
-                         Margin="0,0,10,0"
-                         VerticalContentAlignment="Center"
-                         ToolTip="Rechercher par immatriculation, marque ou modèle"/>
-                <Button Content="🔍 Rechercher"
-                        Command="{Binding SearchCommand}"
-                        Style="{StaticResource SecondaryButton}"
-                        Margin="0,0,10,0"/>
-                <Button Content="🔄 Tout afficher"
-                        Command="{Binding LoadVehiclesCommand}"
-                        Style="{StaticResource SecondaryButton}"/>
-            </StackPanel>
+            <!-- BARRE DE RECHERCHE ET FILTRES -->
+            <Border Background="#FFFFFF" 
+                   BorderBrush="#E2E8F0" 
+                   BorderThickness="1" 
+                   CornerRadius="12" 
+                   Padding="16" 
+                   Margin="0,0,0,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                </Border.Effect>
+                <WrapPanel Orientation="Horizontal">
+                    <Border Background="#F8FAFC" 
+                           CornerRadius="8" 
+                           Height="40" 
+                           Width="400"
+                           Margin="0,0,16,0"
+                           Padding="12,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontSize="14"
+                                    Foreground="#475569"
+                                    VerticalContentAlignment="Center"
+                                    Width="300"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border Background="#F8FAFC"
+                           BorderBrush="#E2E8F0"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Padding="10,8"
+                           Height="40"
+                           Margin="0,0,16,0"
+                           VerticalAlignment="Center"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="#475569"
+                               FontSize="13"
+                               Padding="0"
+                               Content="↺ Réinitialiser"
+                               Command="{Binding ResetFiltersCommand}"
+                               Cursor="Hand"/>
+                    </Border>
+                </WrapPanel>
+            </Border>
 
-            <!-- Boutons d'action -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Content="➕ Nouveau Véhicule"
-                        Command="{Binding AddVehicleCommand}"
-                        Style="{StaticResource PrimaryButton}"
-                        Margin="0,0,10,0"
-                        ToolTip="Ajouter un nouveau véhicule"/>
+            <!-- LISTE DES VÉHICULES EN CARTES -->
+            <ItemsControl ItemsSource="{Binding Vehicles}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#FFFFFF" 
+                               BorderBrush="#E2E8F0" 
+                               BorderThickness="1" 
+                               CornerRadius="12" 
+                               Padding="0"
+                               Margin="0,0,12,12"
+                               Width="320"
+                               Cursor="Hand">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            </Border.RenderTransform>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Effect">
+                                                <Setter.Value>
+                                                    <DropShadowEffect Color="#3B82F6" Opacity="0.15" BlurRadius="16" ShadowDepth="6"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="RenderTransform">
+                                                <Setter.Value>
+                                                    <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <!-- Image du véhicule -->
+                                <Border Height="160" 
+                                       Background="#F1F5F9" 
+                                       CornerRadius="12,12,0,0"
+                                       ClipToBounds="True">
+                                    <Grid>
+                                        <Image Source="{Binding ImagePath, Converter={StaticResource VehicleImagePathConverter}}"
+                                              Stretch="UniformToFill"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Visibility="{Binding ImagePath, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <TextBlock Text="🚗" 
+                                                  FontSize="72" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"
+                                                  Opacity="0.4"
+                                                  Visibility="{Binding ImagePath, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                                    </Grid>
+                                </Border>
 
-                <Button Content="✏️ Modifier"
-                        Command="{Binding EditVehicleCommand}"
-                        Style="{StaticResource SecondaryButton}"
-                        Margin="0,0,10,0"/>
-                <Button Content="🗑️ Supprimer"
-                        Command="{Binding DeleteVehicleCommand}"
-                        Background="{StaticResource DangerBrush}"
-                        Foreground="White"
-                        Padding="15,8"
-                        BorderThickness="0"/>
-            </StackPanel>
-        </Grid>
+                                <!-- Détails du véhicule -->
+                                <StackPanel Margin="16">
+                                    <TextBlock FontSize="15" 
+                                              FontWeight="SemiBold" 
+                                              Foreground="#0F172A" 
+                                              Margin="0,0,0,10">
+                                        <Run Text="{Binding Brand}"/>
+                                        <Run Text=" "/>
+                                        <Run Text="{Binding Model}"/>
+                                    </TextBlock>
+                                    
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Type" 
+                                                      FontSize="11" 
+                                                      Foreground="#94A3B8" 
+                                                      Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding VehicleType}" 
+                                                      FontSize="13" 
+                                                      FontWeight="Medium" 
+                                                      Foreground="#0F172A"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Carburant" 
+                                                      FontSize="11" 
+                                                      Foreground="#94A3B8" 
+                                                      Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding FuelType}" 
+                                                      FontSize="13" 
+                                                      FontWeight="Medium" 
+                                                      Foreground="#0F172A"/>
+                                        </StackPanel>
+                                    </Grid>
 
-        <!-- Liste des véhicules -->
-        <DataGrid Grid.Row="2"
-                  ItemsSource="{Binding Vehicles}"
-                  SelectedItem="{Binding SelectedVehicle}"
-                  AutoGenerateColumns="False"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  GridLinesVisibility="None"
-                  HeadersVisibility="Column"
-                  AlternatingRowBackground="#F9F9F9"
-                  RowHeight="35">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Immatriculation"
-                                    Binding="{Binding RegistrationNumber}"
-                                    Width="150"/>
-                <DataGridTextColumn Header="Marque"
-                                    Binding="{Binding Brand}"
-                                    Width="120"/>
-                <DataGridTextColumn Header="Modèle"
-                                    Binding="{Binding Model}"
-                                    Width="150"/>
-                <DataGridTextColumn Header="Année"
-                                    Binding="{Binding Year}"
-                                    Width="80"/>
-                <DataGridTextColumn Header="Type"
-                                    Binding="{Binding VehicleType}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Carburant"
-                                    Binding="{Binding FuelType}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Kilométrage"
-                                    Binding="{Binding CurrentMileage, StringFormat=N0}"
-                                    Width="120"/>
-                <DataGridTextColumn Header="Conso. Moy."
-                                    Binding="{Binding AverageFuelConsumption, StringFormat=N2}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Statut"
-                                    Binding="{Binding Status}"
-                                    Width="120"/>
-                <DataGridTemplateColumn Header="Actions" Width="*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="✏️"
-                                        Command="{Binding DataContext.EditVehicleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Width="30"
-                                        Height="25"
-                                        Padding="2"
-                                        Margin="2"
-                                        ToolTip="Modifier le véhicule"/>
-                                <Button Content="🗑️"
-                                        Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"
-                                        Background="{StaticResource DangerBrush}"
-                                        Foreground="White"
-                                        Width="30"
-                                        Height="25"
-                                        Padding="2"
-                                        Margin="2"
-                                        BorderThickness="0"
-                                        ToolTip="Supprimer le véhicule"/>
+                                    <Grid Margin="0,4,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <Border Background="#EFF6FF" 
+                                               BorderBrush="#3B82F6" 
+                                               BorderThickness="1" 
+                                               CornerRadius="6" 
+                                               Padding="8,6"
+                                               HorizontalAlignment="Stretch">
+                                            <TextBlock Text="{Binding Status}" 
+                                                      FontSize="12" 
+                                                      FontWeight="SemiBold" 
+                                                      Foreground="#3B82F6"
+                                                      HorizontalAlignment="Center"/>
+                                        </Border>
+                                        
+                                        <TextBlock Grid.Column="1" 
+                                                  FontSize="13" 
+                                                  Foreground="#64748B"
+                                                  VerticalAlignment="Center"
+                                                  Margin="12,0,0,0">
+                                            <Run Text="{Binding RegistrationNumber}"/>
+                                        </TextBlock>
+                                    </Grid>
+
+                                    <!-- Boutons d'action -->
+                                    <StackPanel Orientation="Horizontal" 
+                                               HorizontalAlignment="Stretch">
+                                        <Border Background="#F8FAFC"
+                                               BorderBrush="#E2E8F0"
+                                               BorderThickness="1"
+                                               CornerRadius="6"
+                                               Padding="10,8"
+                                               Margin="0,0,8,0"
+                                               Cursor="Hand"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Center">
+                                            <Button Background="Transparent"
+                                                   BorderThickness="0"
+                                                   Foreground="#475569"
+                                                   FontSize="13"
+                                                   Padding="0"
+                                                   Content="✏️ Modifier"
+                                                   Command="{Binding DataContext.EditVehicleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                   CommandParameter="{Binding}"
+                                                   Cursor="Hand"/>
+                                        </Border>
+                                        <Border Background="#FEF2F2"
+                                               BorderBrush="#FCA5A5"
+                                               BorderThickness="1"
+                                               CornerRadius="6"
+                                               Padding="10,8"
+                                               Cursor="Hand"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Center">
+                                            <Button Background="Transparent"
+                                                   BorderThickness="0"
+                                                   Foreground="#DC2626"
+                                                   FontSize="13"
+                                                   Padding="0"
+                                                   Content="🗑️ Supprimer"
+                                                   Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                   CommandParameter="{Binding}"
+                                                   Cursor="Hand"/>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
                             </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-
-            <!-- Style pour les en-têtes -->
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="Padding" Value="10,8"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="FontSize" Value="13"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-
-            <!-- Style pour les lignes -->
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <Setter Property="Height" Value="35"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#E3F2FD"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                            <Setter Property="Foreground" Value="White"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-        </DataGrid>
-    </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

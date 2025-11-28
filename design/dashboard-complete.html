@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager - Tableau de Bord</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Styles spécifiques au dashboard */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-card-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6B7280;
+        }
+
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-card-icon.primary { background: #EEF2FF; }
+        .stat-card-icon.success { background: #D1FAE5; }
+        .stat-card-icon.warning { background: #FEF3C7; }
+        .stat-card-icon.danger { background: #FEE2E2; }
+        .stat-card-icon.accent { background: #FCE7F3; }
+        .stat-card-icon.info { background: #DBEAFE; }
+
+        .stat-card-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1F2937;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-card-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .stat-card-trend.up {
+            color: #10B981;
+        }
+
+        .stat-card-trend.down {
+            color: #EF4444;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+
+        .chart-placeholder {
+            height: 280px;
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+
+        .activity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #F0F9FF;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .activity-details {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+
+        .alerts-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .alert-item.danger {
+            background: #FEE2E2;
+            border-left-color: #EF4444;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .alert-description {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">🚗</div>
+                    <div class="sidebar-logo-text">
+                        <h1>Fleet Manager</h1>
+                        <span>Gestion de flotte</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <span class="nav-item-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">🚗</span>
+                    <span>Véhicules</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">⛽</span>
+                    <span>Suivi Carburant</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📈</span>
+                    <span>Kilométrage</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">📊</span>
+                    <span>Rapports</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">👥</span>
+                    <span>Utilisateurs</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-item-icon">⚙️</span>
+                    <span>Paramètres</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">JD</div>
+                    <div class="user-details">
+                        <h4>John Doe</h4>
+                        <span>Administrateur</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <div class="page-title">
+                        <h2>Tableau de Bord</h2>
+                        <p>Vue d'ensemble de votre flotte</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-search">
+                        <span class="header-search-icon">🔍</span>
+                        <input type="text" placeholder="Rechercher un véhicule, une plaque...">
+                    </div>
+                    <button class="header-btn">
+                        🔔
+                        <span class="badge"></span>
+                    </button>
+                    <button class="header-btn">
+                        👤
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Stats Cards -->
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-label">Véhicules</div>
+                            <div class="stat-card-icon primary">🚗</div>
+                        </div>
+                        <div class="stat-card-value">42</div>
+                        <div class="stat-card-trend up">
+                            ↗ +2 ce mois
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-label">Carburant</div>
+                            <div class="stat-card-icon success">⛽</div>
+                        </div>
+                        <div class="stat-card-value">1,250<span style="font-size: 20px; color: #6B7280;"> L</span></div>
+                        <div class="stat-card-trend" style="color: #6B7280;">
+                            Ce mois
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-label">Kilométrage</div>
+                            <div class="stat-card-icon info">📏</div>
+                        </div>
+                        <div class="stat-card-value">95,420<span style="font-size: 20px; color: #6B7280;"> km</span></div>
+                        <div class="stat-card-trend" style="color: #6B7280;">
+                            Total
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-label">Coûts</div>
+                            <div class="stat-card-icon accent">💰</div>
+                        </div>
+                        <div class="stat-card-value">2,847<span style="font-size: 20px; color: #6B7280;"> €</span></div>
+                        <div class="stat-card-trend up">
+                            ↗ +12%
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-label">Disponibles</div>
+                            <div class="stat-card-icon success">✅</div>
+                        </div>
+                        <div class="stat-card-value">38/42</div>
+                        <div class="stat-card-trend" style="color: #6B7280;">
+                            En service
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-label">Alertes</div>
+                            <div class="stat-card-icon danger">⚠️</div>
+                        </div>
+                        <div class="stat-card-value">5</div>
+                        <div class="stat-card-trend" style="color: #6B7280;">
+                            Actives
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Consommation Mensuelle</div>
+                                <div class="chart-subtitle">Évolution sur 12 mois</div>
+                            </div>
+                        </div>
+                        <div class="chart-placeholder">
+                            Graphique en ligne - Consommation (L) sur 12 mois
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Coûts par Véhicule</div>
+                                <div class="chart-subtitle">Top 10 véhicules</div>
+                            </div>
+                        </div>
+                        <div class="chart-placeholder">
+                            Graphique en barres - Coûts par véhicule
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity & Alerts Grid -->
+                <div class="grid grid-cols-2" style="gap: 24px;">
+                    <div class="activity-card">
+                        <div class="activity-header">
+                            <h3 style="font-size: 18px; font-weight: 600; color: #1F2937;">Activités Récentes</h3>
+                            <a href="#" style="font-size: 13px; color: #6366F1; text-decoration: none;">Voir tout</a>
+                        </div>
+                        <div>
+                            <div class="activity-item">
+                                <div class="activity-icon">⛽</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Plein de carburant - VH-001</div>
+                                    <div class="activity-details">42.5L • Station Total • 78.50€</div>
+                                </div>
+                                <div class="activity-time">Il y a 2h</div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #FEF3C7;">🔧</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Maintenance - VH-012</div>
+                                    <div class="activity-details">Vidange moteur • Garage Auto</div>
+                                </div>
+                                <div class="activity-time">Hier</div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #D1FAE5;">📏</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Enregistrement kilométrage - VH-005</div>
+                                    <div class="activity-details">125,420 km</div>
+                                </div>
+                                <div class="activity-time">Il y a 3 jours</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alerts-section">
+                        <h3 style="font-size: 18px; font-weight: 600; color: #1F2937; margin-bottom: 20px;">Alertes et Maintenance</h3>
+                        <div class="alert-item">
+                            <div class="alert-icon">⚠️</div>
+                            <div class="alert-content">
+                                <div class="alert-title">VH-003 - Maintenance requise</div>
+                                <div class="alert-description">Vidange prévue dans 500 km</div>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <div class="alert-icon">⚠️</div>
+                            <div class="alert-content">
+                                <div class="alert-title">VH-007 - Contrôle technique</div>
+                                <div class="alert-description">Expire le 15/12/2025</div>
+                            </div>
+                        </div>
+                        <div class="alert-item danger">
+                            <div class="alert-icon">🚨</div>
+                            <div class="alert-content">
+                                <div class="alert-title">VH-015 - Hors service</div>
+                                <div class="alert-description">Panne moteur - En réparation</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+

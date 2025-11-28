@@ -36,6 +36,7 @@ namespace FleetManager.ViewModels
         private decimal _monthlyMaintenanceCost;
 
         // Collections pour les données
+        private ObservableCollection<Vehicle> _vehicles = new();
         private ObservableCollection<VehicleStatistics> _topVehiclesByConsumption = new();
         private ObservableCollection<VehicleStatistics> _topVehiclesByCost = new();
         private ObservableCollection<RecentMovement> _recentMovements = new();
@@ -73,6 +74,10 @@ namespace FleetManager.ViewModels
         // État de chargement
         private bool _isLoading;
         private string _lastUpdated = string.Empty;
+        
+        // Filtres pour le dashboard
+        private DateTime? _startDate = DateTime.Now.AddDays(-7);
+        private DateTime? _endDate = DateTime.Now;
 
         public DashboardViewModel(
             VehicleService vehicleService,
@@ -92,8 +97,54 @@ namespace FleetManager.ViewModels
             ExportDataCommand = new AsyncRelayCommand(ExportDataAsync);
             OpenSettingsCommand = new RelayCommand(_ => OpenSettings());
 
-            // Charger les données au démarrage
-            _ = LoadDataAsync(null);
+            // Initialiser avec des données vides pour éviter les erreurs de binding
+            InitializeEmptyData();
+
+            // Charger les données au démarrage (de façon asynchrone et sécurisée)
+            // Utiliser Dispatcher pour s'assurer que la vue est chargée
+            try
+            {
+                var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                if (dispatcher != null && !dispatcher.CheckAccess())
+                {
+                    dispatcher.BeginInvoke(new Action(async () =>
+                    {
+                        try
+                        {
+                            await Task.Delay(200); // Petit délai pour que la vue soit complètement chargée
+                            await LoadDataAsync(null);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Erreur lors du chargement initial: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                            InitializeEmptyData();
+                        }
+                    }), System.Windows.Threading.DispatcherPriority.Background);
+                }
+                else
+                {
+                    // Si on est déjà dans le thread UI, charger directement sans Task.Run
+                    // pour éviter les exceptions cross-thread lors des mises à jour UI
+                    _ = Application.Current.Dispatcher.InvokeAsync(async () =>
+                    {
+                        try
+                        {
+                            await Task.Delay(200);
+                            await LoadDataAsync(null);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Erreur lors du chargement initial: {ex.Message}");
+                            InitializeEmptyData();
+                        }
+                    }, System.Windows.Threading.DispatcherPriority.Background);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur lors de l'initialisation du chargement: {ex.Message}");
+            }
         }
 
         #region Propriétés des indicateurs clés
@@ -155,6 +206,12 @@ namespace FleetManager.ViewModels
         #endregion
 
         #region Collections pour les données
+
+        public ObservableCollection<Vehicle> Vehicles
+        {
+            get => _vehicles;
+            set => SetProperty(ref _vehicles, value);
+        }
 
         public ObservableCollection<VehicleStatistics> TopVehiclesByConsumption
         {
@@ -276,6 +333,18 @@ namespace FleetManager.ViewModels
             set => SetProperty(ref _lastUpdated, value);
         }
 
+        public DateTime? StartDate
+        {
+            get => _startDate;
+            set => SetProperty(ref _startDate, value);
+        }
+
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            set => SetProperty(ref _endDate, value);
+        }
+
         public int AlertCount => Alerts?.Count ?? 0;
         public int CriticalAlerts => Alerts?.Count(a => a.Priority == AlertPriority.Critical) ?? 0;
         public int HighPriorityAlerts => Alerts?.Count(a => a.Priority == AlertPriority.High) ?? 0;
@@ -313,57 +382,132 @@ namespace FleetManager.ViewModels
                 // Obtenir toutes les données du dashboard en une seule fois
                 var dashboardData = await _statisticsService.GetDashboardDataAsync();
 
-                // Mettre à jour les indicateurs clés
-                UpdateFleetStatistics(dashboardData.FleetStats);
+                // Vérifier que dashboardData n'est pas null
+                if (dashboardData == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("dashboardData est null, initialisation avec des valeurs par défaut");
+                    InitializeEmptyData();
+                    LastUpdated = "Erreur de chargement";
+                    return;
+                }
 
-                // Mettre à jour les collections
-                TopVehiclesByConsumption = new ObservableCollection<VehicleStatistics>(dashboardData.TopVehiclesByConsumption);
-                TopVehiclesByCost = new ObservableCollection<VehicleStatistics>(dashboardData.TopVehiclesByCost);
-                MonthlyTrends = new ObservableCollection<MonthlyStatistics>(dashboardData.MonthlyTrends);
-                VehicleTypeStats = new ObservableCollection<VehicleTypeStatistics>(dashboardData.TypeBreakdown);
-                FuelTypeStats = new ObservableCollection<FuelTypeStatistics>(dashboardData.FuelBreakdown);
-                Alerts = new ObservableCollection<DashboardAlert>(dashboardData.Alerts);
-                ConsumptionTrend = new ObservableCollection<TimeSeriesData>(dashboardData.ConsumptionTrend);
-                CostTrend = new ObservableCollection<TimeSeriesData>(dashboardData.CostTrend);
+                // Mettre à jour les indicateurs clés (avec vérification de nullité)
+                if (dashboardData.FleetStats != null)
+                {
+                    UpdateFleetStatistics(dashboardData.FleetStats);
+                }
+
+                // Charger les véhicules
+                try
+                {
+                    var vehicles = await _vehicleService.GetAllVehiclesAsync();
+                    Vehicles = vehicles != null ? new ObservableCollection<Vehicle>(vehicles) : new ObservableCollection<Vehicle>();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors du chargement des véhicules: {ex.Message}");
+                    Vehicles = new ObservableCollection<Vehicle>();
+                }
+
+                // Mettre à jour les collections (avec vérification de nullité)
+                TopVehiclesByConsumption = dashboardData.TopVehiclesByConsumption != null 
+                    ? new ObservableCollection<VehicleStatistics>(dashboardData.TopVehiclesByConsumption) 
+                    : new ObservableCollection<VehicleStatistics>();
+                
+                TopVehiclesByCost = dashboardData.TopVehiclesByCost != null 
+                    ? new ObservableCollection<VehicleStatistics>(dashboardData.TopVehiclesByCost) 
+                    : new ObservableCollection<VehicleStatistics>();
+                
+                MonthlyTrends = dashboardData.MonthlyTrends != null 
+                    ? new ObservableCollection<MonthlyStatistics>(dashboardData.MonthlyTrends) 
+                    : new ObservableCollection<MonthlyStatistics>();
+                
+                VehicleTypeStats = dashboardData.TypeBreakdown != null 
+                    ? new ObservableCollection<VehicleTypeStatistics>(dashboardData.TypeBreakdown) 
+                    : new ObservableCollection<VehicleTypeStatistics>();
+                
+                FuelTypeStats = dashboardData.FuelBreakdown != null 
+                    ? new ObservableCollection<FuelTypeStatistics>(dashboardData.FuelBreakdown) 
+                    : new ObservableCollection<FuelTypeStatistics>();
+                
+                Alerts = dashboardData.Alerts != null 
+                    ? new ObservableCollection<DashboardAlert>(dashboardData.Alerts) 
+                    : new ObservableCollection<DashboardAlert>();
+                
+                ConsumptionTrend = dashboardData.ConsumptionTrend != null 
+                    ? new ObservableCollection<TimeSeriesData>(dashboardData.ConsumptionTrend) 
+                    : new ObservableCollection<TimeSeriesData>();
+                
+                CostTrend = dashboardData.CostTrend != null 
+                    ? new ObservableCollection<TimeSeriesData>(dashboardData.CostTrend) 
+                    : new ObservableCollection<TimeSeriesData>();
 
                 // Préparer les séries et labels pour LiveCharts (pour affichage rapide)
                 try
                 {
-                    TrendLabels = ConsumptionTrend.Select(t => t.Date.ToString("dd/MM")).ToArray();
-
-                    var consumptionValues = ConsumptionTrend.Select(t => (double)t.Value).ToArray();
-                    ConsumptionSeries = new ISeries[]
+                    if (ConsumptionTrend != null && ConsumptionTrend.Any())
                     {
-                        new LineSeries<double>
+                        TrendLabels = ConsumptionTrend.Select(t => t.Date.ToString("dd/MM")).ToArray();
+                        var consumptionValues = ConsumptionTrend.Select(t => (double)t.Value).ToArray();
+                        ConsumptionSeries = new ISeries[]
                         {
-                            Values = consumptionValues,
-                            Name = "Consommation",
-                            Stroke = new SolidColorPaint(SKColors.DeepSkyBlue, 2),
-                            GeometrySize = 4,
-                            Fill = null,
-                            YToolTipLabelFormatter = point => $"{TrendLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:F2} L/100km"
-                        }
-                    };
-
-                    var costValues = CostTrend.Select(t => (double)t.Value).ToArray();
-                    CostSeries = new ISeries[]
+                            new LineSeries<double>
+                            {
+                                Values = consumptionValues,
+                                Name = "Consommation",
+                                Stroke = new SolidColorPaint(SKColors.DeepSkyBlue, 2),
+                                GeometrySize = 4,
+                                Fill = null,
+                                YToolTipLabelFormatter = point => 
+                                {
+                                    var label = TrendLabels.ElementAtOrDefault((int)point.Index) ?? "N/A";
+                                    return $"{label}: {point.Coordinate.PrimaryValue:F2} L/100km";
+                                }
+                            }
+                        };
+                    }
+                    else
                     {
-                        new ColumnSeries<double>
+                        TrendLabels = Array.Empty<string>();
+                        ConsumptionSeries = new ISeries[]
                         {
-                            Values = costValues,
-                            Name = "Coûts",
-                            Fill = new SolidColorPaint(SKColors.Orange),
-                            Stroke = new SolidColorPaint(SKColors.DarkOrange, 1),
-                            YToolTipLabelFormatter = point => $"{TrendLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
-                        }
-                    };
+                            new LineSeries<double> { Values = new double[] { }, Name = "Consommation" }
+                        };
+                    }
+
+                    if (CostTrend != null && CostTrend.Any())
+                    {
+                        var costValues = CostTrend.Select(t => (double)t.Value).ToArray();
+                        CostSeries = new ISeries[]
+                        {
+                            new ColumnSeries<double>
+                            {
+                                Values = costValues,
+                                Name = "Coûts",
+                                Fill = new SolidColorPaint(SKColors.Orange),
+                                Stroke = new SolidColorPaint(SKColors.DarkOrange, 1),
+                                YToolTipLabelFormatter = point => 
+                                {
+                                    var label = TrendLabels?.ElementAtOrDefault((int)point.Index) ?? "N/A";
+                                    return $"{label}: {point.Coordinate.PrimaryValue:C0}";
+                                }
+                            }
+                        };
+                    }
+                    else
+                    {
+                        CostSeries = new ISeries[]
+                        {
+                            new ColumnSeries<double> { Values = new double[] { }, Name = "Coûts" }
+                        };
+                    }
 
                     // Créer les séries pour l'évolution mensuelle (12 mois)
                     if (MonthlyTrends != null && MonthlyTrends.Any())
                     {
                         var fuelCostValues = MonthlyTrends.Select(m => (double)m.FuelCost).ToArray();
                         var maintenanceCostValues = MonthlyTrends.Select(m => (double)m.MaintenanceCost).ToArray();
-                        var monthLabels = MonthlyTrends.Select(m => m.Month).ToArray();
+                        var monthLabels = MonthlyTrends.Select(m => new DateTime(m.Year, m.Month, 1).ToString("MMM yyyy")).ToArray();
 
                         MonthlyTrendsSeries = new ISeries[]
                         {
@@ -373,7 +517,11 @@ namespace FleetManager.ViewModels
                                 Name = "Carburant",
                                 Fill = new SolidColorPaint(new SKColor(76, 175, 80)),
                                 Stroke = new SolidColorPaint(new SKColor(56, 142, 60), 1),
-                                YToolTipLabelFormatter = point => $"{monthLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
+                                YToolTipLabelFormatter = point => 
+                                {
+                                    var label = monthLabels.ElementAtOrDefault((int)point.Index) ?? "N/A";
+                                    return $"{label}: {point.Coordinate.PrimaryValue:C0}";
+                                }
                             },
                             new ColumnSeries<double>
                             {
@@ -381,7 +529,11 @@ namespace FleetManager.ViewModels
                                 Name = "Maintenance",
                                 Fill = new SolidColorPaint(new SKColor(255, 152, 0)),
                                 Stroke = new SolidColorPaint(new SKColor(245, 124, 0), 1),
-                                YToolTipLabelFormatter = point => $"{monthLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
+                                YToolTipLabelFormatter = point => 
+                                {
+                                    var label = monthLabels.ElementAtOrDefault((int)point.Index) ?? "N/A";
+                                    return $"{label}: {point.Coordinate.PrimaryValue:C0}";
+                                }
                             }
                         };
 
@@ -404,12 +556,25 @@ namespace FleetManager.ViewModels
                         MonthlyAverageCost = 0;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de la préparation des graphiques: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                    
                     TrendLabels = Array.Empty<string>();
-                    ConsumptionSeries = Array.Empty<ISeries>();
-                    CostSeries = Array.Empty<ISeries>();
-                    MonthlyTrendsSeries = Array.Empty<ISeries>();
+                    ConsumptionSeries = new ISeries[]
+                    {
+                        new LineSeries<double> { Values = new double[] { }, Name = "Consommation" }
+                    };
+                    CostSeries = new ISeries[]
+                    {
+                        new ColumnSeries<double> { Values = new double[] { }, Name = "Coûts" }
+                    };
+                    MonthlyTrendsSeries = new ISeries[]
+                    {
+                        new ColumnSeries<double> { Values = new double[] { }, Name = "Carburant" },
+                        new ColumnSeries<double> { Values = new double[] { }, Name = "Maintenance" }
+                    };
                     YearlyFuelTotal = 0;
                     YearlyMaintenanceTotal = 0;
                     YearlyOperatingCost = 0;
@@ -417,14 +582,32 @@ namespace FleetManager.ViewModels
                 }
 
                 // Charger les mouvements récents séparément
-                var recentMovements = await _statisticsService.GetRecentMovementsAsync(10);
-                RecentMovements = new ObservableCollection<RecentMovement>(recentMovements);
+                try
+                {
+                    var recentMovements = await _statisticsService.GetRecentMovementsAsync(10);
+                    RecentMovements = recentMovements != null 
+                        ? new ObservableCollection<RecentMovement>(recentMovements) 
+                        : new ObservableCollection<RecentMovement>();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors du chargement des mouvements récents: {ex.Message}");
+                    RecentMovements = new ObservableCollection<RecentMovement>();
+                }
 
                 // Calculer le nombre total de pleins (pour compatibilité avec l'ancienne interface)
-                TotalFuelRecords = await GetTotalFuelRecordsAsync();
+                try
+                {
+                    TotalFuelRecords = await GetTotalFuelRecordsAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors du calcul du nombre de pleins: {ex.Message}");
+                    TotalFuelRecords = 0;
+                }
 
                 // Mettre à jour l'horodatage
-                LastUpdated = $"Dernière mise à jour: {DateTime.Now:dd/MM/yyyy HH:mm}";
+                LastUpdated = $"{DateTime.Now:dd/MM/yyyy à HH:mm}";
 
                 // Notifier les changements des propriétés calculées
                 OnPropertyChanged(nameof(AlertCount));
@@ -440,8 +623,18 @@ namespace FleetManager.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Erreur lors du chargement du dashboard: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                
+                // Initialiser avec des données vides pour éviter le crash
+                InitializeEmptyData();
+                
+                // Afficher un message d'erreur mais ne pas bloquer l'application
                 System.Windows.MessageBox.Show(
-                    $"Erreur lors du chargement des données du tableau de bord:\n\n{ex.Message}",
+                    $"Erreur lors du chargement des données du tableau de bord:\n\n{ex.Message}\n\nL'application continue avec des données vides.",
                     "Erreur",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
@@ -450,6 +643,61 @@ namespace FleetManager.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        private void InitializeEmptyData()
+        {
+            System.Diagnostics.Debug.WriteLine("Initialisation avec des données vides...");
+            
+            // Réinitialiser toutes les collections
+            Vehicles = new ObservableCollection<Vehicle>();
+            TopVehiclesByConsumption = new ObservableCollection<VehicleStatistics>();
+            TopVehiclesByCost = new ObservableCollection<VehicleStatistics>();
+            MonthlyTrends = new ObservableCollection<MonthlyStatistics>();
+            VehicleTypeStats = new ObservableCollection<VehicleTypeStatistics>();
+            FuelTypeStats = new ObservableCollection<FuelTypeStatistics>();
+            Alerts = new ObservableCollection<DashboardAlert>();
+            ConsumptionTrend = new ObservableCollection<TimeSeriesData>();
+            CostTrend = new ObservableCollection<TimeSeriesData>();
+            RecentMovements = new ObservableCollection<RecentMovement>();
+
+            // Réinitialiser les indicateurs
+            TotalVehicles = 0;
+            ActiveVehicles = 0;
+            VehiclesInMaintenance = 0;
+            TotalFuelRecords = 0;
+            TotalFuelCost = 0;
+            AverageFuelConsumption = 0;
+            MonthlyFuelCost = 0;
+            TotalMaintenanceCost = 0;
+            MonthlyMaintenanceCost = 0;
+
+            // Réinitialiser les graphiques
+            TrendLabels = Array.Empty<string>();
+            ConsumptionSeries = new ISeries[]
+            {
+                new LineSeries<double> { Values = new double[] { }, Name = "Consommation" }
+            };
+            CostSeries = new ISeries[]
+            {
+                new ColumnSeries<double> { Values = new double[] { }, Name = "Coûts" }
+            };
+            MonthlyTrendsSeries = new ISeries[]
+            {
+                new ColumnSeries<double> { Values = new double[] { }, Name = "Carburant" },
+                new ColumnSeries<double> { Values = new double[] { }, Name = "Maintenance" }
+            };
+
+            LastUpdated = "Données non disponibles";
+
+            // Notifier les changements
+            OnPropertyChanged(nameof(AlertCount));
+            OnPropertyChanged(nameof(CriticalAlerts));
+            OnPropertyChanged(nameof(HighPriorityAlerts));
+            OnPropertyChanged(nameof(ActiveVehiclePercentage));
+            OnPropertyChanged(nameof(MaintenanceVehiclePercentage));
+            OnPropertyChanged(nameof(TotalMonthlyCost));
+            OnPropertyChanged(nameof(FuelToMaintenanceRatio));
         }
 
         private async Task RefreshDataAsync(object? parameter)
@@ -539,12 +787,30 @@ namespace FleetManager.ViewModels
 
         private void ViewDetailedStatistics()
         {
-            // Naviguer vers la vue statistiques
-            var mainWindow = Application.Current.MainWindow;
-            if (mainWindow?.DataContext is MainViewModel mainViewModel)
+            try
             {
-                // Commuter vers la vue Statistics si MainViewModel a cette fonctionnalité
-                System.Diagnostics.Debug.WriteLine("Navigation vers StatisticsView");
+                // Créer et ouvrir la fenêtre de statistiques détaillées
+                var viewModel = new DetailedStatisticsViewModel(_statisticsService, _exportService);
+                var window = new FleetManager.Views.DetailedStatisticsWindow(viewModel);
+                
+                // Vérifier que MainWindow est visible avant de définir Owner
+                var mainWindow = Application.Current.MainWindow;
+                if (mainWindow != null && mainWindow.IsLoaded && mainWindow.IsVisible)
+                {
+                    window.Owner = mainWindow;
+                    window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                }
+                else
+                {
+                    window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                }
+                
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'ouverture des statistiques détaillées:\n{ex.Message}",
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -627,8 +893,25 @@ namespace FleetManager.ViewModels
 
         private void OpenSettings()
         {
-            MessageBox.Show("Fenêtre de configuration en cours de développement", "Information",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                // Créer et ouvrir la fenêtre de configuration
+                var viewModel = new SettingsViewModel();
+                var window = new FleetManager.Views.SettingsWindow(viewModel)
+                {
+                    Owner = Application.Current.MainWindow,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+                window.ShowDialog();
+                
+                // Après fermeture des paramètres, recharger les données si nécessaire
+                // LoadDataAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de l'ouverture des paramètres:\n{ex.Message}",
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private string GenerateReportContent()

@@ -1,0 +1,307 @@
+<Window x:Class="FleetManager.Views.ModernDashboard"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:components="clr-namespace:FleetManager.Components"
+        Title="Fleet Manager - Tableau de bord moderne" 
+        Height="800" Width="1400"
+        Background="{StaticResource BackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ======================================================================================== -->
+        <!-- SIDEBAR -->
+        <!-- ======================================================================================== -->
+        <Border Grid.Column="0" Style="{StaticResource Sidebar}">
+            <StackPanel>
+                <!-- Logo / Titre -->
+                <Border Background="{StaticResource PrimaryBrush}" 
+                        Padding="24,32"
+                        Margin="0,0,0,24">
+                    <StackPanel>
+                        <TextBlock Text="🚗 Fleet Manager" 
+                                  FontFamily="{StaticResource PrimaryFont}"
+                                  FontSize="20"
+                                  FontWeight="Bold"
+                                  Foreground="White"/>
+                        <TextBlock Text="Système de design moderne" 
+                                  FontSize="11"
+                                  Foreground="#E0E7FF"
+                                  Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Navigation -->
+                <Button Style="{StaticResource SidebarButton}" Margin="0,0,0,4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📊" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Tableau de bord"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource SidebarButton}" Margin="0,0,0,4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🚙" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Véhicules"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource SidebarButton}" Margin="0,0,0,4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="👥" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Conducteurs"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource SidebarButton}" Margin="0,0,0,4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔧" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Maintenance"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource SidebarButton}" Margin="0,0,0,4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⛽" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Carburant"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource SidebarButton}" Margin="0,0,0,4">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📈" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Statistiques"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Divider -->
+                <Border Style="{StaticResource Divider}" Margin="16,24"/>
+
+                <Button Style="{StaticResource SidebarButton}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙️" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Paramètres"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ======================================================================================== -->
+        <!-- MAIN CONTENT -->
+        <!-- ======================================================================================== -->
+        <ScrollViewer Grid.Column="1" Style="{StaticResource ModernScrollViewer}">
+            <StackPanel Margin="40">
+                
+                <!-- Header -->
+                <Grid Margin="0,0,0,32">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource H1}" Text="Tableau de bord"/>
+                        <TextBlock Style="{StaticResource BodyText}" 
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  Text="Vue d'ensemble de votre flotte" 
+                                  Margin="0,8,0,0"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource SecondaryButton}" 
+                                Content="📤 Exporter" 
+                                Margin="0,0,12,0"/>
+                        <Button Style="{StaticResource ModernButton}" 
+                                Content="➕ Nouveau véhicule"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ======================================================================================== -->
+                <!-- STATS CARDS GRID -->
+                <!-- ======================================================================================== -->
+                <Grid Margin="0,0,0,32">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Total Vehicles -->
+                    <components:StatsCard Grid.Column="0" 
+                                         Icon="🚗"
+                                         IconBackground="{StaticResource PrimaryBrush}"
+                                         Value="127"
+                                         Label="Véhicules totaux"
+                                         TrendText="+5 ce mois"
+                                         TrendIcon="↑"
+                                         TrendColor="{StaticResource SuccessBrush}"
+                                         TrendVisibility="Visible"
+                                         Margin="0,0,16,0"/>
+
+                    <!-- Active Vehicles -->
+                    <components:StatsCard Grid.Column="1" 
+                                         Icon="✅"
+                                         IconBackground="{StaticResource SuccessBrush}"
+                                         Value="112"
+                                         Label="Véhicules actifs"
+                                         TrendText="88.2%"
+                                         TrendIcon="↑"
+                                         TrendColor="{StaticResource SuccessBrush}"
+                                         TrendVisibility="Visible"
+                                         Margin="0,0,16,0"/>
+
+                    <!-- In Maintenance -->
+                    <components:StatsCard Grid.Column="2" 
+                                         Icon="🔧"
+                                         IconBackground="{StaticResource WarningBrush}"
+                                         Value="9"
+                                         Label="En maintenance"
+                                         TrendText="-2 vs hier"
+                                         TrendIcon="↓"
+                                         TrendColor="{StaticResource SuccessBrush}"
+                                         TrendVisibility="Visible"
+                                         Margin="0,0,16,0"/>
+
+                    <!-- Out of Service -->
+                    <components:StatsCard Grid.Column="3" 
+                                         Icon="⚠️"
+                                         IconBackground="{StaticResource DangerBrush}"
+                                         Value="6"
+                                         Label="Hors service"
+                                         TrendText="+1 ce mois"
+                                         TrendIcon="↑"
+                                         TrendColor="{StaticResource DangerBrush}"
+                                         TrendVisibility="Visible"/>
+                </Grid>
+
+                <!-- ======================================================================================== -->
+                <!-- TWO COLUMN LAYOUT -->
+                <!-- ======================================================================================== -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ======================================================================================== -->
+                    <!-- LEFT COLUMN: VEHICLE LIST -->
+                    <!-- ======================================================================================== -->
+                    <Border Grid.Column="0" Style="{StaticResource ModernCard}" Margin="0,0,16,0">
+                        <StackPanel>
+                            <!-- Card Header -->
+                            <Grid Style="{StaticResource CardHeader}">
+                                <TextBlock Style="{StaticResource CardTitle}" Text="Véhicules récents"/>
+                                <Button Style="{StaticResource IconButton}" 
+                                        Content="→" 
+                                        HorizontalAlignment="Right"
+                                        ToolTip="Voir tous"/>
+                            </Grid>
+
+                            <!-- DataGrid with Modern Style -->
+                            <DataGrid Style="{StaticResource ModernDataGrid}"
+                                     Height="400"
+                                     AutoGenerateColumns="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Immatriculation" 
+                                                       Binding="{Binding LicensePlate}" 
+                                                       Width="140"/>
+                                    <DataGridTextColumn Header="Marque" 
+                                                       Binding="{Binding Brand}" 
+                                                       Width="120"/>
+                                    <DataGridTextColumn Header="Modèle" 
+                                                       Binding="{Binding Model}" 
+                                                       Width="140"/>
+                                    <DataGridTemplateColumn Header="Statut" Width="130">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <components:StatusBadge Text="{Binding Status}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Kilométrage" 
+                                                       Binding="{Binding Mileage}" 
+                                                       Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ======================================================================================== -->
+                    <!-- RIGHT COLUMN: QUICK ACTIONS & INFO -->
+                    <!-- ======================================================================================== -->
+                    <StackPanel Grid.Column="1">
+                        
+                        <!-- Quick Actions Card -->
+                        <Border Style="{StaticResource ModernCard}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardTitle}" 
+                                          Text="Actions rapides" 
+                                          Margin="0,0,0,16"/>
+
+                                <Button Style="{StaticResource ModernButton}" 
+                                        Content="➕ Ajouter véhicule" 
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,0,0,8"/>
+
+                                <Button Style="{StaticResource SuccessButton}" 
+                                        Content="📋 Planifier maintenance" 
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,0,0,8"/>
+
+                                <Button Style="{StaticResource WarningButton}" 
+                                        Content="⛽ Enregistrer ravitaillement" 
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,0,0,8"/>
+
+                                <Button Style="{StaticResource SecondaryButton}" 
+                                        Content="📊 Voir statistiques" 
+                                        HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- System Status Card -->
+                        <Border Style="{StaticResource ModernCard}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardTitle}" 
+                                          Text="État du système" 
+                                          Margin="0,0,0,16"/>
+
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Style="{StaticResource SmallText}" 
+                                              Text="Connexion base de données"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <components:StatusBadge Text="Connecté" 
+                                                           Background="{StaticResource SuccessLightBrush}"
+                                                           Foreground="{StaticResource SuccessBrush}"
+                                                           Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Style="{StaticResource SmallText}" 
+                                              Text="Alertes en attente"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <components:StatusBadge Text="3 alertes" 
+                                                           Background="{StaticResource WarningLightBrush}"
+                                                           Foreground="{StaticResource WarningBrush}"
+                                                           Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource SmallText}" 
+                                              Text="Dernière synchronisation"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="Il y a 5 minutes" 
+                                              FontFamily="{StaticResource PrimaryFont}"
+                                              FontSize="12"
+                                              Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

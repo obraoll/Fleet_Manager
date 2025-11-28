@@ -3,154 +3,390 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:FleetManager.Helpers"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="900">
+             d:DesignHeight="600" d:DesignWidth="900"
+             Background="#F8FAFC">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        <helpers:VehicleImagePathConverter x:Key="VehicleImagePathConverter"/>
+        <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <Style x:Key="ModernComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                        Grid.Column="2"
+                                        ClickMode="Press"
+                                        Focusable="False"
+                                        IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="10">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition Width="20"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0"
+                                                                Margin="14,10"/>
+                                                <Path Grid.Column="1"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                                      Fill="#64748B"/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite"
+                                            IsHitTestVisible="False"
+                                            Content="{TemplateBinding SelectionBoxItem}"
+                                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                            Margin="14,10"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"/>
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Border Background="White"
+                                        BorderBrush="#E2E8F0"
+                                        BorderThickness="2"
+                                        CornerRadius="10"
+                                        MaxHeight="200"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#1E293B" Opacity="0.1" BlurRadius="20"/>
+                                    </Border.Effect>
+                                    <ScrollViewer>
+                                        <StackPanel IsItemsHost="True"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
-        <!-- Titre -->
-        <TextBlock Grid.Row="0"
-                   Text="Gestion du Carburant"
-                   Style="{StaticResource TitleStyle}"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <!-- EN-TÊTE Dashboard Style -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <!-- Barre d'outils -->
-        <Grid Grid.Row="1" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Carburant" 
+                              FontFamily="Inter, Segoe UI"
+                              FontSize="28" 
+                              FontWeight="Bold" 
+                              Foreground="#0F172A" 
+                              Margin="0,0,0,6"/>
+                    <TextBlock Text="Suivez les pleins de carburant de votre flotte" 
+                              FontSize="14" 
+                              Foreground="#64748B"/>
+                </StackPanel>
 
-            <!-- Filtres -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Label Content="Filtrer par véhicule :" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding Vehicles}"
-                          SelectedItem="{Binding SelectedVehicle}"
-                          DisplayMemberPath="DisplayName"
-                          Width="200"
-                          Margin="5,0,10,0"
-                          VerticalAlignment="Center"/>
-                <Button Content="🔍 Filtrer"
-                        Command="{Binding FilterByVehicleCommand}"
-                        Style="{StaticResource SecondaryButton}"
-                        Margin="0,0,10,0"/>
-                <Button Content="📋 Tout afficher"
-                        Command="{Binding LoadDataCommand}"
-                        Style="{StaticResource SecondaryButton}"/>
-            </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border Background="Transparent"
+                           BorderBrush="#E2E8F0"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Padding="12,8"
+                           Height="40"
+                           Margin="0,0,12,0"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="#475569"
+                               FontSize="14"
+                               Padding="0"
+                               Content="🔄 Actualiser"
+                               Command="{Binding LoadDataCommand}"
+                               Cursor="Hand"/>
+                    </Border>
+                    <Border Background="#3B82F6"
+                           CornerRadius="8"
+                           Padding="12,8"
+                           Height="40"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="White"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Padding="0"
+                               Content="⛽ Nouveau Plein"
+                               Command="{Binding AddFuelRecordCommand}"
+                               Cursor="Hand"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
 
-            <!-- Boutons d'action -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Content="⛽ Nouveau Plein"
-                        Command="{Binding AddFuelRecordCommand}"
-                        Style="{StaticResource PrimaryButton}"
-                        Margin="0,0,10,0"/>
-                <Button Content="🗑️ Supprimer"
-                        Command="{Binding DeleteFuelRecordCommand}"
-                        CommandParameter="{Binding SelectedFuelRecord}"
-                        Background="{StaticResource DangerBrush}"
-                        Foreground="White"
-                        Padding="15,8"
-                        BorderThickness="0"/>
-            </StackPanel>
-        </Grid>
+            <!-- BARRE DE FILTRES -->
+            <Border Background="#FFFFFF" 
+                   BorderBrush="#E2E8F0" 
+                   BorderThickness="1" 
+                   CornerRadius="12" 
+                   Padding="16" 
+                   Margin="0,0,0,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                </Border.Effect>
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Recherche -->
+                    <Border Background="#F8FAFC" 
+                           CornerRadius="8" 
+                           Height="40" 
+                           Width="400"
+                           Margin="0,0,16,0"
+                           Padding="12,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontSize="14"
+                                    Foreground="#475569"
+                                    VerticalContentAlignment="Center"
+                                    Width="300"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Filtre par véhicule -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <TextBlock Text="🚗" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox ItemsSource="{Binding Vehicles}"
+                                  SelectedItem="{Binding SelectedVehicle}"
+                                  DisplayMemberPath="DisplayName"
+                                  Width="200"
+                                  Height="36"
+                                  FontSize="13"
+                                  Background="#FFFFFF"
+                                  BorderBrush="#E2E8F0"
+                                  BorderThickness="1"
+                                  Padding="10,0"
+                                  VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                    
+                    <!-- Bouton Réinitialiser -->
+                    <Border Background="#F8FAFC"
+                           BorderBrush="#E2E8F0"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Padding="10,8"
+                           Height="40"
+                           VerticalAlignment="Center"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="#475569"
+                               FontSize="13"
+                               Padding="0"
+                               Content="↺ Réinitialiser"
+                               Command="{Binding ResetFiltersCommand}"
+                               Cursor="Hand"/>
+                    </Border>
+                </WrapPanel>
+            </Border>
 
-        <!-- Liste des enregistrements de carburant -->
-        <DataGrid Grid.Row="2"
-                  ItemsSource="{Binding FuelRecords}"
-                  SelectedItem="{Binding SelectedFuelRecord}"
-                  AutoGenerateColumns="False"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  GridLinesVisibility="None"
-                  HeadersVisibility="Column"
-                  AlternatingRowBackground="#F9F9F9"
-                  RowHeight="35">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Date"
-                                    Binding="{Binding RefuelDate, StringFormat=dd/MM/yyyy}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Véhicule"
-                                    Binding="{Binding Vehicle.RegistrationNumber}"
-                                    Width="120"/>
-                <DataGridTextColumn Header="Type carburant"
-                                    Binding="{Binding FuelType}"
-                                    Width="110"/>
-                <DataGridTextColumn Header="Quantité (L)"
-                                    Binding="{Binding LitersRefueled, StringFormat=N2}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Prix/L (€)"
-                                    Binding="{Binding PricePerLiter, StringFormat=N3}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Coût total (€)"
-                                    Binding="{Binding TotalCost, StringFormat=N2}"
-                                    Width="120"/>
-                <DataGridTextColumn Header="Kilométrage"
-                                    Binding="{Binding Mileage, StringFormat=N0}"
-                                    Width="100"/>
-                <DataGridCheckBoxColumn Header="Plein complet"
-                                        Binding="{Binding IsFullTank}"
-                                        Width="100"/>
-                <DataGridTextColumn Header="Station"
-                                    Binding="{Binding Station}"
-                                    Width="120"/>
-                <DataGridTextColumn Header="Ajouté par"
-                                    Binding="{Binding Creator.FullName}"
-                                    Width="*"/>
-                <DataGridTemplateColumn Header="Actions" Width="80">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="🗑️"
-                                        Command="{Binding DataContext.DeleteFuelRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"
-                                        Background="{StaticResource DangerBrush}"
-                                        Foreground="White"
-                                        Width="30"
-                                        Height="25"
-                                        Padding="2"
-                                        Margin="2"
-                                        BorderThickness="0"
-                                        ToolTip="Supprimer ce plein"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
+            <!-- LISTE DES PLEINS DE CARBURANT -->
+            <ItemsControl ItemsSource="{Binding FuelRecords}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#FFFFFF" 
+                               BorderBrush="#E2E8F0" 
+                               BorderThickness="1" 
+                               CornerRadius="12" 
+                               Padding="16"
+                               Margin="0,0,0,12"
+                               Cursor="Hand">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-            <!-- Style pour les en-têtes -->
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="Padding" Value="10,8"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="FontSize" Value="13"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
+                                <!-- Image du véhicule ou icône du plein -->
+                                <Border Grid.Column="0" 
+                                        Width="80" 
+                                        Height="80" 
+                                        Background="#10B981"
+                                        CornerRadius="12" 
+                                        Margin="0,0,20,0"
+                                        ClipToBounds="True">
+                                    <Grid>
+                                        <Image Source="{Binding Vehicle.ImagePath, Converter={StaticResource VehicleImagePathConverter}}"
+                                              Stretch="UniformToFill"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Visibility="{Binding Vehicle.ImagePath, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                        <TextBlock Text="⛽" 
+                                                   FontSize="40" 
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding Vehicle.ImagePath, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                                    </Grid>
+                                </Border>
 
-            <!-- Style pour les lignes -->
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <Setter Property="Height" Value="35"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#E3F2FD"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                            <Setter Property="Foreground" Value="White"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-        </DataGrid>
-    </Grid>
+                                <!-- Informations du plein -->
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Véhicule et Date -->
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding Vehicle.RegistrationNumber}" 
+                                                   FontSize="20" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="#1E293B"
+                                                   VerticalAlignment="Center"/>
+                                        
+                                        <Border Background="#EEF2FF" 
+                                                CornerRadius="8" 
+                                                Padding="8,4" 
+                                                Margin="12,0,0,0">
+                                            <TextBlock Text="{Binding RefuelDate, StringFormat=dd/MM/yyyy}" 
+                                                       FontSize="13" 
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#6366F1"/>
+                                        </Border>
+
+                                        <!-- Badge plein complet -->
+                                        <Border Visibility="{Binding IsFullTank, Converter={StaticResource BoolToVisibility}}"
+                                                Background="#D1FAE5" 
+                                                CornerRadius="8" 
+                                                Padding="8,4" 
+                                                Margin="8,0,0,0">
+                                            <TextBlock Text="✓ Plein complet" 
+                                                       FontSize="12" 
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#059669"/>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Type de carburant et Station -->
+                                    <TextBlock Grid.Row="1" 
+                                               Margin="0,0,0,8">
+                                        <Run Text="{Binding FuelType}" 
+                                             FontSize="16" 
+                                             FontWeight="SemiBold" 
+                                             Foreground="#475569"/>
+                                        <Run Text="•" 
+                                             Foreground="#CBD5E1"/>
+                                        <Run Text="{Binding Station}" 
+                                             FontSize="16" 
+                                             Foreground="#64748B"/>
+                                    </TextBlock>
+
+                                    <!-- Détails du plein -->
+                                    <StackPanel Grid.Row="2" Orientation="Horizontal">
+                                        <Border Background="#F1F5F9" 
+                                                CornerRadius="8" 
+                                                Padding="8,4" 
+                                                Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📊" FontSize="12" Margin="0,0,4,0"/>
+                                                <TextBlock FontSize="13" Foreground="#475569">
+                                                    <Run Text="{Binding LitersRefueled, StringFormat=N2}"/>
+                                                    <Run Text="L"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Background="#F1F5F9" 
+                                                CornerRadius="8" 
+                                                Padding="8,4" 
+                                                Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="💰" FontSize="12" Margin="0,0,4,0"/>
+                                                <TextBlock FontSize="13" Foreground="#475569">
+                                                    <Run Text="{Binding PricePerLiter, StringFormat=N3}"/>
+                                                    <Run Text="€/L"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Background="#FEF3C7" 
+                                                CornerRadius="8" 
+                                                Padding="8,4" 
+                                                Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="💳" FontSize="12" Margin="0,0,4,0"/>
+                                                <TextBlock FontSize="13" 
+                                                           FontWeight="Bold"
+                                                           Foreground="#D97706">
+                                                    <Run Text="{Binding TotalCost, StringFormat=N2}"/>
+                                                    <Run Text="€"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Background="#F1F5F9" 
+                                                CornerRadius="8" 
+                                                Padding="8,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📏" FontSize="12" Margin="0,0,4,0"/>
+                                                <TextBlock FontSize="13" Foreground="#475569">
+                                                    <Run Text="{Binding Mileage, StringFormat=N0}"/>
+                                                    <Run Text="km"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Boutons d'action -->
+                                <StackPanel Grid.Column="2" 
+                                           Orientation="Horizontal"
+                                           VerticalAlignment="Center">
+                                    <Button Content="✏️ Modifier"
+                                            Command="{Binding DataContext.EditFuelRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource SecondaryButton}"
+                                            Margin="0,0,8,0"
+                                            ToolTip="Modifier cet enregistrement"/>
+                                    <Button Content="🗑️ Supprimer"
+                                            Command="{Binding DataContext.DeleteFuelRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource DangerButton}"
+                                            ToolTip="Supprimer cet enregistrement"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

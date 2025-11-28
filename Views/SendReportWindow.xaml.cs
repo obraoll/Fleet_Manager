@@ -13,8 +13,15 @@ namespace FleetManager.Views
 {
     public partial class SendReportWindow : Window
     {
-        private readonly SendReportViewModel _viewModel;
+        private readonly SendReportViewModel? _viewModel;
 
+        // Constructeur sans paramètres pour DataContext externe
+        public SendReportWindow()
+        {
+            InitializeComponent();
+        }
+
+        // Constructeur avec paramètres (conservé pour compatibilité)
         public SendReportWindow(StatisticsService statisticsService, ExportService exportService, IEmailService emailService)
         {
             InitializeComponent();
@@ -29,7 +36,7 @@ namespace FleetManager.Views
 
         private void SuggestedEmail_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (e.AddedItems.Count > 0)
+            if (e.AddedItems.Count > 0 && _viewModel != null)
             {
                 _viewModel.RecipientEmail = e.AddedItems[0]?.ToString() ?? "";
             }

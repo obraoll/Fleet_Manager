@@ -1,0 +1,209 @@
+<Window x:Class="FleetManager.Views.AnalysisSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Paramètres d'Analyse - Fleet Manager"
+        Height="650"
+        Width="850"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <Style x:Key="CardBorder" TargetType="Border">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" CornerRadius="8" Padding="20" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="⚙️ Paramètres d'Analyse" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Configurez les critères et seuils pour l'analyse statistique" FontSize="14" Foreground="White" Opacity="0.9" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Contenu principal -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                
+                <!-- Période d'analyse par défaut -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="📅 Période d'Analyse par Défaut" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Période d'analyse par défaut" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <ComboBox SelectedItem="{Binding DefaultAnalysisPeriod}" ItemsSource="{Binding AnalysisPeriods}"
+                                  Height="40" Padding="10" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Nombre de mois dans les graphiques de tendance" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider Grid.Column="0" Value="{Binding TrendMonthsCount}" 
+                                    Minimum="3" Maximum="24" TickFrequency="3" IsSnapToTickEnabled="True"
+                                    VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding TrendMonthsCount}" 
+                                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"
+                                       VerticalAlignment="Center" Width="50" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="1" Text=" mois" FontSize="14" Margin="45,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Seuils de performance -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="📊 Seuils de Performance" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Seuil consommation excellente -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Consommation excellente (L/100km)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding ExcellentConsumptionThreshold, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Grade A attribué si inférieur" Margin="0,5,0,0" Foreground="Gray" FontSize="12"/>
+                            </StackPanel>
+
+                            <!-- Seuil consommation acceptable -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Consommation acceptable (L/100km)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding AcceptableConsumptionThreshold, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Grade B/C si dans cette plage" Margin="0,5,0,0" Foreground="Gray" FontSize="12"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,15,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Seuil coût par km -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Coût par km optimal (€/km)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding OptimalCostPerKm, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Référence pour calcul performance" Margin="0,5,0,0" Foreground="Gray" FontSize="12"/>
+                            </StackPanel>
+
+                            <!-- Seuil maintenance -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Jours avant maintenance urgente" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding UrgentMaintenanceDays, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Alerte maintenance si dépassé" Margin="0,5,0,0" Foreground="Gray" FontSize="12"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Critères de comparaison -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="⚖️ Critères de Comparaison" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Comparer à la moyenne de la flotte" IsChecked="{Binding CompareToFleetAverage}" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Comparer à l'année précédente" IsChecked="{Binding CompareToPreviousYear}" Margin="0,5,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Inclure les véhicules hors service dans les moyennes" IsChecked="{Binding IncludeOutOfServiceVehicles}" Margin="0,5,0,10" FontWeight="SemiBold"/>
+                        
+                        <TextBlock Text="Nombre minimum de données pour analyse" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider Grid.Column="0" Value="{Binding MinimumDataPoints}" 
+                                    Minimum="3" Maximum="30" TickFrequency="1" IsSnapToTickEnabled="True"
+                                    VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding MinimumDataPoints}" 
+                                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"
+                                       VerticalAlignment="Center" Width="50" TextAlignment="Right"/>
+                            <TextBlock Grid.Column="1" Text=" points" FontSize="14" Margin="45,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                        <TextBlock Text="Minimum requis pour générer tendances et prédictions" Margin="0,5,0,0" Foreground="Gray" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Options d'affichage -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="🎨 Options d'Affichage" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Afficher les moyennes mobiles" IsChecked="{Binding ShowMovingAverages}" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Afficher les prédictions" IsChecked="{Binding ShowPredictions}" Margin="0,5,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Afficher les anomalies détectées" IsChecked="{Binding ShowAnomalies}" Margin="0,5,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Utiliser des couleurs pour les grades" IsChecked="{Binding UseColorCoding}" Margin="0,5,0,10" FontWeight="SemiBold"/>
+
+                        <TextBlock Text="Format de devise" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                        <ComboBox SelectedItem="{Binding CurrencyFormat}" ItemsSource="{Binding CurrencyFormats}"
+                                  Height="40" Padding="10" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Format de date" FontWeight="SemiBold" Margin="0,5,0,5"/>
+                        <ComboBox SelectedItem="{Binding DateFormat}" ItemsSource="{Binding DateFormats}"
+                                  Height="40" Padding="10"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Calculs avancés -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="🧮 Calculs Avancés" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Activer l'analyse prédictive" IsChecked="{Binding EnablePredictiveAnalysis}" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Détecter automatiquement les anomalies" IsChecked="{Binding EnableAnomalyDetection}" Margin="0,5,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Calculer les coûts prévisionnels" IsChecked="{Binding CalculateForecasts}" Margin="0,5,0,10" FontWeight="SemiBold"/>
+
+                        <TextBlock Text="Algorithme de prédiction" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                        <ComboBox SelectedItem="{Binding PredictionAlgorithm}" ItemsSource="{Binding PredictionAlgorithms}"
+                                  Height="40" Padding="10"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Boutons d'action -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="15" Margin="0,15,0,0" Style="{StaticResource CardBorder}">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="💾 Les paramètres seront appliqués aux prochaines analyses" VerticalAlignment="Center" Foreground="Gray"/>
+                </StackPanel>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="💾 Enregistrer" Command="{Binding SaveCommand}" 
+                            Style="{StaticResource PrimaryButton}" Width="140" Height="45" Margin="0,0,10,0"/>
+                    <Button Content="↺ Par défaut" Command="{Binding ResetCommand}" 
+                            Style="{StaticResource SecondaryButton}" Width="140" Height="45" Margin="0,0,10,0"/>
+                    <Button Content="✖ Annuler" Command="{Binding CancelCommand}" 
+                            Style="{StaticResource SecondaryButton}" Width="120" Height="45"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

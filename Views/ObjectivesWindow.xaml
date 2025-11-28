@@ -1,0 +1,256 @@
+<Window x:Class="FleetManager.Views.ObjectivesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Définir les Objectifs - Fleet Manager"
+        Height="700"
+        Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <Style x:Key="CardBorder" TargetType="Border">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" CornerRadius="8" Padding="20" Margin="0,0,0,20">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="🎯 Définir les Objectifs" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Configurez les objectifs de performance de votre flotte" FontSize="14" Foreground="White" Opacity="0.9" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Contenu principal -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                
+                <!-- Objectifs de consommation -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="⛽ Objectifs de Consommation" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Consommation moyenne cible -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Consommation moyenne cible (L/100km)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding TargetAverageConsumption, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Valeur actuelle : " Margin="0,5,0,0" Foreground="Gray">
+                                    <Run Text="{Binding CurrentAverageConsumption, StringFormat=F2}"/>
+                                    <Run Text=" L/100km"/>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- Consommation maximale -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Consommation maximale acceptable (L/100km)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding MaxAcceptableConsumption, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Seuil d'alerte pour les véhicules" Margin="0,5,0,0" Foreground="Gray"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Économie de carburant ciblée -->
+                        <StackPanel Margin="0,20,0,0">
+                            <TextBlock Text="Économie de carburant ciblée (%)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider Grid.Column="0" Value="{Binding TargetFuelSavingPercent}" 
+                                        Minimum="0" Maximum="30" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding TargetFuelSavingPercent, StringFormat=F0}" 
+                                           FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"
+                                           VerticalAlignment="Center" Width="60" TextAlignment="Right"/>
+                                <TextBlock Grid.Column="1" Text="%" FontSize="18" Margin="55,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Objectifs de coûts -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="💰 Objectifs de Coûts" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Budget mensuel carburant -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Budget mensuel carburant (€)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding MonthlyFuelBudget, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Dépense actuelle : " Margin="0,5,0,0" Foreground="Gray">
+                                    <Run Text="{Binding CurrentMonthlyFuelCost, StringFormat=C0}"/>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- Budget mensuel maintenance -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Budget mensuel maintenance (€)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding MonthlyMaintenanceBudget, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Dépense actuelle : " Margin="0,5,0,0" Foreground="Gray">
+                                    <Run Text="{Binding CurrentMonthlyMaintenanceCost, StringFormat=C0}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Coût par kilomètre cible -->
+                        <StackPanel Margin="0,20,0,0">
+                            <TextBlock Text="Coût par kilomètre cible (€/km)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox Text="{Binding TargetCostPerKm, UpdateSourceTrigger=PropertyChanged}" 
+                                     Height="40" Padding="10"/>
+                            <TextBlock Text="Coût actuel : " Margin="0,5,0,0" Foreground="Gray">
+                                <Run Text="{Binding CurrentCostPerKm, StringFormat=F4}"/>
+                                <Run Text=" €/km"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- Réduction des coûts ciblée -->
+                        <StackPanel Margin="0,20,0,0">
+                            <TextBlock Text="Réduction des coûts ciblée (%)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider Grid.Column="0" Value="{Binding TargetCostReductionPercent}" 
+                                        Minimum="0" Maximum="40" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding TargetCostReductionPercent, StringFormat=F0}" 
+                                           FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"
+                                           VerticalAlignment="Center" Width="60" TextAlignment="Right"/>
+                                <TextBlock Grid.Column="1" Text="%" FontSize="18" Margin="55,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Objectifs de maintenance -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="🔧 Objectifs de Maintenance" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Fréquence maintenance -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Intervalle maintenance préventive (jours)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding MaintenanceIntervalDays, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Intervalle recommandé : 90 jours" Margin="0,5,0,0" Foreground="Gray"/>
+                            </StackPanel>
+
+                            <!-- Kilométrage maintenance -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Intervalle kilométrique (km)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding MaintenanceIntervalKm, UpdateSourceTrigger=PropertyChanged}" 
+                                         Height="40" Padding="10"/>
+                                <TextBlock Text="Intervalle recommandé : 15 000 km" Margin="0,5,0,0" Foreground="Gray"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Taux de disponibilité -->
+                        <StackPanel Margin="0,20,0,0">
+                            <TextBlock Text="Taux de disponibilité cible de la flotte (%)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider Grid.Column="0" Value="{Binding TargetFleetAvailability}" 
+                                        Minimum="70" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding TargetFleetAvailability, StringFormat=F0}" 
+                                           FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"
+                                           VerticalAlignment="Center" Width="60" TextAlignment="Right"/>
+                                <TextBlock Grid.Column="1" Text="%" FontSize="18" Margin="55,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                            <TextBlock Text="Disponibilité actuelle : " Margin="0,5,0,0" Foreground="Gray">
+                                <Run Text="{Binding CurrentFleetAvailability, StringFormat=F1}"/>
+                                <Run Text="%"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Alertes et notifications -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="🔔 Alertes et Notifications" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,15"/>
+                        
+                        <CheckBox Content="Activer les alertes automatiques" IsChecked="{Binding EnableAlerts}" Margin="0,0,0,10" FontWeight="SemiBold"/>
+                        <CheckBox Content="Alerter si dépassement du budget" IsChecked="{Binding AlertOnBudgetExceed}" Margin="20,5,0,5"/>
+                        <CheckBox Content="Alerter si consommation excessive" IsChecked="{Binding AlertOnHighConsumption}" Margin="20,5,0,5"/>
+                        <CheckBox Content="Alerter si maintenance échue" IsChecked="{Binding AlertOnMaintenanceDue}" Margin="20,5,0,5"/>
+                        <CheckBox Content="Alerter si objectifs non atteints" IsChecked="{Binding AlertOnTargetMissed}" Margin="20,5,0,10"/>
+
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Fréquence des rapports" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox SelectedItem="{Binding ReportFrequency}" ItemsSource="{Binding ReportFrequencies}"
+                                      Height="40" Padding="10"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Boutons d'action -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="15" Margin="0,15,0,0" Style="{StaticResource CardBorder}">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="💡 Les objectifs seront appliqués immédiatement" VerticalAlignment="Center" Foreground="Gray"/>
+                </StackPanel>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="💾 Enregistrer" Command="{Binding SaveCommand}" 
+                            Style="{StaticResource PrimaryButton}" Width="140" Height="45" Margin="0,0,10,0"/>
+                    <Button Content="↺ Réinitialiser" Command="{Binding ResetCommand}" 
+                            Style="{StaticResource SecondaryButton}" Width="140" Height="45" Margin="0,0,10,0"/>
+                    <Button Content="✖ Annuler" Command="{Binding CancelCommand}" 
+                            Style="{StaticResource SecondaryButton}" Width="120" Height="45"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

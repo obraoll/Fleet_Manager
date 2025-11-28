@@ -116,6 +116,14 @@ namespace FleetManager.Views
             set { _loadingMessage = value; OnPropertyChanged(); }
         }
 
+        // Constructeur sans paramètres pour DataContext externe
+        public AdvancedChartsWindow()
+        {
+            InitializeComponent();
+            DataContext = this;
+        }
+
+        // Constructeur avec paramètres (conservé pour compatibilité)
         public AdvancedChartsWindow(
             StatisticsService statisticsService,
             VehicleService vehicleService,
@@ -145,6 +153,12 @@ namespace FleetManager.Views
         {
             try
             {
+                if (_statisticsService == null || _vehicleService == null)
+                {
+                    LoadingMessage = "Services non initialisés. Utilisez le DataContext pour passer les services.";
+                    return;
+                }
+
                 IsLoading = true;
                 LoadingMessage = "Chargement des données...";
 

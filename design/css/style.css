@@ -4,12 +4,19 @@
 
 /* Variables CSS pour faciliter la personnalisation */
 :root {
-    /* Couleurs principales */
-    --primary-color: #4F46E5;
-    --primary-hover: #4338CA;
+    /* Couleurs principales - Nouvelle palette 2025 */
+    --primary-color: #6366F1;
+    --primary-hover: #4F46E5;
     --primary-light: #EEF2FF;
     
     /* Couleurs secondaires */
+    --secondary-color: #8B5CF6;
+    --secondary-hover: #7C3AED;
+    --accent-color: #EC4899;
+    --accent-hover: #DB2777;
+    --accent-light: #FCE7F3;
+    
+    /* Couleurs d'état */
     --success-color: #10B981;
     --success-light: #D1FAE5;
     --warning-color: #F59E0B;
@@ -20,14 +27,15 @@
     --info-light: #DBEAFE;
     
     /* Couleurs neutres */
-    --bg-color: #F8FAFC;
-    --sidebar-bg: #1E293B;
-    --sidebar-hover: #334155;
+    --bg-color: #FFFFFF;
+    --bg-light: #F9FAFB;
+    --sidebar-bg: #FFFFFF;
+    --sidebar-hover: #F9FAFB;
     --card-bg: #FFFFFF;
-    --text-primary: #1E293B;
-    --text-secondary: #64748B;
-    --text-light: #94A3B8;
-    --border-color: #E2E8F0;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --text-light: #9CA3AF;
+    --border-color: #E5E7EB;
     
     /* Ombres */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

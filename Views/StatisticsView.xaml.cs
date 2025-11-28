@@ -2,18 +2,18 @@ using System.Windows.Controls;
 using System;
 using System.ComponentModel;
 using FleetManager.ViewModels;
-// LiveCharts is used in XAML; no runtime Axis wiring required here
+using System.Threading.Tasks;
 
 namespace FleetManager.Views
 {
-    /// <summary>
-    /// Code-behind pour StatisticsView
-    /// </summary>
     public partial class StatisticsView : UserControl
     {
+        private bool _isLoaded = false;
+
         public StatisticsView()
         {
             InitializeComponent();
+            Loaded += StatisticsView_Loaded;
         }
 
         public StatisticsView(StatisticsViewModel viewModel) : this()
@@ -21,14 +21,18 @@ namespace FleetManager.Views
             DataContext = viewModel;
         }
 
-        /// <summary>
-        /// Événement Loaded - initier les animations ou configurations UI
-        /// </summary>
-        private void UserControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        private void StatisticsView_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            // Les données sont chargées via ViewModel. Les labels X sont affichés
-            // via l'ItemsControl lié à `MonthlyLabels` dans le XAML.
+            if (!_isLoaded && DataContext is StatisticsViewModel viewModel)
+            {
+                _isLoaded = true;
+                // Chargement différé pour éviter les problèmes d'initialisation
+                Dispatcher.InvokeAsync(async () =>
+                {
+                    await Task.Delay(100); // Petit délai pour s'assurer que tout est initialisé
+                    viewModel.RefreshCommand?.Execute(null);
+                }, System.Windows.Threading.DispatcherPriority.Background);
+            }
         }
-        
     }
 }

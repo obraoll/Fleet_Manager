@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:FleetManager.Models"
         mc:Ignorable="d"
-        Title="Ajouter un plein de carburant"
+        Title="{Binding WindowTitle}"
         Height="600" Width="500"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
@@ -20,7 +20,7 @@
 
         <!-- Titre -->
         <TextBlock Grid.Row="0"
-                   Text="⛽ Ajouter un plein de carburant"
+                   Text="{Binding WindowTitle}"
                    Style="{StaticResource H1}"
                    HorizontalAlignment="Center"
                    Margin="0,0,0,20"/>
@@ -228,7 +228,7 @@
                     Width="100"
                     Margin="0,0,10,0"/>
 
-            <Button Content="Enregistrer le plein"
+            <Button Content="{Binding SaveButtonText}"
                     Command="{Binding SaveCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
                     Style="{StaticResource PrimaryButton}"

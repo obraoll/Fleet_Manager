@@ -7,6 +7,8 @@ using System.Windows.Input;
 using FleetManager.Helpers;
 using FleetManager.Models;
 using FleetManager.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 
 namespace FleetManager.ViewModels
 {
@@ -61,6 +63,10 @@ namespace FleetManager.ViewModels
         private DateTime? _insuranceExpiryDate;
         private DateTime? _technicalInspectionDate;
         private string _notes = string.Empty;
+        private string? _selectedImagePath;
+        private System.Windows.Media.Imaging.BitmapImage? _selectedImagePreview;
+        private string? _currentImagePath;
+        private bool _imageRemoved;
 
         // Propriétés d'affichage système
         private string _createdAtDisplay = string.Empty;
@@ -79,6 +85,8 @@ namespace FleetManager.ViewModels
             // Initialiser les commandes
             SaveCommand = new AsyncRelayCommand(SaveVehicleAsync, CanExecuteSave);
             CancelCommand = new RelayCommand(param => CancelEdit(param as Window));
+            SelectImageCommand = new RelayCommand(_ => SelectImage());
+            RemoveImageCommand = new RelayCommand(_ => RemoveImage());
 
             // Charger les données du véhicule
             LoadVehicleData();
@@ -195,11 +203,31 @@ namespace FleetManager.ViewModels
             set => SetProperty(ref _notes, value);
         }
 
+        public string? SelectedImagePath
+        {
+            get => _selectedImagePath;
+            set
+            {
+                if (SetProperty(ref _selectedImagePath, value))
+                {
+                    UpdateImagePreview();
+                }
+            }
+        }
+
+        public System.Windows.Media.Imaging.BitmapImage? SelectedImagePreview
+        {
+            get => _selectedImagePreview;
+            set => SetProperty(ref _selectedImagePreview, value);
+        }
+
         #endregion
 
         #region Commandes
         public AsyncRelayCommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
+        public ICommand SelectImageCommand { get; }
+        public ICommand RemoveImageCommand { get; }
 
         #endregion
 
@@ -222,6 +250,14 @@ namespace FleetManager.ViewModels
             InsuranceExpiryDate = _originalVehicle.InsuranceExpiryDate;
             TechnicalInspectionDate = _originalVehicle.TechnicalInspectionDate;
             Notes = _originalVehicle.Notes ?? string.Empty;
+            _currentImagePath = _originalVehicle.ImagePath;
+            _imageRemoved = false; // Initialiser le flag
+
+            // Charger l'image existante si elle existe
+            if (!string.IsNullOrWhiteSpace(_currentImagePath))
+            {
+                UpdateImagePreviewFromPath(_currentImagePath);
+            }
 
             // Informations système
             CreatedAtDisplay = $"Créé le : {_originalVehicle.CreatedAt:dd/MM/yyyy à HH:mm}";
@@ -230,13 +266,94 @@ namespace FleetManager.ViewModels
             System.Diagnostics.Debug.WriteLine($"Données véhicule chargées: {RegistrationNumber} - {Brand} {Model}");
         }
 
+        private void SelectImage()
+        {
+            var openDialog = new OpenFileDialog
+            {
+                Title = "Sélectionner une image du véhicule",
+                Filter = "Images|*.jpg;*.jpeg;*.png;*.bmp;*.gif|Tous les fichiers|*.*",
+                FilterIndex = 1
+            };
+
+            if (openDialog.ShowDialog() == true)
+            {
+                SelectedImagePath = openDialog.FileName;
+            }
+        }
+
+        private void RemoveImage()
+        {
+            // Marquer que l'image doit être supprimée
+            _imageRemoved = true;
+            SelectedImagePath = null;
+            SelectedImagePreview = null;
+        }
+
+        private void UpdateImagePreview()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(SelectedImagePath) || !System.IO.File.Exists(SelectedImagePath))
+                {
+                    // Si pas de nouvelle image, afficher l'image existante
+                    if (!string.IsNullOrWhiteSpace(_currentImagePath))
+                    {
+                        UpdateImagePreviewFromPath(_currentImagePath);
+                    }
+                    else
+                    {
+                        SelectedImagePreview = null;
+                    }
+                    return;
+                }
+
+                var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(SelectedImagePath, UriKind.Absolute);
+                bitmap.EndInit();
+                bitmap.Freeze();
+                SelectedImagePreview = bitmap;
+            }
+            catch
+            {
+                SelectedImagePreview = null;
+            }
+        }
+
+        private void UpdateImagePreviewFromPath(string imagePath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imagePath) || !System.IO.File.Exists(imagePath))
+                {
+                    SelectedImagePreview = null;
+                    return;
+                }
+
+                var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
+                bitmap.EndInit();
+                bitmap.Freeze();
+                SelectedImagePreview = bitmap;
+            }
+            catch
+            {
+                SelectedImagePreview = null;
+            }
+        }
+
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName != nameof(ValidationMessage) &&
                 e.PropertyName != nameof(HasValidationError) &&
                 e.PropertyName != nameof(CanSave) &&
                 e.PropertyName != nameof(CreatedAtDisplay) &&
-                e.PropertyName != nameof(UpdatedAtDisplay))
+                e.PropertyName != nameof(UpdatedAtDisplay) &&
+                e.PropertyName != nameof(SelectedImagePath) &&
+                e.PropertyName != nameof(SelectedImagePreview))
             {
                 ValidateForm();
             }
@@ -317,6 +434,36 @@ namespace FleetManager.ViewModels
                     return;
                 }
 
+                // Gérer l'image : nouvelle, suppression, ou conservation
+                string? newImagePath = null;
+                var imageService = App.ServiceProvider.GetRequiredService<VehicleImageService>();
+                
+                if (!string.IsNullOrWhiteSpace(SelectedImagePath) && SelectedImagePath != _currentImagePath)
+                {
+                    // Une nouvelle image a été sélectionnée
+                    // Supprimer l'ancienne image si elle existe
+                    if (!string.IsNullOrWhiteSpace(_currentImagePath))
+                    {
+                        imageService.DeleteVehicleImage(_currentImagePath);
+                    }
+                    
+                    // Sauvegarder la nouvelle image
+                    newImagePath = imageService.SaveVehicleImage(SelectedImagePath, VehicleId);
+                    _imageRemoved = false; // Réinitialiser le flag
+                }
+                else if (_imageRemoved && !string.IsNullOrWhiteSpace(_currentImagePath))
+                {
+                    // L'image a été explicitement supprimée par l'utilisateur
+                    // Supprimer l'ancienne image du disque
+                    imageService.DeleteVehicleImage(_currentImagePath);
+                    newImagePath = null; // Pas d'image
+                }
+                else
+                {
+                    // Conserver l'image existante (pas de changement)
+                    newImagePath = _currentImagePath;
+                }
+
                 // Créer l'objet véhicule avec les modifications
                 var updatedVehicle = new Vehicle
                 {
@@ -335,6 +482,7 @@ namespace FleetManager.ViewModels
                     InsuranceExpiryDate = InsuranceExpiryDate,
                     TechnicalInspectionDate = TechnicalInspectionDate,
                     Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim(),
+                    ImagePath = newImagePath ?? _currentImagePath, // Garder l'ancienne si pas de nouvelle
                     CreatedAt = _originalVehicle.CreatedAt
                 };
 

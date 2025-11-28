@@ -140,6 +140,7 @@ namespace FleetManager.Services
                 existing.InsuranceExpiryDate = vehicle.InsuranceExpiryDate;
                 existing.TechnicalInspectionDate = vehicle.TechnicalInspectionDate;
                 existing.Notes = vehicle.Notes;
+                existing.ImagePath = vehicle.ImagePath;
 
                 await _context.SaveChangesAsync();
                 return (true, "Véhicule mis à jour avec succès.");

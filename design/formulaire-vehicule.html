@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Manager - Ajouter un Véhicule</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            width: 800px;
+            max-height: 90vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #F9FAFB;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #6B7280;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #FEE2E2;
+            color: #EF4444;
+        }
+
+        .modal-body {
+            padding: 32px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-section {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-icon {
+            font-size: 24px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 20px 1fr;
+            gap: 20px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .form-label .required {
+            color: #EF4444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #6366F1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-control.error {
+            border-color: #EF4444;
+        }
+
+        .form-control.valid {
+            border-color: #10B981;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: #EF4444;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-success {
+            font-size: 12px;
+            color: #10B981;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .file-upload {
+            border: 2px dashed #E5E7EB;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: #6366F1;
+            background: #F9FAFB;
+        }
+
+        .file-upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .file-upload-text {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 4px;
+        }
+
+        .file-upload-hint {
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+
+        .modal-footer {
+            padding: 24px 32px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #1F2937;
+            border: 1px solid #E5E7EB;
+        }
+
+        .btn-secondary:hover {
+            background: #F9FAFB;
+        }
+
+        .btn-primary {
+            background: #6366F1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4F46E5;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+    </style>
+</head>
+<body style="background: #F9FAFB; padding: 40px;">
+    <div class="modal-overlay">
+        <div class="modal-container">
+            <!-- Header -->
+            <div class="modal-header">
+                <h2 class="modal-title">Ajouter un Véhicule</h2>
+                <button class="modal-close">×</button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Section 1: Informations Générales -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon">📝</span>
+                        <h3 class="section-title">Informations Générales</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Marque <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option>Sélectionner une marque</option>
+                                <option>Renault</option>
+                                <option>Peugeot</option>
+                                <option>Citroën</option>
+                                <option>Volkswagen</option>
+                            </select>
+                        </div>
+                        <div></div>
+                        <div class="form-group">
+                            <label class="form-label">Modèle <span class="required">*</span></label>
+                            <input type="text" class="form-control" placeholder="Ex: Clio V">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Année <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option>Sélectionner une année</option>
+                                <option>2024</option>
+                                <option>2023</option>
+                                <option>2022</option>
+                                <option>2021</option>
+                            </select>
+                        </div>
+                        <div></div>
+                        <div class="form-group">
+                            <label class="form-label">Immatriculation <span class="required">*</span></label>
+                            <input type="text" class="form-control valid" placeholder="AB-123-CD" value="VH-001">
+                            <div class="form-success">✓ Format valide</div>
+                            <div class="form-hint">Format : AB-123-CD</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type de véhicule <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option>Sélectionner un type</option>
+                                <option>Voiture</option>
+                                <option>Utilitaire</option>
+                                <option>Camion</option>
+                                <option>Moto</option>
+                            </select>
+                        </div>
+                        <div></div>
+                        <div class="form-group">
+                            <label class="form-label">Couleur</label>
+                            <input type="text" class="form-control" placeholder="Ex: Blanc">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Caractéristiques Techniques -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon">⚙️</span>
+                        <h3 class="section-title">Caractéristiques Techniques</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Type de carburant <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option>Sélectionner</option>
+                                <option>Essence</option>
+                                <option>Diesel</option>
+                                <option>Électrique</option>
+                                <option>Hybride</option>
+                            </select>
+                        </div>
+                        <div></div>
+                        <div class="form-group">
+                            <label class="form-label">Capacité du réservoir (L)</label>
+                            <input type="number" class="form-control" placeholder="Ex: 50">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Consommation moyenne (L/100km)</label>
+                            <input type="number" class="form-control" placeholder="Ex: 6.5" step="0.1">
+                        </div>
+                        <div></div>
+                        <div class="form-group">
+                            <label class="form-label">Puissance (ch)</label>
+                            <input type="number" class="form-control" placeholder="Ex: 90">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Données Opérationnelles -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon">📊</span>
+                        <h3 class="section-title">Données Opérationnelles</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Date d'acquisition</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div></div>
+                        <div class="form-group">
+                            <label class="form-label">Kilométrage initial</label>
+                            <input type="number" class="form-control" placeholder="Ex: 0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Kilométrage actuel</label>
+                            <input type="number" class="form-control" placeholder="Ex: 0">
+                        </div>
+                        <div></div>
+                        <div class="form-group">
+                            <label class="form-label">Statut actuel <span class="required">*</span></label>
+                            <select class="form-control">
+                                <option>Disponible</option>
+                                <option>En service</option>
+                                <option>Maintenance</option>
+                                <option>Hors service</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Documents et Images -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon">📎</span>
+                        <h3 class="section-title">Documents et Images</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Photo du véhicule</label>
+                            <div class="file-upload">
+                                <div class="file-upload-icon">📷</div>
+                                <div class="file-upload-text">Glisser-déposer une image ou cliquer pour sélectionner</div>
+                                <div class="file-upload-hint">PNG, JPG jusqu'à 5MB</div>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Carte grise (PDF)</label>
+                            <div class="file-upload">
+                                <div class="file-upload-icon">📄</div>
+                                <div class="file-upload-text">Glisser-déposer un PDF ou cliquer pour sélectionner</div>
+                                <div class="file-upload-hint">PDF jusqu'à 10MB</div>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Assurance (PDF)</label>
+                            <div class="file-upload">
+                                <div class="file-upload-icon">📄</div>
+                                <div class="file-upload-text">Glisser-déposer un PDF ou cliquer pour sélectionner</div>
+                                <div class="file-upload-hint">PDF jusqu'à 10MB</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary">Annuler</button>
+                <button class="btn btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulation de validation
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value.length > 0) {
+                    this.classList.remove('error');
+                    this.classList.add('valid');
+                } else {
+                    this.classList.remove('valid');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -11,6 +11,8 @@ namespace FleetManager.Models
         public int VehicleId { get; set; }
         public string VehicleName { get; set; } = string.Empty;
         public string RegistrationNumber { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
+        public string VehicleType { get; set; } = string.Empty;
         public decimal TotalMileage { get; set; }
         public decimal CurrentMileage { get; set; }
 
@@ -26,6 +28,22 @@ namespace FleetManager.Models
         public decimal TotalMaintenanceCost { get; set; }
         public DateTime? LastMaintenanceDate { get; set; }
         public DateTime? NextMaintenanceDate { get; set; }
+        public int? NextMaintenanceMileage { get; set; }
+        public int DaysSinceLastMaintenance => LastMaintenanceDate.HasValue 
+            ? (DateTime.Now - LastMaintenanceDate.Value).Days 
+            : 0;
+        public string MaintenanceStatus 
+        { 
+            get
+            {
+                if (!LastMaintenanceDate.HasValue) return "Jamais";
+                var days = DaysSinceLastMaintenance;
+                if (days > 180) return "Critique";
+                if (days > 90) return "Urgent";
+                if (days > 30) return "À planifier";
+                return "OK";
+            }
+        }
 
         // Coûts totaux
         public decimal TotalCost => TotalFuelCost + TotalMaintenanceCost;
@@ -35,6 +53,9 @@ namespace FleetManager.Models
 
         // Efficacité énergétique (km/L)
         public decimal FuelEfficiency => TotalLiters > 0 ? CurrentMileage / TotalLiters : 0;
+
+        // Propriété pour le classement (utilisée dans les displays)
+        public int Rank { get; set; }
     }
 
     /// <summary>
@@ -134,6 +155,7 @@ namespace FleetManager.Models
     /// </summary>
     public class DashboardAlert
     {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public AlertType Type { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;

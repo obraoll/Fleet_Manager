@@ -3,35 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Définir les Objectifs" Height="450" Width="550"
         WindowStartupLocation="CenterScreen"
-        Background="#F5F5F5">
+        Background="{StaticResource BackgroundBrush}">
 
-    <Window.Resources>
-        <Style TargetType="Border" x:Key="CardStyle">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style TargetType="TextBlock" x:Key="LabelStyle">
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,10,0,5"/>
-            <Setter Property="Foreground" Value="#333"/>
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="BorderBrush" Value="#CCC"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="35"/>
-        </Style>
-    </Window.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -42,22 +15,26 @@
 
         <!-- Titre -->
         <TextBlock Grid.Row="0" Text="🎯 Définir les Objectifs de Performance" 
-                   FontSize="20" FontWeight="Bold" 
-                   Foreground="#1976D2" Margin="0,0,0,20"/>
+                   Style="{StaticResource H1}"
+                   Margin="0,0,0,20"/>
 
         <!-- Formulaire -->
-        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+        <Border Grid.Row="1" Style="{StaticResource ModernCard}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <!-- Consommation cible -->
-                    <TextBlock Text="Consommation cible (L/100km)" Style="{StaticResource LabelStyle}"/>
+                    <TextBlock Text="Consommation cible (L/100km)" Style="{StaticResource FormLabel}"/>
                     <TextBox Text="{Binding TargetConsumption, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Objectif de consommation moyenne de la flotte"/>
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="Objectif de consommation moyenne de la flotte"
+                             Margin="0,0,0,12"/>
 
                     <!-- Coût carburant maximum -->
-                    <TextBlock Text="Coût carburant mensuel maximum (€)" Style="{StaticResource LabelStyle}"/>
+                    <TextBlock Text="Coût carburant mensuel maximum (€)" Style="{StaticResource FormLabel}"/>
                     <TextBox Text="{Binding TargetFuelCost, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Budget mensuel maximum pour le carburant"/>
+                             Style="{StaticResource ModernTextBox}"
+                             ToolTip="Budget mensuel maximum pour le carburant"
+                             Margin="0,0,0,12"/>
 
                     <!-- Coût maintenance maximum -->
                     <TextBlock Text="Coût maintenance mensuel maximum (€)" Style="{StaticResource LabelStyle}"/>

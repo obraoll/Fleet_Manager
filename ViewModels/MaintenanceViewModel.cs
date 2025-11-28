@@ -244,6 +244,7 @@ namespace FleetManager.ViewModels
                 viewModels.Add(new MaintenanceRecordViewModel
                 {
                     MaintenanceRecord = maintenance,
+                    Vehicle = vehicle,
                     VehicleRegistration = vehicle?.RegistrationNumber ?? "N/A",
                     VehicleName = vehicle != null ? $"{vehicle.Brand} {vehicle.Model}" : "N/A"
                 });
@@ -458,6 +459,7 @@ namespace FleetManager.ViewModels
     public class MaintenanceRecordViewModel
     {
         public MaintenanceRecord MaintenanceRecord { get; set; } = new();
+        public Vehicle? Vehicle { get; set; }
         public string VehicleRegistration { get; set; } = string.Empty;
         public string VehicleName { get; set; } = string.Empty;
     }

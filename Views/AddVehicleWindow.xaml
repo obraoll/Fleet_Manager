@@ -4,12 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:FleetManager.Models"
+        xmlns:helpers="clr-namespace:FleetManager.Helpers"
         mc:Ignorable="d"
         Title="Ajouter un véhicule"
         Height="700" Width="500"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="{StaticResource BackgroundBrush}">
+
+    <Window.Resources>
+        <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+    </Window.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -21,22 +26,19 @@
         <!-- Titre -->
         <TextBlock Grid.Row="0"
                    Text="🚗 Ajouter un nouveau véhicule"
-                   FontSize="20"
-                   FontWeight="Bold"
-                   Foreground="#2C3E50"
+                   Style="{StaticResource H2}"
                    HorizontalAlignment="Center"
                    Margin="0,0,0,20"/>
 
         <!-- Formulaire -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Border Background="White" CornerRadius="5" BorderBrush="#E0E0E0" BorderThickness="1">
+            <Border Style="{StaticResource ModernCard}">
                 <StackPanel>
 
                     <!-- Section Informations générales -->
                     <TextBlock Text="Informations générales"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Foreground="#3498DB"/>
+                               Style="{StaticResource H3}"
+                               Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -53,32 +55,37 @@
                         </Grid.RowDefinitions>
 
                         <!-- Immatriculation -->
-                        <Label Grid.Row="0" Grid.Column="0" Content="Immatriculation *" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Immatriculation *" Style="{StaticResource FormLabel}"/>
                         <TextBox Grid.Row="0" Grid.Column="2"
                                  Text="{Binding RegistrationNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
                                  ToolTip="Ex: AB-123-CD"/>
 
                         <!-- Marque et Modèle -->
-                        <Label Grid.Row="1" Grid.Column="0" Content="Marque *" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Marque *" Style="{StaticResource FormLabel}"/>
                         <TextBox Grid.Row="1" Grid.Column="2"
                                  Text="{Binding Brand, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
                                  ToolTip="Ex: Renault, Peugeot, Ford..."/>
 
-                        <Label Grid.Row="2" Grid.Column="0" Content="Modèle *" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Modèle *" Style="{StaticResource FormLabel}"/>
                         <TextBox Grid.Row="2" Grid.Column="2"
                                  Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
                                  ToolTip="Ex: Clio, 308, Focus..."/>
 
                         <!-- Année -->
-                        <Label Grid.Row="3" Grid.Column="0" Content="Année *" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Année *" Style="{StaticResource FormLabel}"/>
                         <TextBox Grid.Row="3" Grid.Column="2"
                                  Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
                                  ToolTip="Ex: 2023"/>
 
                         <!-- VIN -->
-                        <Label Grid.Row="4" Grid.Column="0" Content="N° VIN" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="N° VIN" Style="{StaticResource FormLabel}"/>
                         <TextBox Grid.Row="4" Grid.Column="2"
                                  Text="{Binding VIN, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
                                  ToolTip="Numéro d'identification du véhicule (17 caractères)"/>
                     </Grid>
 
@@ -87,9 +94,8 @@
 
                     <!-- Section Caractéristiques techniques -->
                     <TextBlock Text="Caractéristiques techniques"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Foreground="#3498DB"/>
+                               Style="{StaticResource H3}"
+                               Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -154,9 +160,8 @@
 
                     <!-- Section Acquisition -->
                     <TextBlock Text="Informations d'acquisition"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Foreground="#3498DB"/>
+                               Style="{StaticResource H3}"
+                               Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -198,11 +203,82 @@
                     <!-- Separator -->
                     <Separator Margin="0,20"/>
 
+                    <!-- Section Image -->
+                    <TextBlock Text="Photo du véhicule"
+                               Style="{StaticResource H3}"
+                               Foreground="{StaticResource PrimaryBrush}"/>
+
+                    <Grid Margin="0,10,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Aperçu de l'image -->
+                        <Border Grid.Row="0"
+                                Width="300"
+                                Height="200"
+                                Background="#F1F5F9"
+                                BorderBrush="#E2E8F0"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                HorizontalAlignment="Left"
+                                Margin="0,0,0,12">
+                            <Grid>
+                                <Image Source="{Binding SelectedImagePreview}"
+                                       Stretch="UniformToFill"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center">
+                                    <Image.Clip>
+                                        <RectangleGeometry Rect="0,0,300,200" RadiusX="8" RadiusY="8"/>
+                                    </Image.Clip>
+                                </Image>
+                                <TextBlock Text="Aucune image sélectionnée"
+                                          FontSize="12"
+                                          Foreground="#94A3B8"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center">
+                                    <TextBlock.Visibility>
+                                        <Binding Path="SelectedImagePreview">
+                                            <Binding.Converter>
+                                                <helpers:NullToVisibilityConverter/>
+                                            </Binding.Converter>
+                                            <Binding.ConverterParameter>Inverse</Binding.ConverterParameter>
+                                        </Binding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+
+                        <!-- Boutons pour gérer l'image -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Content="📷 Sélectionner une image"
+                                    Command="{Binding SelectImageCommand}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="180"
+                                    Margin="0,0,8,0"/>
+                            <Button Content="🗑️ Supprimer"
+                                    Command="{Binding RemoveImageCommand}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="120">
+                                <Button.Visibility>
+                                    <Binding Path="SelectedImagePreview">
+                                        <Binding.Converter>
+                                            <helpers:NullToVisibilityConverter/>
+                                        </Binding.Converter>
+                                    </Binding>
+                                </Button.Visibility>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Separator -->
+                    <Separator Margin="0,20"/>
+
                     <!-- Section Notes -->
                     <TextBlock Text="Notes additionnelles"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Foreground="#3498DB"/>
+                               Style="{StaticResource H3}"
+                               Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Label Content="Description / Remarques" FontWeight="SemiBold"/>
                     <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
@@ -226,17 +302,15 @@
             <Button Content="Annuler"
                     Command="{Binding CancelCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                    Background="#95A5A6"
-                    Foreground="White"
-                    Width="100"
-                    Margin="0,0,10,0"/>
+                    Style="{StaticResource SecondaryButton}"
+                    Width="120"
+                    Margin="0,0,12,0"/>
 
             <Button Content="Ajouter le véhicule"
                     Command="{Binding SaveCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                    Background="#3498DB"
-                    Foreground="White"
-                    Width="150"
+                    Style="{StaticResource PrimaryButton}"
+                    Width="160"
                     IsEnabled="{Binding CanSave}"/>
         </StackPanel>
     </Grid>

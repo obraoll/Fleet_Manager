@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -16,6 +17,7 @@ namespace FleetManager.ViewModels
         private readonly VehicleService _vehicleService;
         private readonly IServiceProvider _serviceProvider;
         private ObservableCollection<Vehicle> _vehicles = new();
+        private ObservableCollection<Vehicle> _allVehicles = new(); // Tous les véhicules (non filtrés)
         private Vehicle? _selectedVehicle;
         private string _searchText = string.Empty;
 
@@ -26,9 +28,10 @@ namespace FleetManager.ViewModels
             _serviceProvider = serviceProvider;
             LoadVehiclesCommand = new AsyncRelayCommand(LoadVehiclesAsync);
             AddVehicleCommand = new AsyncRelayCommand(AddVehicleAsync);
-            EditVehicleCommand = new RelayCommand(EditVehicle, _ => SelectedVehicle != null);
-            DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync, _ => SelectedVehicle != null);
+            EditVehicleCommand = new RelayCommand(EditVehicle);
+            DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync);
             SearchCommand = new AsyncRelayCommand(SearchVehiclesAsync);
+            ResetFiltersCommand = new RelayCommand(ResetFilters);
 
             System.Diagnostics.Debug.WriteLine("Commandes initialisées - AddVehicleCommand: " + (AddVehicleCommand != null));
 
@@ -51,8 +54,16 @@ namespace FleetManager.ViewModels
         public string SearchText
         {
             get => _searchText;
-            set => SetProperty(ref _searchText, value);
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    _ = ApplyFiltersAsync();
+                }
+            }
         }
+
+        public ICommand ResetFiltersCommand { get; }
 
         public ICommand LoadVehiclesCommand { get; }
         public AsyncRelayCommand AddVehicleCommand { get; }
@@ -69,6 +80,11 @@ namespace FleetManager.ViewModels
 
                 // Créer le ViewModel pour l'ajout
                 System.Diagnostics.Debug.WriteLine("Récupération AddVehicleViewModel...");
+                if (_serviceProvider == null)
+                {
+                    MessageBox.Show("Service provider non disponible.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
                 var addVehicleViewModel = _serviceProvider.GetRequiredService<AddVehicleViewModel>();
                 System.Diagnostics.Debug.WriteLine("AddVehicleViewModel récupéré avec succès");
 
@@ -103,7 +119,8 @@ namespace FleetManager.ViewModels
             try
             {
                 var vehicles = await _vehicleService.GetAllVehiclesAsync();
-                Vehicles = new ObservableCollection<Vehicle>(vehicles);
+                _allVehicles = new ObservableCollection<Vehicle>(vehicles);
+                await ApplyFiltersAsync();
             }
             catch (Exception ex)
             {
@@ -111,16 +128,52 @@ namespace FleetManager.ViewModels
             }
         }
 
+        private Task ApplyFiltersAsync()
+        {
+            try
+            {
+                var filtered = _allVehicles.AsEnumerable();
+
+                // Filtre par recherche textuelle
+                if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    var searchLower = SearchText.ToLower();
+                    filtered = filtered.Where(v =>
+                        (v.RegistrationNumber?.ToLower().Contains(searchLower) ?? false) ||
+                        (v.Brand?.ToLower().Contains(searchLower) ?? false) ||
+                        (v.Model?.ToLower().Contains(searchLower) ?? false) ||
+                        (v.VehicleType?.ToLower().Contains(searchLower) ?? false) ||
+                        (v.FuelType?.ToLower().Contains(searchLower) ?? false));
+                }
+
+                Vehicles = new ObservableCollection<Vehicle>(filtered.ToList());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur lors du filtrage: {ex.Message}");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void ResetFilters(object? parameter)
+        {
+            SearchText = string.Empty;
+        }
+
         private void EditVehicle(object? parameter)
         {
-            if (SelectedVehicle == null) return;
+            // Récupérer le véhicule depuis le paramètre ou depuis SelectedVehicle
+            var vehicleToEdit = parameter as Vehicle ?? SelectedVehicle;
+            
+            if (vehicleToEdit == null) return;
 
             try
             {
-                System.Diagnostics.Debug.WriteLine($"=== MODIFICATION VÉHICULE {SelectedVehicle.RegistrationNumber} ===");
+                System.Diagnostics.Debug.WriteLine($"=== MODIFICATION VÉHICULE {vehicleToEdit.RegistrationNumber} ===");
 
                 // Créer le ViewModel pour la modification
-                var editVehicleViewModel = new EditVehicleViewModel(_vehicleService, SelectedVehicle);
+                var editVehicleViewModel = new EditVehicleViewModel(_vehicleService, vehicleToEdit);
 
                 // Créer et afficher la fenêtre
                 var editVehicleWindow = new EditVehicleWindow(editVehicleViewModel);
@@ -148,17 +201,20 @@ namespace FleetManager.ViewModels
 
         private async Task DeleteVehicleAsync(object? parameter)
         {
-            if (SelectedVehicle == null) return;
+            // Récupérer le véhicule depuis le paramètre ou depuis SelectedVehicle
+            var vehicleToDelete = parameter as Vehicle ?? SelectedVehicle;
+            
+            if (vehicleToDelete == null) return;
 
             var result = MessageBox.Show(
-                $"Voulez-vous vraiment supprimer le véhicule {SelectedVehicle.RegistrationNumber} ?\nCette action est irréversible.",
+                $"Voulez-vous vraiment supprimer le véhicule {vehicleToDelete.RegistrationNumber} ?\nCette action est irréversible.",
                 "Confirmation",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
             if (result == MessageBoxResult.Yes)
             {
-                var (success, message) = await _vehicleService.DeleteVehicleAsync(SelectedVehicle.VehicleId);
+                var (success, message) = await _vehicleService.DeleteVehicleAsync(vehicleToDelete.VehicleId);
                 if (success)
                 {
                     await LoadVehiclesAsync(null);

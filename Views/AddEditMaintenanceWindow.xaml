@@ -3,35 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Entretien" Height="700" Width="600"
         WindowStartupLocation="CenterScreen"
-        Background="#F5F5F5">
+        Background="{StaticResource BackgroundBrush}">
 
-    <Window.Resources>
-        <Style TargetType="TextBlock" x:Key="LabelStyle">
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,10,0,5"/>
-            <Setter Property="Foreground" Value="#333"/>
-        </Style>
 
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="BorderBrush" Value="#CCC"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="35"/>
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Height" Value="35"/>
-        </Style>
-
-        <Style TargetType="DatePicker">
-            <Setter Property="Height" Value="35"/>
-        </Style>
-    </Window.Resources>
-
-    <Border Background="White" CornerRadius="10" Margin="20" Padding="30">
+    <Border Style="{StaticResource ModernCard}" Margin="20">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -42,8 +17,7 @@
             <!-- Titre -->
             <TextBlock Grid.Row="0" 
                        Text="{Binding WindowTitle}" 
-                       FontSize="22" FontWeight="Bold" 
-                       Foreground="#1976D2" 
+                       Style="{StaticResource H1}"
                        Margin="0,0,0,20"/>
 
             <!-- Formulaire -->

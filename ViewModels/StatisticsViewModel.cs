@@ -92,11 +92,24 @@ namespace FleetManager.ViewModels
             _exportService = exportService;
             _emailService = emailService;
 
+            // Initialiser toutes les collections pour éviter les NullReferenceException
+            _vehicles = new ObservableCollection<Vehicle>();
+            _vehicleStatistics = new ObservableCollection<VehicleStatistics>();
+            _monthlyStatistics = new ObservableCollection<MonthlyStatistics>();
+            _typeStatistics = new ObservableCollection<VehicleTypeStatistics>();
+            _fuelStatistics = new ObservableCollection<FuelTypeStatistics>();
+            _predictions = new ObservableCollection<PredictionData>();
+            _performanceComparisons = new ObservableCollection<PerformanceComparison>();
+            
+            // Initialiser les tableaux vides pour les graphiques
+            MonthlyLabels = Array.Empty<string>();
+            MonthlyCostSeries = Array.Empty<ISeries>();
+            MonthlyConsumptionSeries = Array.Empty<ISeries>();
+
             InitializeCommands();
             InitializePeriods();
 
-            // Charger les données au démarrage
-            _ = LoadDataAsync();
+            // Les données seront chargées via Loaded event ou commande manuelle
         }
 
         #region Propriétés - Collections
@@ -204,6 +217,7 @@ namespace FleetManager.ViewModels
                 if (SetProperty(ref _selectedVehicle, value))
                 {
                     _ = LoadVehicleStatisticsAsync();
+                    _ = ApplyFiltersAsync();
                 }
             }
         }
@@ -330,6 +344,33 @@ namespace FleetManager.ViewModels
         // Propriétés calculées
         public decimal TotalCost => TotalFuelCost + TotalMaintenanceCost;
         public decimal CostPerKilometer => TotalMileage > 0 ? TotalCost / TotalMileage : 0;
+
+        // Propriétés pour l'affichage
+        public int TotalVehicles => Vehicles?.Count ?? 0;
+        public decimal TotalFuelQuantity => VehicleStatistics?.Sum(v => v.TotalLiters) ?? 0;
+        public ObservableCollection<VehicleStatistics> TopVehicles
+        {
+            get
+            {
+                try
+                {
+                    if (VehicleStatistics == null || VehicleStatistics.Count == 0)
+                        return new ObservableCollection<VehicleStatistics>();
+                    
+                    var top = VehicleStatistics
+                        .Where(v => v != null && v.TotalCost > 0)
+                        .OrderByDescending(v => v.TotalCost)
+                        .Take(5)
+                        .ToList();
+                    
+                    return new ObservableCollection<VehicleStatistics>(top);
+                }
+                catch
+                {
+                    return new ObservableCollection<VehicleStatistics>();
+                }
+            }
+        }
         public decimal FuelToMaintenanceRatio => TotalMaintenanceCost > 0 ? TotalFuelCost / TotalMaintenanceCost : 0;
         public decimal AverageCostPerRefuel => TotalRefuels > 0 ? TotalFuelCost / TotalRefuels : 0;
         public decimal AverageCostPerMaintenance => TotalMaintenances > 0 ? TotalMaintenanceCost / TotalMaintenances : 0;
@@ -417,7 +458,10 @@ namespace FleetManager.ViewModels
                 // Charger les véhicules
                 LoadingMessage = "Chargement des véhicules...";
                 var vehicles = await _vehicleService.GetAllVehiclesAsync();
-                Vehicles = new ObservableCollection<Vehicle>(vehicles);
+                if (vehicles != null)
+                {
+                    Vehicles = new ObservableCollection<Vehicle>(vehicles);
+                }
 
                 // Charger les statistiques globales
                 LoadingMessage = "Calcul des statistiques...";
@@ -430,27 +474,36 @@ namespace FleetManager.ViewModels
                 // Charger les tendances mensuelles
                 LoadingMessage = "Calcul des tendances...";
                 var monthlyStats = await _statisticsService.GetMonthlyTrendsAsync(12);
-                MonthlyStatistics = new ObservableCollection<MonthlyStatistics>(monthlyStats);
+                if (monthlyStats != null)
+                {
+                    MonthlyStatistics = new ObservableCollection<MonthlyStatistics>(monthlyStats);
+                }
+                else
+                {
+                    MonthlyStatistics = new ObservableCollection<MonthlyStatistics>();
+                }
                 
                 // Préparer les séries et labels pour les graphiques LiveCharts
                 try
                 {
-                    MonthlyLabels = MonthlyStatistics.Select(m => m.MonthName).ToArray();
-
-                    var fuelValues = MonthlyStatistics.Select(m => (double)m.FuelCost).ToArray();
-                    var maintenanceValues = MonthlyStatistics.Select(m => (double)m.MaintenanceCost).ToArray();
-
-                    MonthlyCostSeries = new ISeries[]
+                    if (MonthlyStatistics?.Count > 0)
                     {
-                        new ColumnSeries<double>
+                        MonthlyLabels = MonthlyStatistics.Select(m => m.MonthName).ToArray();
+
+                        var fuelValues = MonthlyStatistics.Select(m => (double)m.FuelCost).ToArray();
+                        var maintenanceValues = MonthlyStatistics.Select(m => (double)m.MaintenanceCost).ToArray();
+
+                        MonthlyCostSeries = new ISeries[]
                         {
-                            Values = fuelValues,
-                            Name = "Carburant",
-                            Fill = new SolidColorPaint(SKColors.MediumSeaGreen),
-                            Stroke = new SolidColorPaint(SKColors.SeaGreen, 1),
-                            YToolTipLabelFormatter = point => $"{MonthlyLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
-                        },
-                        new ColumnSeries<double>
+                            new ColumnSeries<double>
+                            {
+                                Values = fuelValues,
+                                Name = "Carburant",
+                                Fill = new SolidColorPaint(SKColors.MediumSeaGreen),
+                                Stroke = new SolidColorPaint(SKColors.SeaGreen, 1),
+                                YToolTipLabelFormatter = point => $"{MonthlyLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:C0}"
+                            },
+                            new ColumnSeries<double>
                         {
                             Values = maintenanceValues,
                             Name = "Maintenance",
@@ -472,9 +525,18 @@ namespace FleetManager.ViewModels
                             YToolTipLabelFormatter = point => $"{MonthlyLabels.ElementAtOrDefault(point.Index) ?? "N/A"}: {point.Coordinate.PrimaryValue:F2} L/100km"
                         }
                     };
+                    }
+                    else
+                    {
+                        // Pas de données mensuelles
+                        MonthlyLabels = Array.Empty<string>();
+                        MonthlyCostSeries = Array.Empty<ISeries>();
+                        MonthlyConsumptionSeries = Array.Empty<ISeries>();
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"Erreur lors de la création des graphiques: {ex.Message}");
                     // Si quelque chose échoue ici, on laisse les charts vides mais l'application continue
                     MonthlyLabels = Array.Empty<string>();
                     MonthlyCostSeries = Array.Empty<ISeries>();
@@ -484,10 +546,16 @@ namespace FleetManager.ViewModels
                 // Charger les statistiques par type
                 LoadingMessage = "Analyse par catégorie...";
                 var typeStats = await _statisticsService.GetVehicleTypeStatisticsAsync();
-                TypeStatistics = new ObservableCollection<VehicleTypeStatistics>(typeStats);
+                if (typeStats != null)
+                {
+                    TypeStatistics = new ObservableCollection<VehicleTypeStatistics>(typeStats);
+                }
 
                 var fuelStats = await _statisticsService.GetFuelTypeStatisticsAsync();
-                FuelStatistics = new ObservableCollection<FuelTypeStatistics>(fuelStats);
+                if (fuelStats != null)
+                {
+                    FuelStatistics = new ObservableCollection<FuelTypeStatistics>(fuelStats);
+                }
 
                 // Charger les analyses de performance
                 LoadingMessage = "Analyse de performance...";
@@ -500,7 +568,10 @@ namespace FleetManager.ViewModels
                 // Charger les prédictions
                 LoadingMessage = "Calcul des prédictions...";
                 var predictions = await _statisticsService.GetPredictionsAsync();
-                Predictions = new ObservableCollection<PredictionData>(predictions);
+                if (predictions != null)
+                {
+                    Predictions = new ObservableCollection<PredictionData>(predictions);
+                }
 
                 // Notifier les propriétés calculées
                 NotifyCalculatedProperties();
@@ -509,7 +580,14 @@ namespace FleetManager.ViewModels
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Erreur LoadDataAsync: {ex}");
                 LoadingMessage = $"Erreur: {ex.Message}";
+                
+                // Initialiser avec des valeurs vides pour éviter les erreurs de binding
+                Vehicles ??= new ObservableCollection<Vehicle>();
+                VehicleStatistics ??= new ObservableCollection<VehicleStatistics>();
+                MonthlyStatistics ??= new ObservableCollection<MonthlyStatistics>();
+                
                 MessageBox.Show($"Erreur lors du chargement des statistiques:\n\n{ex.Message}",
                     "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -675,6 +753,12 @@ namespace FleetManager.ViewModels
             try
             {
                 var filteredVehicles = Vehicles.AsEnumerable();
+
+                // Filtre par véhicule spécifique
+                if (SelectedVehicle != null)
+                {
+                    filteredVehicles = filteredVehicles.Where(v => v.VehicleId == SelectedVehicle.VehicleId);
+                }
 
                 // Filtre par type de véhicule
                 if (SelectedVehicleType != null)
@@ -846,6 +930,7 @@ namespace FleetManager.ViewModels
 
         private async Task ResetFiltersAsync(object? parameter)
         {
+            SelectedVehicle = null;
             SelectedVehicleType = null;
             SelectedFuelType = null;
             SearchText = string.Empty;
@@ -973,6 +1058,9 @@ namespace FleetManager.ViewModels
             OnPropertyChanged(nameof(FuelToMaintenanceRatio));
             OnPropertyChanged(nameof(AverageCostPerRefuel));
             OnPropertyChanged(nameof(AverageCostPerMaintenance));
+            OnPropertyChanged(nameof(TotalVehicles));
+            OnPropertyChanged(nameof(TotalFuelQuantity));
+            OnPropertyChanged(nameof(TopVehicles));
         }
 
         #region Nouvelles méthodes pour les 5 commandes

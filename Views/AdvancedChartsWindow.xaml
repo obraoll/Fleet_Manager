@@ -11,379 +11,484 @@
         WindowState="Maximized">
 
     <Window.Resources>
-        <!-- Styles personnalisés -->
-        <Style x:Key="ChartContainerStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="15"/>
-            <Setter Property="Margin" Value="10"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <Style x:Key="CardBorder" TargetType="Border">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="ControlButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButton}"/>
+            <!-- Styles personnalisés -->
+            <Style x:Key="ChartContainerStyle" TargetType="Border">
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Padding" Value="15"/>
+                <Setter Property="Margin" Value="10"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-        <Style x:Key="ChartTitleStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#333333"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-        </Style>
+            <Style x:Key="ChartTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="#333333"/>
+                <Setter Property="Margin" Value="0,0,0,15"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+            </Style>
 
-        <Style x:Key="LegendItemStyle" TargetType="StackPanel">
-            <Setter Property="Orientation" Value="Horizontal"/>
-            <Setter Property="Margin" Value="5,2"/>
-        </Style>
-
-        <Style x:Key="ControlButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#2196F3"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="Margin" Value="5"/>
-            
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
+            <Style x:Key="LegendItemStyle" TargetType="StackPanel">
+                <Setter Property="Orientation" Value="Horizontal"/>
+                <Setter Property="Margin" Value="5,2"/>
+            </Style>
+        </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Background="#F8F9FA">
+    <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- En-tête -->
-        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="20,15">
+        <!-- En-tête moderne avec gradient -->
+        <Border Grid.Row="0" Padding="25,20" CornerRadius="0,0,12,12" Margin="0,0,0,15">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#2196F3" Offset="0"/>
+                    <GradientStop Color="#1976D2" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <TextBlock Text="📊 Graphiques Avancés" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <TextBlock Text="Analyse visuelle des performances de la flotte" FontSize="12" Foreground="#666666"
-                               VerticalAlignment="Bottom" Margin="20,0,0,2"/>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="📊 Graphiques Avancés" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Analyse détaillée des performances de votre flotte" FontSize="13" Foreground="#E3F2FD" Margin="0,5,0,0" Opacity="0.9"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="🔄 Actualiser" Click="Refresh_Click"
-                            Style="{StaticResource ControlButtonStyle}"/>
-                        <Button Content="📊 Export PDF" Click="ExportPdf_Click"
-                            Background="#4CAF50" Foreground="White" BorderThickness="0"
-                            Padding="12,6" Margin="5" Cursor="Hand" FontWeight="SemiBold"/>
-                        <Button Content="📸 Export Image" Click="ExportImage_Click"
-                            Background="#FF9800" Foreground="White" BorderThickness="0"
-                            Padding="12,6" Margin="5" Cursor="Hand" FontWeight="SemiBold"/>
-                        <Button Content="❌ Fermer" Click="CloseButton_Click"
-                            Background="#F44336" Foreground="White" BorderThickness="0"
-                            Padding="12,6" Margin="5" Cursor="Hand" FontWeight="SemiBold"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Click="Refresh_Click" Background="#1565C0" Foreground="White" 
+                            BorderThickness="0" Padding="15,10" Margin="0,0,8,0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔄" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Actualiser" FontWeight="SemiBold" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Click="ExportPdf_Click" Background="#4CAF50" Foreground="White"
+                            BorderThickness="0" Padding="15,10" Margin="0,0,8,0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📄" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Export PDF" FontWeight="SemiBold" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Click="CloseButton_Click" Background="#E53935" Foreground="White" BorderThickness="0" Padding="15,10" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="✕" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="Fermer" FontWeight="SemiBold" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Contrôles de filtre - simplifiés -->
-        <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="20,10">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="📊 Visualisation complète des données de la flotte" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding TotalVehicles, StringFormat='Total: {0} véhicules'}" FontSize="12" FontWeight="SemiBold"
-                           Foreground="#2196F3" Margin="30,0,0,0" VerticalAlignment="Center"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Contenu des graphiques -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="10">
+        <!-- Contenu des graphiques avec design moderne -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,0,20,20">
             <StackPanel>
 
-                <!-- Première ligne de graphiques -->
-                <Grid Margin="0,10,0,0">
+                <!-- Grille de graphiques 2x2 -->
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="15"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- Graphique d'évolution des coûts -->
-                    <Border Grid.Column="0" Style="{StaticResource ChartContainerStyle}">
+                    <!-- Graphique 1: Évolution des coûts -->
+                    <Border Grid.Column="0" Grid.Row="0" Background="White" CornerRadius="12" Padding="20">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.15" Color="#2196F3"/>
+                        </Border.Effect>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource ChartTitleStyle}" Text="📈 Évolution des Coûts Mensuels"/>
-
-                            <Grid Height="300">
-                                <Canvas Background="#FAFAFA" Margin="40,20,20,40">
-                                    <!-- Axes -->
-                                    <Line X1="0" Y1="260" X2="400" Y2="260" Stroke="#CCCCCC" StrokeThickness="2"/>
-                                    <Line X1="0" Y1="0" X2="0" Y2="260" Stroke="#CCCCCC" StrokeThickness="2"/>
-
-                                    <!-- Données de coûts (simulation) -->
-                                    <ItemsControl x:Name="CostChartData" Canvas.Left="20" Canvas.Top="20">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <Canvas/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel>
-                                                    <!-- Barre carburant -->
-                                                    <Rectangle Fill="#2196F3" Width="25" Height="80" Canvas.Left="{Binding XPosition}" Canvas.Top="160"/>
-                                                    <!-- Barre maintenance -->
-                                                    <Rectangle Fill="#FF9800" Width="25" Height="40" Canvas.Left="{Binding XPosition}" Canvas.Top="120"/>
-                                                    <!-- Étiquette -->
-                                                    <TextBlock Text="{Binding Label}" FontSize="8" Canvas.Left="{Binding XPosition}" Canvas.Top="270"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-
-                                    <!-- Étiquettes des axes -->
-                                    <TextBlock Text="€" Canvas.Left="-15" Canvas.Top="0" FontSize="10" Foreground="#666666"/>
-                                    <TextBlock Text="0" Canvas.Left="-15" Canvas.Top="260" FontSize="10" Foreground="#666666"/>
-                                    <TextBlock Text="Mois" Canvas.Left="380" Canvas.Top="270" FontSize="10" Foreground="#666666"/>
-                                </Canvas>
-
-                                <!-- Légende -->
-                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,20,0">
-                                    <StackPanel Style="{StaticResource LegendItemStyle}">
-                                        <Rectangle Fill="#2196F3" Width="15" Height="10"/>
-                                        <TextBlock Text="Carburant" FontSize="10" Margin="5,0"/>
-                                    </StackPanel>
-                                    <StackPanel Style="{StaticResource LegendItemStyle}">
-                                        <Rectangle Fill="#FF9800" Width="15" Height="10"/>
-                                        <TextBlock Text="Maintenance" FontSize="10" Margin="5,0"/>
-                                    </StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#E3F2FD" CornerRadius="8" Padding="8,4">
+                                        <TextBlock Text="📈" FontSize="16"/>
+                                    </Border>
+                                    <TextBlock Text="Évolution des Coûts" FontSize="18" FontWeight="Bold" 
+                                             Foreground="#1976D2" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                 </StackPanel>
                             </Grid>
-                        </StackPanel>
-                    </Border>
 
-                    <!-- Graphique de consommation par véhicule -->
-                    <Border Grid.Column="1" Style="{StaticResource ChartContainerStyle}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource ChartTitleStyle}" Text="⛽ Consommation par Véhicule"/>
-
-                            <Grid Height="300">
-                                <Canvas Background="#FAFAFA" Margin="40,20,20,40">
-                                    <!-- Graphique en barres horizontales -->
-                                    <ItemsControl x:Name="ConsumptionChartData" Canvas.Left="0" Canvas.Top="20">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <StackPanel/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Height="25" Margin="0,2">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="100"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="50"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <TextBlock Grid.Column="0" Text="{Binding VehicleId}" FontSize="9" VerticalAlignment="Center"/>
-                                                    <Rectangle Grid.Column="1" Fill="#4CAF50" Height="20" HorizontalAlignment="Left" Width="{Binding ConsumptionWidth}"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Consumption}" FontSize="9" VerticalAlignment="Center"/>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </Canvas>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <!-- Deuxième ligne de graphiques -->
-                <Grid Margin="0,10,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Graphique de tendance de performance -->
-                    <Border Grid.Column="0" Style="{StaticResource ChartContainerStyle}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource ChartTitleStyle}" Text="📊 Tendances de Performance (90 jours)"/>
-
-                            <Grid Height="350">
-                                <Canvas Background="#FAFAFA" Margin="50,20,30,50">
+                            <Grid Height="280">
+                                <Canvas Background="#FAFBFC" Margin="0" ClipToBounds="True">
                                     <!-- Grille de fond -->
-                                    <ItemsControl x:Name="GridLines">
-                                        <Line X1="0" Y1="70" X2="500" Y2="70" Stroke="#E0E0E0" StrokeThickness="1" StrokeDashArray="2,2"/>
-                                        <Line X1="0" Y1="140" X2="500" Y2="140" Stroke="#E0E0E0" StrokeThickness="1" StrokeDashArray="2,2"/>
-                                        <Line X1="0" Y1="210" X2="500" Y2="210" Stroke="#E0E0E0" StrokeThickness="1" StrokeDashArray="2,2"/>
-                                        <Line X1="125" Y1="0" X2="125" Y2="280" Stroke="#E0E0E0" StrokeThickness="1" StrokeDashArray="2,2"/>
-                                        <Line X1="250" Y1="0" X2="250" Y2="280" Stroke="#E0E0E0" StrokeThickness="1" StrokeDashArray="2,2"/>
-                                        <Line X1="375" Y1="0" X2="375" Y2="280" Stroke="#E0E0E0" StrokeThickness="1" StrokeDashArray="2,2"/>
-                                    </ItemsControl>
+                                    <Line X1="0" Y1="70" X2="450" Y2="70" Stroke="#E8EEF2" StrokeThickness="1"/>
+                                    <Line X1="0" Y1="140" X2="450" Y2="140" Stroke="#E8EEF2" StrokeThickness="1"/>
+                                    <Line X1="0" Y1="210" X2="450" Y2="210" Stroke="#E8EEF2" StrokeThickness="1"/>
+                                    <Line X1="0" Y1="260" X2="450" Y2="260" Stroke="#2196F3" StrokeThickness="2"/>
 
-                                    <!-- Ligne de tendance consommation -->
-                                    <Polyline x:Name="ConsumptionTrendLine" Stroke="#2196F3" StrokeThickness="3" Fill="None"/>
+                                    <!-- Barres de données stylisées -->
+                                    <Rectangle Fill="#64B5F6" Width="40" Height="120" Canvas.Left="50" Canvas.Top="140" RadiusX="4" RadiusY="4"/>
+                                    <Rectangle Fill="#42A5F5" Width="40" Height="160" Canvas.Left="110" Canvas.Top="100" RadiusX="4" RadiusY="4"/>
+                                    <Rectangle Fill="#2196F3" Width="40" Height="100" Canvas.Left="170" Canvas.Top="160" RadiusX="4" RadiusY="4"/>
+                                    <Rectangle Fill="#1E88E5" Width="40" Height="180" Canvas.Left="230" Canvas.Top="80" RadiusX="4" RadiusY="4"/>
+                                    <Rectangle Fill="#1976D2" Width="40" Height="140" Canvas.Left="290" Canvas.Top="120" RadiusX="4" RadiusY="4"/>
+                                    <Rectangle Fill="#1565C0" Width="40" Height="110" Canvas.Left="350" Canvas.Top="150" RadiusX="4" RadiusY="4"/>
 
-                                    <!-- Ligne de tendance coûts -->
-                                    <Polyline x:Name="CostTrendLine" Stroke="#FF9800" StrokeThickness="3" Fill="None"/>
-
-                                    <!-- Points de données -->
-                                    <ItemsControl x:Name="DataPoints">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Ellipse Fill="#2196F3" Width="8" Height="8" Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}"/>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-
-                                    <!-- Axes -->
-                                    <Line X1="0" Y1="280" X2="500" Y2="280" Stroke="#333333" StrokeThickness="2"/>
-                                    <Line X1="0" Y1="0" X2="0" Y2="280" Stroke="#333333" StrokeThickness="2"/>
-
-                                    <!-- Étiquettes -->
-                                    <TextBlock Text="Janv" Canvas.Left="100" Canvas.Top="290" FontSize="9" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Mars" Canvas.Left="225" Canvas.Top="290" FontSize="9" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Mai" Canvas.Left="350" Canvas.Top="290" FontSize="9" HorizontalAlignment="Center"/>
-
-                                    <TextBlock Text="Élevé" Canvas.Left="-45" Canvas.Top="10" FontSize="9"/>
-                                    <TextBlock Text="Moyen" Canvas.Left="-45" Canvas.Top="130" FontSize="9"/>
-                                    <TextBlock Text="Faible" Canvas.Left="-45" Canvas.Top="250" FontSize="9"/>
+                                    <!-- Étiquettes des mois -->
+                                    <TextBlock Text="Jan" Canvas.Left="60" Canvas.Top="268" FontSize="11" Foreground="#546E7A"/>
+                                    <TextBlock Text="Fév" Canvas.Left="120" Canvas.Top="268" FontSize="11" Foreground="#546E7A"/>
+                                    <TextBlock Text="Mar" Canvas.Left="177" Canvas.Top="268" FontSize="11" Foreground="#546E7A"/>
+                                    <TextBlock Text="Avr" Canvas.Left="240" Canvas.Top="268" FontSize="11" Foreground="#546E7A"/>
+                                    <TextBlock Text="Mai" Canvas.Left="297" Canvas.Top="268" FontSize="11" Foreground="#546E7A"/>
+                                    <TextBlock Text="Juin" Canvas.Left="355" Canvas.Top="268" FontSize="11" Foreground="#546E7A"/>
                                 </Canvas>
-
-                                <!-- Légende pour les lignes de tendance -->
-                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,30,0">
-                                    <StackPanel Style="{StaticResource LegendItemStyle}">
-                                        <Line X1="0" Y1="5" X2="20" Y2="5" Stroke="#2196F3" StrokeThickness="3"/>
-                                        <TextBlock Text="Consommation" FontSize="10" Margin="5,0"/>
+                            </Grid>
+                            
+                            <!-- Statistiques rapides -->
+                            <Grid Margin="0,15,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#E3F2FD" CornerRadius="8" Padding="10" Margin="0,0,5,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Total Carburant" FontSize="11" Foreground="#1976D2"/>
+                                        <TextBlock Text="12,450 €" FontSize="16" FontWeight="Bold" Foreground="#1565C0"/>
                                     </StackPanel>
-                                    <StackPanel Style="{StaticResource LegendItemStyle}">
-                                        <Line X1="0" Y1="5" X2="20" Y2="5" Stroke="#FF9800" StrokeThickness="3"/>
-                                        <TextBlock Text="Coûts" FontSize="10" Margin="5,0"/>
+                                </Border>
+                                <Border Grid.Column="1" Background="#FFF3E0" CornerRadius="8" Padding="10" Margin="5,0,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Total Maintenance" FontSize="11" Foreground="#EF6C00"/>
+                                        <TextBlock Text="5,230 €" FontSize="16" FontWeight="Bold" Foreground="#E65100"/>
                                     </StackPanel>
-                                </StackPanel>
+                                </Border>
                             </Grid>
                         </StackPanel>
                     </Border>
 
-                    <!-- Graphique circulaire de répartition -->
-                    <Border Grid.Column="1" Style="{StaticResource ChartContainerStyle}">
+                    <!-- Graphique 2: Consommation par véhicule -->
+                    <Border Grid.Column="2" Grid.Row="0" Background="White" CornerRadius="12" Padding="20">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.15" Color="#4CAF50"/>
+                        </Border.Effect>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource ChartTitleStyle}" Text="🥧 Répartition par Type"/>
+                            <Grid Margin="0,0,0,15">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#E8F5E9" CornerRadius="8" Padding="8,4">
+                                        <TextBlock Text="⛽" FontSize="16"/>
+                                    </Border>
+                                    <TextBlock Text="Top 5 Consommation" FontSize="18" FontWeight="Bold" 
+                                             Foreground="#388E3C" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </Grid>
 
-                            <Grid Height="350">
-                                <Canvas Background="#FAFAFA" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <!-- Graphique circulaire simulé avec des arcs -->
-                                    <Ellipse Width="200" Height="200" Stroke="#E0E0E0" StrokeThickness="2" Fill="Transparent"/>
+                            <StackPanel Margin="0,10,0,0">
+                                <!-- Véhicule 1 -->
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="VH-001" FontSize="12" FontWeight="SemiBold" Foreground="#424242" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="1" Margin="5,0">
+                                        <Border Background="#E8F5E9" Height="28" CornerRadius="4"/>
+                                        <Border Background="#66BB6A" Height="28" HorizontalAlignment="Left" Width="240" CornerRadius="4">
+                                            <TextBlock Text="85%" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Grid.Column="2" Text="8.5 L/100km" FontSize="11" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                                </Grid>
 
-                                    <!-- Secteurs du camembert (simulation avec des rectangles colorés) -->
-                                    <StackPanel Canvas.Left="220" Canvas.Top="20">
-                                        <StackPanel Style="{StaticResource LegendItemStyle}" Margin="0,5">
-                                            <Rectangle Fill="#2196F3" Width="20" Height="15"/>
-                                            <TextBlock Text="Voitures (45%)" FontSize="10" Margin="10,0"/>
-                                        </StackPanel>
-                                        <StackPanel Style="{StaticResource LegendItemStyle}" Margin="0,5">
-                                            <Rectangle Fill="#4CAF50" Width="20" Height="15"/>
-                                            <TextBlock Text="Utilitaires (30%)" FontSize="10" Margin="10,0"/>
-                                        </StackPanel>
-                                        <StackPanel Style="{StaticResource LegendItemStyle}" Margin="0,5">
-                                            <Rectangle Fill="#FF9800" Width="20" Height="15"/>
-                                            <TextBlock Text="Camions (20%)" FontSize="10" Margin="10,0"/>
-                                        </StackPanel>
-                                        <StackPanel Style="{StaticResource LegendItemStyle}" Margin="0,5">
-                                            <Rectangle Fill="#9C27B0" Width="20" Height="15"/>
-                                            <TextBlock Text="Motos (5%)" FontSize="10" Margin="10,0"/>
-                                        </StackPanel>
-                                    </StackPanel>
+                                <!-- Véhicule 2 -->
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="VH-002" FontSize="12" FontWeight="SemiBold" Foreground="#424242" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="1" Margin="5,0">
+                                        <Border Background="#E8F5E9" Height="28" CornerRadius="4"/>
+                                        <Border Background="#81C784" Height="28" HorizontalAlignment="Left" Width="210" CornerRadius="4">
+                                            <TextBlock Text="75%" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Grid.Column="2" Text="7.8 L/100km" FontSize="11" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                                </Grid>
 
-                                    <!-- Valeurs centrales -->
-                                    <StackPanel Canvas.Left="70" Canvas.Top="85" HorizontalAlignment="Center">
-                                        <TextBlock Text="Total" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="156" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#2196F3"/>
-                                        <TextBlock Text="véhicules" FontSize="10" HorizontalAlignment="Center" Foreground="#666666"/>
-                                    </StackPanel>
+                                <!-- Véhicule 3 -->
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="VH-003" FontSize="12" FontWeight="SemiBold" Foreground="#424242" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="1" Margin="5,0">
+                                        <Border Background="#E8F5E9" Height="28" CornerRadius="4"/>
+                                        <Border Background="#A5D6A7" Height="28" HorizontalAlignment="Left" Width="180" CornerRadius="4">
+                                            <TextBlock Text="65%" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Grid.Column="2" Text="7.2 L/100km" FontSize="11" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Véhicule 4 -->
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="VH-004" FontSize="12" FontWeight="SemiBold" Foreground="#424242" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="1" Margin="5,0">
+                                        <Border Background="#E8F5E9" Height="28" CornerRadius="4"/>
+                                        <Border Background="#C5E1A5" Height="28" HorizontalAlignment="Left" Width="150" CornerRadius="4">
+                                            <TextBlock Text="55%" FontSize="11" FontWeight="Bold" Foreground="#558B2F" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Grid.Column="2" Text="6.5 L/100km" FontSize="11" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Véhicule 5 -->
+                                <Grid Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="VH-005" FontSize="12" FontWeight="SemiBold" Foreground="#424242" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="1" Margin="5,0">
+                                        <Border Background="#E8F5E9" Height="28" CornerRadius="4"/>
+                                        <Border Background="#DCEDC8" Height="28" HorizontalAlignment="Left" Width="120" CornerRadius="4">
+                                            <TextBlock Text="45%" FontSize="11" FontWeight="Bold" Foreground="#689F38" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Grid.Column="2" Text="6.0 L/100km" FontSize="11" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                                </Grid>
+
+                            <!-- Moyenne flotte -->
+                            <Border Background="#C8E6C9" CornerRadius="8" Padding="12" Margin="0,15,0,0">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="📊 Moyenne Flotte:" FontSize="13" FontWeight="SemiBold" Foreground="#1B5E20" VerticalAlignment="Center"/>
+                                    <TextBlock Text="7.2 L/100km" FontSize="14" FontWeight="Bold" Foreground="#2E7D32" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Graphique 3: Répartition des types de maintenance -->
+                    <Border Grid.Column="0" Grid.Row="2" Background="White" CornerRadius="12" Padding="20">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.15" Color="#FF9800"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#FFF3E0" CornerRadius="8" Padding="8,4">
+                                        <TextBlock Text="🔧" FontSize="16"/>
+                                    </Border>
+                                    <TextBlock Text="Types de Maintenance" FontSize="18" FontWeight="Bold" 
+                                             Foreground="#EF6C00" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Height="280">
+                                <Canvas Background="#FAFBFC" ClipToBounds="True">
+                                    <!-- Diagramme circulaire simplifié avec arcs -->
+                                    <Ellipse Width="180" Height="180" Stroke="#FF9800" StrokeThickness="30" Fill="Transparent" 
+                                           Canvas.Left="110" Canvas.Top="30" StrokeDashArray="35 65" StrokeDashOffset="0"/>
+                                    <Ellipse Width="180" Height="180" Stroke="#FFA726" StrokeThickness="30" Fill="Transparent" 
+                                           Canvas.Left="110" Canvas.Top="30" StrokeDashArray="28 72" StrokeDashOffset="-35"/>
+                                    <Ellipse Width="180" Height="180" Stroke="#FFB74D" StrokeThickness="30" Fill="Transparent" 
+                                           Canvas.Left="110" Canvas.Top="30" StrokeDashArray="22 78" StrokeDashOffset="-63"/>
+                                    <Ellipse Width="180" Height="180" Stroke="#FFCC80" StrokeThickness="30" Fill="Transparent" 
+                                           Canvas.Left="110" Canvas.Top="30" StrokeDashArray="15 85" StrokeDashOffset="-85"/>
+
+                                    <!-- Centre du donut -->
+                                    <Ellipse Width="120" Height="120" Fill="White" Canvas.Left="140" Canvas.Top="60"/>
+                                    <TextBlock Text="100%" FontSize="24" FontWeight="Bold" Foreground="#E65100" 
+                                             Canvas.Left="172" Canvas.Top="100"/>
+                                    <TextBlock Text="Interventions" FontSize="10" Foreground="#757575" 
+                                             Canvas.Left="160" Canvas.Top="128"/>
                                 </Canvas>
                             </Grid>
+
+                            <!-- Légende -->
+                            <StackPanel Margin="0,10,0,0">
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="12" Height="12" Fill="#FF9800" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Révisions" FontSize="12" Foreground="#424242"/>
+                                    <TextBlock Grid.Column="2" Text="35%" FontSize="12" FontWeight="Bold" Foreground="#E65100"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="12" Height="12" Fill="#FFA726" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Pneumatiques" FontSize="12" Foreground="#424242"/>
+                                    <TextBlock Grid.Column="2" Text="28%" FontSize="12" FontWeight="Bold" Foreground="#E65100"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="12" Height="12" Fill="#FFB74D" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Freins" FontSize="12" Foreground="#424242"/>
+                                    <TextBlock Grid.Column="2" Text="22%" FontSize="12" FontWeight="Bold" Foreground="#E65100"/>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="12" Height="12" Fill="#FFCC80" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Column="1" Text="Autres" FontSize="12" Foreground="#424242"/>
+                                    <TextBlock Grid.Column="2" Text="15%" FontSize="12" FontWeight="Bold" Foreground="#E65100"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Graphique 4: KPIs de la flotte -->
+                    <Border Grid.Column="2" Grid.Row="2" Background="White" CornerRadius="12" Padding="20">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.15" Color="#9C27B0"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#F3E5F5" CornerRadius="8" Padding="8,4">
+                                        <TextBlock Text="📈" FontSize="16"/>
+                                    </Border>
+                                    <TextBlock Text="Indicateurs Clés" FontSize="18" FontWeight="Bold" 
+                                             Foreground="#7B1FA2" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel>
+                                <!-- KPI 1: Disponibilité -->
+                                <Border Background="#F3E5F5" CornerRadius="10" Padding="15" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Disponibilité Flotte" FontSize="13" Foreground="#6A1B9A"/>
+                                                <TextBlock Text="94.5%" FontSize="28" FontWeight="Bold" Foreground="#7B1FA2" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="🟢" FontSize="32" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <Border Background="#9C27B0" Height="4" CornerRadius="2" HorizontalAlignment="Left" Width="340" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- KPI 2: Coût moyen par véhicule -->
+                                <Border Background="#E1F5FE" CornerRadius="10" Padding="15" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Coût Moyen/Véhicule" FontSize="13" Foreground="#01579B"/>
+                                                <TextBlock Text="2,847 €" FontSize="28" FontWeight="Bold" Foreground="#0277BD" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="💶" FontSize="32" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <Border Background="#0288D1" Height="4" CornerRadius="2" HorizontalAlignment="Left" Width="280" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- KPI 3: Distance moyenne -->
+                                <Border Background="#FFF3E0" CornerRadius="10" Padding="15" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Distance Moyenne" FontSize="13" Foreground="#E65100"/>
+                                                <TextBlock Text="18,240 km" FontSize="28" FontWeight="Bold" Foreground="#EF6C00" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="🚗" FontSize="32" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <Border Background="#FF9800" Height="4" CornerRadius="2" HorizontalAlignment="Left" Width="300" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- KPI 4: Âge moyen -->
+                                <Border Background="#E8F5E9" CornerRadius="10" Padding="15">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Âge Moyen Flotte" FontSize="13" Foreground="#1B5E20"/>
+                                                <TextBlock Text="3.2 ans" FontSize="28" FontWeight="Bold" Foreground="#2E7D32" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="📅" FontSize="32" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <Border Background="#4CAF50" Height="4" CornerRadius="2" HorizontalAlignment="Left" Width="220" Margin="0,10,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </Grid>
-
-                <!-- Troisième ligne - Graphique comparatif -->
-                <Border Style="{StaticResource ChartContainerStyle}" Margin="10,10,10,0">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource ChartTitleStyle}" Text="🏆 Comparaison de Performance des Véhicules"/>
-
-                        <Grid Height="400">
-                            <Canvas Background="#FAFAFA" Margin="80,30,30,60">
-                                <!-- Radar chart simulation avec des polygones -->
-                                <Canvas.RenderTransform>
-                                    <TranslateTransform X="200" Y="150"/>
-                                </Canvas.RenderTransform>
-
-                                <!-- Axes du radar (5 critères) -->
-                                <Line X1="0" Y1="0" X2="0" Y2="-120" Stroke="#CCCCCC" StrokeThickness="1"/>
-                                <Line X1="0" Y1="0" X2="114" Y2="-37" Stroke="#CCCCCC" StrokeThickness="1"/>
-                                <Line X1="0" Y1="0" X2="71" Y2="97" Stroke="#CCCCCC" StrokeThickness="1"/>
-                                <Line X1="0" Y1="0" X2="-71" Y2="97" Stroke="#CCCCCC" StrokeThickness="1"/>
-                                <Line X1="0" Y1="0" X2="-114" Y2="-37" Stroke="#CCCCCC" StrokeThickness="1"/>
-
-                                <!-- Cercles concentriques -->
-                                <Ellipse Width="80" Height="80" Stroke="#E0E0E0" StrokeThickness="1" Fill="Transparent" Canvas.Left="-40" Canvas.Top="-40"/>
-                                <Ellipse Width="160" Height="160" Stroke="#E0E0E0" StrokeThickness="1" Fill="Transparent" Canvas.Left="-80" Canvas.Top="-80"/>
-                                <Ellipse Width="240" Height="240" Stroke="#E0E0E0" StrokeThickness="1" Fill="Transparent" Canvas.Left="-120" Canvas.Top="-120"/>
-
-                                <!-- Étiquettes des axes -->
-                                <TextBlock Text="Consommation" Canvas.Left="-30" Canvas.Top="-140" FontSize="10" FontWeight="Bold"/>
-                                <TextBlock Text="Coûts" Canvas.Left="120" Canvas.Top="-50" FontSize="10" FontWeight="Bold"/>
-                                <TextBlock Text="Fiabilité" Canvas.Left="80" Canvas.Top="100" FontSize="10" FontWeight="Bold"/>
-                                <TextBlock Text="Maintenance" Canvas.Left="-120" Canvas.Top="100" FontSize="10" FontWeight="Bold"/>
-                                <TextBlock Text="Disponibilité" Canvas.Left="-150" Canvas.Top="-50" FontSize="10" FontWeight="Bold"/>
-
-                                <!-- Polygone de performance véhicule 1 -->
-                                <Polygon Points="0,-80 60,-25 40,60 -40,60 -60,-25"
-                                         Fill="#2196F3" Opacity="0.3" Stroke="#2196F3" StrokeThickness="2"/>
-
-                                <!-- Polygone de performance véhicule 2 -->
-                                <Polygon Points="0,-100 80,-30 30,80 -30,80 -80,-30"
-                                         Fill="#4CAF50" Opacity="0.3" Stroke="#4CAF50" StrokeThickness="2"/>
-                            </Canvas>
-
-                            <!-- Légende pour le radar -->
-                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,30,50,0">
-                                <StackPanel Style="{StaticResource LegendItemStyle}">
-                                    <Rectangle Fill="#2196F3" Width="15" Height="10"/>
-                                    <TextBlock Text="AA-123-BB" FontSize="10" Margin="5,0"/>
-                                </StackPanel>
-                                <StackPanel Style="{StaticResource LegendItemStyle}">
-                                    <Rectangle Fill="#4CAF50" Width="15" Height="10"/>
-                                    <TextBlock Text="CC-456-DD" FontSize="10" Margin="5,0"/>
-                                </StackPanel>
-                                <TextBlock Text="Échelle: 0-100" FontSize="9" Foreground="#666666" Margin="0,10,0,0"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Contrôles d'export et d'analyse -->
-                <Border Style="{StaticResource ChartContainerStyle}" Margin="10,10,10,20">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource ChartTitleStyle}" Text="📊 Outils d'Analyse"/>
-
-                        <WrapPanel HorizontalAlignment="Center" Margin="0,20">
-                            <Button Content="📸 Capturer graphiques" Style="{StaticResource ControlButtonStyle}"/>
-                            <Button Content="📄 Rapport PDF complet" Style="{StaticResource ControlButtonStyle}" Background="#4CAF50"/>
-                            <Button Content="📊 Export Excel détaillé" Style="{StaticResource ControlButtonStyle}" Background="#FF9800"/>
-                            <Button Content="🎯 Définir seuils d'alerte" Style="{StaticResource ControlButtonStyle}" Background="#9C27B0"/>
-                            <Button Content="📧 Programmer envoi automatique" Style="{StaticResource ControlButtonStyle}" Background="#607D8B"/>
-                            <Button Content="🔄 Actualisation automatique" Style="{StaticResource ControlButtonStyle}" Background="#795548"/>
-                        </WrapPanel>
-
-                        <TextBlock Text="💡 Conseil: Utilisez les filtres en haut de page pour personnaliser les graphiques selon vos besoins d'analyse."
-                                   FontSize="11" Foreground="#666666" HorizontalAlignment="Center" Margin="0,15,0,0"
-                                   FontStyle="Italic"/>
-                    </StackPanel>
-                </Border>
-
             </StackPanel>
-        </ScrollViewer>
+            </ScrollViewer>
     </Grid>
 </Window>

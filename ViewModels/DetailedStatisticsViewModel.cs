@@ -220,7 +220,7 @@ namespace FleetManager.ViewModels
                 TotalKilometers = dashboardData.FleetStats.TotalMileage;
                 
                 // Charger les statistiques détaillées par véhicule
-                var vehicleStats = await _statisticsService.GetVehicleStatisticsAsync();
+                var vehicleStats = await _statisticsService.GetAllVehicleStatisticsAsync();
                 AllVehicleStatistics = new ObservableCollection<VehicleStatistics>(vehicleStats);
                 
                 TotalLitersConsumed = vehicleStats.Sum(v => v.TotalLiters);

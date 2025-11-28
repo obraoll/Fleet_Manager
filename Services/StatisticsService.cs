@@ -162,6 +162,8 @@ namespace FleetManager.Services
                 VehicleId = vehicle.VehicleId,
                 VehicleName = $"{vehicle.Brand} {vehicle.Model}",
                 RegistrationNumber = vehicle.RegistrationNumber,
+                Model = vehicle.Model,
+                VehicleType = vehicle.VehicleType.ToString(),
                 CurrentMileage = vehicle.CurrentMileage,
                 TotalRefuels = fuelRecords.Count,
                 TotalLiters = fuelRecords.Sum(f => f.LitersRefueled),
@@ -177,6 +179,52 @@ namespace FleetManager.Services
                 NextMaintenanceDate = maintenanceRecords.OrderByDescending(m => m.NextMaintenanceDate)
                     .FirstOrDefault()?.NextMaintenanceDate
             };
+        }
+
+        /// <summary>
+        /// Obtient les statistiques pour tous les véhicules
+        /// </summary>
+        public async Task<List<VehicleStatistics>> GetAllVehicleStatisticsAsync()
+        {
+            var vehicles = await _context.Vehicles.ToListAsync();
+            var allMaintenanceRecords = await _maintenanceRepo.GetAllAsync();
+            var statistics = new List<VehicleStatistics>();
+
+            foreach (var vehicle in vehicles)
+            {
+                var fuelRecords = await _context.FuelRecords
+                    .Where(f => f.VehicleId == vehicle.VehicleId)
+                    .ToListAsync();
+
+                var maintenanceRecords = allMaintenanceRecords
+                    .Where(m => m.VehicleId == vehicle.VehicleId)
+                    .ToList();
+
+                statistics.Add(new VehicleStatistics
+                {
+                    VehicleId = vehicle.VehicleId,
+                    VehicleName = $"{vehicle.Brand} {vehicle.Model}",
+                    RegistrationNumber = vehicle.RegistrationNumber,
+                    Model = vehicle.Model,
+                    VehicleType = vehicle.VehicleType.ToString(),
+                    CurrentMileage = vehicle.CurrentMileage,
+                    TotalRefuels = fuelRecords.Count,
+                    TotalLiters = fuelRecords.Sum(f => f.LitersRefueled),
+                    TotalFuelCost = fuelRecords.Sum(f => f.TotalCost),
+                    AverageConsumption = fuelRecords.Where(f => f.CalculatedConsumption > 0)
+                        .DefaultIfEmpty()
+                        .Average(f => f?.CalculatedConsumption ?? 0),
+                    AveragePricePerLiter = fuelRecords.Any() ? fuelRecords.Average(f => f.PricePerLiter) : 0,
+                    TotalMaintenances = maintenanceRecords.Count,
+                    TotalMaintenanceCost = maintenanceRecords.Sum(m => m.Cost),
+                    LastMaintenanceDate = maintenanceRecords.OrderByDescending(m => m.MaintenanceDate)
+                        .FirstOrDefault()?.MaintenanceDate,
+                    NextMaintenanceDate = maintenanceRecords.OrderByDescending(m => m.NextMaintenanceDate)
+                        .FirstOrDefault()?.NextMaintenanceDate
+                });
+            }
+
+            return statistics;
         }
 
         /// <summary>
@@ -363,6 +411,7 @@ namespace FleetManager.Services
                 {
                     alerts.Add(new DashboardAlert
                     {
+                        Id = $"MaintenanceDue_{vehicle.VehicleId}_{lastMaintenance.NextMaintenanceDate.Value:yyyyMMdd}",
                         Type = AlertType.MaintenanceDue,
                         Title = "Maintenance due",
                         Message = $"Maintenance prévue le {lastMaintenance.NextMaintenanceDate.Value:dd/MM/yyyy}",
@@ -379,6 +428,7 @@ namespace FleetManager.Services
                 {
                     alerts.Add(new DashboardAlert
                     {
+                        Id = $"InspectionExpired_{vehicle.VehicleId}_{vehicle.TechnicalInspectionDate.Value:yyyyMMdd}",
                         Type = AlertType.InspectionExpired,
                         Title = "Contrôle technique",
                         Message = $"Contrôle technique expire le {vehicle.TechnicalInspectionDate.Value:dd/MM/yyyy}",
@@ -395,6 +445,7 @@ namespace FleetManager.Services
                 {
                     alerts.Add(new DashboardAlert
                     {
+                        Id = $"InsuranceExpired_{vehicle.VehicleId}_{vehicle.InsuranceExpiryDate.Value:yyyyMMdd}",
                         Type = AlertType.InsuranceExpired,
                         Title = "Assurance expire",
                         Message = $"Assurance expire le {vehicle.InsuranceExpiryDate.Value:dd/MM/yyyy}",
@@ -415,6 +466,7 @@ namespace FleetManager.Services
                     {
                         alerts.Add(new DashboardAlert
                         {
+                            Id = $"HighConsumption_{vehicle.VehicleId}",
                             Type = AlertType.HighConsumption,
                             Title = "Consommation élevée",
                             Message = $"Consommation: {vehicle.AverageFuelConsumption:F1} L/100km (moyenne: {fleetAverage:F1})",

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -18,9 +19,11 @@ namespace FleetManager.ViewModels
         private readonly AuthenticationService _authService;
         private readonly IServiceProvider _serviceProvider;
         private ObservableCollection<FuelRecord> _fuelRecords = new();
+        private ObservableCollection<FuelRecord> _allFuelRecords = new(); // Tous les enregistrements (non filtrés)
         private ObservableCollection<Vehicle> _vehicles = new();
         private Vehicle? _selectedVehicle;
         private FuelRecord? _selectedFuelRecord;
+        private string _searchText = string.Empty;
 
         public FuelViewModel(FuelService fuelService, VehicleService vehicleService, AuthenticationService authService, IServiceProvider serviceProvider)
         {
@@ -30,8 +33,9 @@ namespace FleetManager.ViewModels
             _serviceProvider = serviceProvider;
             LoadDataCommand = new AsyncRelayCommand(LoadDataAsync);
             AddFuelRecordCommand = new AsyncRelayCommand(AddFuelRecordAsync);
+            EditFuelRecordCommand = new AsyncRelayCommand(EditFuelRecordAsync);
             DeleteFuelRecordCommand = new AsyncRelayCommand(DeleteFuelRecordAsync);
-            FilterByVehicleCommand = new AsyncRelayCommand(FilterByVehicleAsync);
+            ResetFiltersCommand = new RelayCommand(ResetFilters);
 
             // Charger les données au démarrage
             _ = LoadDataAsync(null);
@@ -52,7 +56,25 @@ namespace FleetManager.ViewModels
         public Vehicle? SelectedVehicle
         {
             get => _selectedVehicle;
-            set => SetProperty(ref _selectedVehicle, value);
+            set
+            {
+                if (SetProperty(ref _selectedVehicle, value))
+                {
+                    _ = ApplyFiltersAsync();
+                }
+            }
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    _ = ApplyFiltersAsync();
+                }
+            }
         }
 
         public FuelRecord? SelectedFuelRecord
@@ -63,8 +85,9 @@ namespace FleetManager.ViewModels
 
         public ICommand LoadDataCommand { get; }
         public AsyncRelayCommand AddFuelRecordCommand { get; }
+        public AsyncRelayCommand EditFuelRecordCommand { get; }
         public AsyncRelayCommand DeleteFuelRecordCommand { get; }
-        public AsyncRelayCommand FilterByVehicleCommand { get; }
+        public ICommand ResetFiltersCommand { get; }
         private async Task AddFuelRecordAsync(object? parameter)
         {
             try
@@ -98,6 +121,42 @@ namespace FleetManager.ViewModels
             }
         }
 
+        private async Task EditFuelRecordAsync(object? parameter)
+        {
+            if (parameter is not FuelRecord fuelRecord)
+                return;
+
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("=== OUVERTURE FENÊTRE ÉDITION PLEIN ===");
+
+                // Créer le ViewModel pour l'édition
+                var editFuelRecordViewModel = new AddFuelRecordViewModel(_fuelService, _vehicleService, _authService, fuelRecord);
+
+                // Créer et afficher la fenêtre
+                var editFuelRecordWindow = new AddFuelRecordWindow(editFuelRecordViewModel);
+
+                // Afficher en mode modal
+                System.Diagnostics.Debug.WriteLine("Affichage de la fenêtre d'édition de plein...");
+                var result = editFuelRecordWindow.ShowDialog();
+                System.Diagnostics.Debug.WriteLine($"Fenêtre fermée avec résultat: {result}");
+
+                // Si la modification a réussi, recharger la liste
+                if (result == true)
+                {
+                    System.Diagnostics.Debug.WriteLine("Plein modifié - Rechargement de la liste");
+                    await LoadDataAsync(null);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"EXCEPTION dans EditFuelRecordAsync: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                MessageBox.Show($"Erreur lors de la modification du plein:\n\n{ex.Message}", 
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private async Task LoadDataAsync(object? parameter)
         {
             try
@@ -105,12 +164,14 @@ namespace FleetManager.ViewModels
                 System.Diagnostics.Debug.WriteLine("Chargement des données carburant...");
 
                 var fuelRecords = await _fuelService.GetAllFuelRecordsAsync();
-                FuelRecords = new ObservableCollection<FuelRecord>(fuelRecords);
+                _allFuelRecords = new ObservableCollection<FuelRecord>(fuelRecords);
                 System.Diagnostics.Debug.WriteLine($"{fuelRecords.Count} enregistrements carburant chargés");
 
                 var vehicles = await _vehicleService.GetAllVehiclesAsync();
                 Vehicles = new ObservableCollection<Vehicle>(vehicles);
                 System.Diagnostics.Debug.WriteLine($"{vehicles.Count} véhicules chargés");
+
+                await ApplyFiltersAsync();
             }
             catch (Exception ex)
             {
@@ -118,6 +179,46 @@ namespace FleetManager.ViewModels
                 MessageBox.Show($"Erreur lors du chargement des données: {ex.Message}",
                     "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private Task ApplyFiltersAsync()
+        {
+            try
+            {
+                var filtered = _allFuelRecords.AsEnumerable();
+
+                // Filtre par véhicule
+                if (SelectedVehicle != null)
+                {
+                    filtered = filtered.Where(f => f.VehicleId == SelectedVehicle.VehicleId);
+                }
+
+                // Filtre par recherche textuelle
+                if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    var searchLower = SearchText.ToLower();
+                    filtered = filtered.Where(f =>
+                        (f.Vehicle?.RegistrationNumber?.ToLower().Contains(searchLower) ?? false) ||
+                        (f.Vehicle?.Brand?.ToLower().Contains(searchLower) ?? false) ||
+                        (f.Vehicle?.Model?.ToLower().Contains(searchLower) ?? false) ||
+                        (f.Station?.ToLower().Contains(searchLower) ?? false) ||
+                        (f.FuelType?.ToLower().Contains(searchLower) ?? false));
+                }
+
+                FuelRecords = new ObservableCollection<FuelRecord>(filtered.OrderByDescending(f => f.RefuelDate).ToList());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur lors du filtrage: {ex.Message}");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void ResetFilters(object? parameter)
+        {
+            SearchText = string.Empty;
+            SelectedVehicle = null;
         }
 
 
@@ -146,28 +247,5 @@ namespace FleetManager.ViewModels
             }
         }
 
-        private async Task FilterByVehicleAsync(object? parameter)
-        {
-            try
-            {
-                if (SelectedVehicle == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("Affichage de tous les enregistrements");
-                    await LoadDataAsync(null);
-                    return;
-                }
-
-                System.Diagnostics.Debug.WriteLine($"Filtrage par véhicule: {SelectedVehicle.RegistrationNumber}");
-                var filteredRecords = await _fuelService.GetFuelRecordsByVehicleAsync(SelectedVehicle.VehicleId);
-                FuelRecords = new ObservableCollection<FuelRecord>(filteredRecords);
-                System.Diagnostics.Debug.WriteLine($"{filteredRecords.Count} enregistrements filtrés");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Erreur filtrage: {ex.Message}");
-                MessageBox.Show($"Erreur lors du filtrage: {ex.Message}", "Erreur",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
     }
 }

@@ -1,0 +1,388 @@
+<Window x:Class="FleetManager.Views.PeriodComparisonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        Title="Comparaison de Périodes - Fleet Manager"
+        Height="750" Width="1300"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+            <Style TargetType="Button" x:Key="ActionButtonStyle">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="5" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1976D2"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- En-tête -->
+        <Border Grid.Row="0" Background="#9C27B0" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="📅 Comparaison de Périodes" 
+                               FontSize="24" 
+                               FontWeight="Bold" 
+                               Foreground="White"/>
+                    <TextBlock Text="Analysez l'évolution de vos indicateurs entre différentes périodes" 
+                               FontSize="13" 
+                               Foreground="#F3E5F5" 
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="📊 Comparer" 
+                            Style="{StaticResource ActionButtonStyle}"
+                            Background="#4CAF50"
+                            Command="{Binding CompareCommand}"/>
+                    <Button Content="💾 Exporter" 
+                            Style="{StaticResource ActionButtonStyle}"
+                            Background="#FF9800"
+                            Command="{Binding ExportCommand}"/>
+                    <Button Content="✖ Fermer" 
+                            Style="{StaticResource ActionButtonStyle}"
+                            Background="#F44336"
+                            Command="{Binding CloseCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Contenu -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Sélection des périodes -->
+                <Border Grid.Row="0" Style="{StaticResource ModernCard}">
+                    <StackPanel>
+                        <TextBlock Text="Sélection des Périodes à Comparer" 
+                                   FontSize="16" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,0,15"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Période 1 -->
+                            <Border Grid.Column="0" 
+                                    Background="#E3F2FD" 
+                                    CornerRadius="8" 
+                                    Padding="15">
+                                <StackPanel>
+                                    <TextBlock Text="Période 1" 
+                                               FontSize="14" 
+                                               FontWeight="Bold" 
+                                               Foreground="#1976D2"
+                                               Margin="0,0,0,10"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="Date début:" FontSize="12" Margin="0,0,0,5"/>
+                                            <DatePicker SelectedDate="{Binding Period1StartDate}" 
+                                                       FontSize="13"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="Date fin:" FontSize="12" Margin="0,0,0,5"/>
+                                            <DatePicker SelectedDate="{Binding Period1EndDate}" 
+                                                       FontSize="13"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="ou" 
+                                               HorizontalAlignment="Center" 
+                                               Margin="0,10"
+                                               FontSize="12"/>
+
+                                    <ComboBox ItemsSource="{Binding PredefinedPeriods}"
+                                             SelectedItem="{Binding Period1Predefined}"
+                                             FontSize="13"/>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Grid.Column="1" 
+                                       Text="VS" 
+                                       FontSize="18" 
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+
+                            <!-- Période 2 -->
+                            <Border Grid.Column="2" 
+                                    Background="#FFF3E0" 
+                                    CornerRadius="8" 
+                                    Padding="15">
+                                <StackPanel>
+                                    <TextBlock Text="Période 2" 
+                                               FontSize="14" 
+                                               FontWeight="Bold" 
+                                               Foreground="#F57C00"
+                                               Margin="0,0,0,10"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="Date début:" FontSize="12" Margin="0,0,0,5"/>
+                                            <DatePicker SelectedDate="{Binding Period2StartDate}" 
+                                                       FontSize="13"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="Date fin:" FontSize="12" Margin="0,0,0,5"/>
+                                            <DatePicker SelectedDate="{Binding Period2EndDate}" 
+                                                       FontSize="13"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="ou" 
+                                               HorizontalAlignment="Center" 
+                                               Margin="0,10"
+                                               FontSize="12"/>
+
+                                    <ComboBox ItemsSource="{Binding PredefinedPeriods}"
+                                             SelectedItem="{Binding Period2Predefined}"
+                                             FontSize="13"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Résultats de comparaison -->
+                <Border Grid.Row="1" Style="{StaticResource ModernCard}">
+                    <StackPanel>
+                        <TextBlock Text="Résultats de la Comparaison" 
+                                   FontSize="16" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,0,15"/>
+
+                        <!-- Indicateurs clés -->
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- KPI 1 -->
+                            <Border Grid.Column="0" 
+                                    Background="#E8F5E9" 
+                                    CornerRadius="8" 
+                                    Padding="15" 
+                                    Margin="5">
+                                <StackPanel>
+                                    <TextBlock Text="Coût Carburant" 
+                                               FontSize="12" 
+                                               Foreground="#666"/>
+                                    <TextBlock Text="{Binding FuelCostDifference, StringFormat=C}" 
+                                               FontSize="22" 
+                                               FontWeight="Bold"
+                                               Foreground="#4CAF50"/>
+                                    <TextBlock FontSize="11" Foreground="#666">
+                                        <Run Text="{Binding FuelCostPercentage, StringFormat=F1}"/>
+                                        <Run Text="% de variation"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 2 -->
+                            <Border Grid.Column="1" 
+                                    Background="#E3F2FD" 
+                                    CornerRadius="8" 
+                                    Padding="15" 
+                                    Margin="5">
+                                <StackPanel>
+                                    <TextBlock Text="Maintenance" 
+                                               FontSize="12" 
+                                               Foreground="#666"/>
+                                    <TextBlock Text="{Binding MaintenanceCostDifference, StringFormat=C}" 
+                                               FontSize="22" 
+                                               FontWeight="Bold"
+                                               Foreground="#2196F3"/>
+                                    <TextBlock FontSize="11" Foreground="#666">
+                                        <Run Text="{Binding MaintenancePercentage, StringFormat=F1}"/>
+                                        <Run Text="% de variation"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 3 -->
+                            <Border Grid.Column="2" 
+                                    Background="#FFF3E0" 
+                                    CornerRadius="8" 
+                                    Padding="15" 
+                                    Margin="5">
+                                <StackPanel>
+                                    <TextBlock Text="Kilométrage" 
+                                               FontSize="12" 
+                                               Foreground="#666"/>
+                                    <TextBlock FontSize="22" FontWeight="Bold" Foreground="#FF9800">
+                                        <Run Text="{Binding MileageDifference, StringFormat=N0}"/>
+                                        <Run Text="km"/>
+                                    </TextBlock>
+                                    <TextBlock FontSize="11" Foreground="#666">
+                                        <Run Text="{Binding MileagePercentage, StringFormat=F1}"/>
+                                        <Run Text="% de variation"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 4 -->
+                            <Border Grid.Column="3" 
+                                    Background="#F3E5F5" 
+                                    CornerRadius="8" 
+                                    Padding="15" 
+                                    Margin="5">
+                                <StackPanel>
+                                    <TextBlock Text="Consommation" 
+                                               FontSize="12" 
+                                               Foreground="#666"/>
+                                    <TextBlock FontSize="22" FontWeight="Bold" Foreground="#9C27B0">
+                                        <Run Text="{Binding ConsumptionDifference, StringFormat=F2}"/>
+                                        <Run Text="L/100km"/>
+                                    </TextBlock>
+                                    <TextBlock FontSize="11" Foreground="#666">
+                                        <Run Text="{Binding ConsumptionPercentage, StringFormat=F1}"/>
+                                        <Run Text="% de variation"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Graphiques de comparaison -->
+                        <lvc:CartesianChart Series="{Binding ComparisonSeries}"
+                                           XAxes="{Binding ComparisonXAxes}"
+                                           YAxes="{Binding ComparisonYAxes}"
+                                           Height="350"
+                                           LegendPosition="Top"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Tableau détaillé -->
+                <Border Grid.Row="2" Style="{StaticResource ModernCard}">
+                    <StackPanel>
+                        <TextBlock Text="Comparaison Détaillée" 
+                                   FontSize="16" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,0,15"/>
+
+                        <DataGrid ItemsSource="{Binding ComparisonDetails}"
+                                 AutoGenerateColumns="False"
+                                 IsReadOnly="True"
+                                 HeadersVisibility="Column"
+                                 GridLinesVisibility="Horizontal"
+                                 AlternatingRowBackground="#F9F9F9"
+                                 RowHeight="35"
+                                 FontSize="13">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Indicateur" 
+                                                   Binding="{Binding Indicator}" 
+                                                   Width="*"/>
+                                <DataGridTextColumn Header="Période 1" 
+                                                   Binding="{Binding Period1Value}" 
+                                                   Width="150"/>
+                                <DataGridTextColumn Header="Période 2" 
+                                                   Binding="{Binding Period2Value}" 
+                                                   Width="150"/>
+                                <DataGridTextColumn Header="Différence" 
+                                                   Binding="{Binding Difference}" 
+                                                   Width="150"/>
+                                <DataGridTextColumn Header="Variation %" 
+                                                   Binding="{Binding PercentageChange, StringFormat=F2}" 
+                                                   Width="120"/>
+                                <DataGridTemplateColumn Header="Évolution" Width="100">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Trend}" 
+                                                      HorizontalAlignment="Center"
+                                                      FontSize="16"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Pied de page -->
+        <Border Grid.Row="2" Background="#EEEEEE" Padding="15" BorderBrush="#CCCCCC" BorderThickness="0,1,0,0">
+            <StackPanel>
+                <TextBlock FontSize="12" Foreground="#666">
+                    <Run Text="Comparaison générée le"/>
+                    <Run Text="{Binding ComparisonDate, StringFormat='dd/MM/yyyy à HH:mm'}" FontWeight="Bold"/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Overlay de chargement -->
+        <Border Grid.Row="0" Grid.RowSpan="3"
+                Background="#80000000"
+                Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="0,0,0,15"/>
+                <TextBlock Text="Comparaison en cours..." 
+                           Foreground="White" 
+                           FontSize="16"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

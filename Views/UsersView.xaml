@@ -1,313 +1,327 @@
 <UserControl x:Class="FleetManager.Views.UsersView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:FleetManager.Helpers"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900"
+             Background="{StaticResource BackgroundBrush}">
 
-    <Grid Background="#F5F5F5">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <helpers:UserImagePathConverter x:Key="UserImagePathConverter"/>
+        <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    </UserControl.Resources>
 
-        <!-- En-tête -->
-        <Border Grid.Row="0" Style="{StaticResource CardStyle}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <!-- EN-TÊTE Dashboard Style -->
+            <Grid Margin="0,0,0,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="👥 Gestion des Utilisateurs" 
-                               FontSize="24" FontWeight="Bold" 
-                               Foreground="#1976D2"/>
-                    <TextBlock Text="Gérer les comptes utilisateurs et leurs permissions" 
-                               FontSize="14" Foreground="#666" 
-                               Margin="0,5,0,0"/>
-                </StackPanel>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Gestion des Utilisateurs"
+                           FontFamily="Inter, Segoe UI"
+                           FontSize="28" 
+                           FontWeight="Bold" 
+                           Foreground="#0F172A" 
+                           Margin="0,0,0,6"/>
+                <TextBlock Text="Gérez les comptes utilisateurs de l'application"
+                           FontSize="14" 
+                           Foreground="#64748B"/>
+            </StackPanel>
 
-                <Button Grid.Column="1" Content="➕ Nouvel Utilisateur" 
-                        Command="{Binding AddUserCommand}"
-                        Style="{StaticResource PrimaryButton}"
-                        Width="180" Height="45"
-                        FontSize="14"/>
-            </Grid>
-        </Border>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Border Background="Transparent"
+                       BorderBrush="#E2E8F0"
+                       BorderThickness="1"
+                       CornerRadius="8"
+                       Padding="12,8"
+                       Height="40"
+                       Margin="0,0,12,0"
+                       Cursor="Hand">
+                    <Button Background="Transparent"
+                           BorderThickness="0"
+                           Foreground="#475569"
+                           FontSize="14"
+                           Padding="0"
+                           Content="🔄 Actualiser"
+                           Cursor="Hand"/>
+                </Border>
+                <Border Background="#3B82F6"
+                       CornerRadius="8"
+                       Padding="12,8"
+                       Height="40"
+                       Cursor="Hand">
+                    <Button Background="Transparent"
+                           BorderThickness="0"
+                           Foreground="White"
+                           FontSize="14"
+                           FontWeight="Medium"
+                           Padding="0"
+                           Content="👤 Nouvel Utilisateur"
+                           Command="{Binding AddUserCommand}"
+                           Cursor="Hand"/>
+                </Border>
+            </StackPanel>
+        </Grid>
 
-        <!-- Filtres et recherche -->
-        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Recherche -->
-                    <Border Grid.Column="0" BorderBrush="#DDD" BorderThickness="1" 
-                            CornerRadius="4" Background="White" Padding="10" Margin="0,0,10,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBox Grid.Column="1" 
-                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                     BorderThickness="0" 
-                                     VerticalAlignment="Center"
-                                     FontSize="14">
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Style.Triggers>
-                                            <Trigger Property="Text" Value="">
-                                                <Setter Property="Background">
-                                                    <Setter.Value>
-                                                        <VisualBrush Stretch="None">
-                                                            <VisualBrush.Visual>
-                                                                <TextBlock Text="Rechercher par nom ou email..." 
-                                                                          Foreground="#999" FontSize="14"/>
-                                                            </VisualBrush.Visual>
-                                                        </VisualBrush>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
-                        </Grid>
-                    </Border>
-
-                    <!-- Filtre rôle -->
-                    <ComboBox Grid.Column="1" 
-                              ItemsSource="{Binding Roles}"
-                              SelectedItem="{Binding SelectedRole}"
-                              Height="40" Margin="0,0,10,0"/>
-
-                    <!-- Filtre statut -->
-                    <ComboBox Grid.Column="2" 
-                              ItemsSource="{Binding StatusList}"
-                              SelectedItem="{Binding SelectedStatus}"
-                              Height="40" Margin="0,0,10,0"/>
-
-                    <!-- Boutons d'action -->
-                    <StackPanel Grid.Column="3" Orientation="Horizontal">
-                        <Button Content="🔄 Rafraîchir" 
-                                Command="{Binding RefreshCommand}"
-                                Style="{StaticResource SecondaryButton}"
-                                Width="120" Height="40" Margin="0,0,5,0"/>
-                        <Button Content="🗑️ Réinitialiser" 
-                                Command="{Binding ResetFiltersCommand}"
-                                Style="{StaticResource SecondaryButton}"
-                                Width="130" Height="40"/>
-                    </StackPanel>
-                </Grid>
-            </Grid>
-        </Border>
-
-        <!-- Liste des utilisateurs -->
-        <Border Grid.Row="2" Style="{StaticResource CardStyle}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Statistiques -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-                    <Border Background="#E3F2FD" CornerRadius="6" Padding="15,10" Margin="0,0,15,0">
-                        <StackPanel>
-                            <TextBlock Text="Total Utilisateurs" FontSize="12" Foreground="#666"/>
-                            <TextBlock Text="{Binding TotalUsers}" FontSize="24" FontWeight="Bold" 
-                                      Foreground="#1976D2" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#E8F5E9" CornerRadius="6" Padding="15,10" Margin="0,0,15,0">
-                        <StackPanel>
-                            <TextBlock Text="Actifs" FontSize="12" Foreground="#666"/>
-                            <TextBlock Text="{Binding ActiveUsers}" FontSize="24" FontWeight="Bold" 
-                                      Foreground="#4CAF50" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#FFF3E0" CornerRadius="6" Padding="15,10">
-                        <StackPanel>
-                            <TextBlock Text="Administrateurs" FontSize="12" Foreground="#666"/>
-                            <TextBlock Text="{Binding AdminUsers}" FontSize="24" FontWeight="Bold" 
-                                      Foreground="#FF9800" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-
-                <!-- DataGrid -->
-                <DataGrid Grid.Row="1" 
-                          ItemsSource="{Binding Users}"
-                          SelectedItem="{Binding SelectedUser}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          IsReadOnly="True">
-                    
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Nom d'utilisateur" Binding="{Binding Username}" Width="150"/>
-                        <DataGridTextColumn Header="Nom complet" Binding="{Binding FullName}" Width="200"/>
-                        <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="250"/>
-                        
-                        <DataGridTemplateColumn Header="Rôle" Width="120">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="4" Padding="8,4" HorizontalAlignment="Left">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background" Value="#E3F2FD"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Role}" Value="Admin">
-                                                        <Setter Property="Background" Value="#FFF3E0"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Role}" Value="SuperAdmin">
-                                                        <Setter Property="Background" Value="#F3E5F5"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <TextBlock Text="{Binding Role}" FontWeight="SemiBold">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="#1976D2"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Role}" Value="Admin">
-                                                            <Setter Property="Foreground" Value="#F57C00"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Role}" Value="SuperAdmin">
-                                                            <Setter Property="Foreground" Value="#7B1FA2"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <DataGridTemplateColumn Header="Statut" Width="100">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="4" Padding="8,4" HorizontalAlignment="Left">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background" Value="#E8F5E9"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                        <Setter Property="Background" Value="#FFEBEE"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <TextBlock FontWeight="SemiBold">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value="Actif"/>
-                                                    <Setter Property="Foreground" Value="#388E3C"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                            <Setter Property="Text" Value="Inactif"/>
-                                                            <Setter Property="Foreground" Value="#D32F2F"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <DataGridTextColumn Header="Création" Binding="{Binding CreatedAt, StringFormat='dd/MM/yyyy'}" Width="100"/>
-                        <DataGridTextColumn Header="Dernière connexion" Binding="{Binding LastLogin, StringFormat='dd/MM/yyyy HH:mm'}" Width="150"/>
-
-                        <DataGridTemplateColumn Header="Actions" Width="200">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button ToolTip="Voir les détails"
-                                                Command="{Binding DataContext.ViewUserCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource SecondaryButton}"
-                                                Width="35" Height="30" Margin="2">
-                                            <TextBlock Text="&#xE7B3;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
-                                        </Button>
-                                        <Button ToolTip="Modifier"
-                                                Command="{Binding DataContext.EditUserCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource SecondaryButton}"
-                                                Width="35" Height="30" Margin="2">
-                                            <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
-                                        </Button>
-                                        <Button ToolTip="Réinitialiser mot de passe"
-                                                Command="{Binding DataContext.ResetPasswordCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource SecondaryButton}"
-                                                Width="35" Height="30" Margin="2">
-                                            <TextBlock Text="&#xE192;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
-                                        </Button>
-                                        <Button ToolTip="Supprimer"
-                                                Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource SecondaryButton}"
-                                                Width="35" Height="30" Margin="2">
-                                            <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
-                                        </Button>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-
-                    <DataGrid.Style>
-                        <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Users.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.Style>
-                </DataGrid>
-
-                <!-- Message si aucun utilisateur -->
-                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Users.Count}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-                    <TextBlock Text="👤" FontSize="64" HorizontalAlignment="Center" Foreground="#DDD"/>
-                    <TextBlock Text="Aucun utilisateur trouvé" FontSize="18" Foreground="#999" 
-                              HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                </StackPanel>
-
-                <!-- Loader -->
-                <Border Grid.Row="1" Background="#80FFFFFF" 
-                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Chargement..." FontSize="16" 
-                                  Foreground="#1976D2" Margin="0,10,0,0"/>
+            <!-- BARRE DE FILTRES -->
+            <Border Background="#FFFFFF" 
+                   BorderBrush="#E2E8F0" 
+                   BorderThickness="1" 
+                   CornerRadius="12" 
+                   Padding="16" 
+                   Margin="0,0,0,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                </Border.Effect>
+            
+            <WrapPanel Orientation="Horizontal">
+                <!-- Recherche -->
+                <Border Background="#F8FAFC" 
+                       CornerRadius="8" 
+                       Height="40" 
+                       Width="400"
+                       Margin="0,0,16,0"
+                       Padding="12,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                FontSize="14"
+                                Foreground="#475569"
+                                VerticalContentAlignment="Center"
+                                Width="300"/>
                     </StackPanel>
                 </Border>
-            </Grid>
+                
+                <!-- Filtre par rôle -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                    <TextBlock Text="👤" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox ItemsSource="{Binding Roles}"
+                              SelectedItem="{Binding SelectedRole}"
+                              Width="160"
+                              Height="36"
+                              FontSize="13"
+                              Background="#FFFFFF"
+                              BorderBrush="#E2E8F0"
+                              BorderThickness="1"
+                              Padding="10,0"
+                              VerticalContentAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Bouton Réinitialiser -->
+                <Border Background="#F8FAFC"
+                       BorderBrush="#E2E8F0"
+                       BorderThickness="1"
+                       CornerRadius="8"
+                       Padding="10,8"
+                       Height="40"
+                       VerticalAlignment="Center"
+                       Cursor="Hand">
+                    <Button Background="Transparent"
+                           BorderThickness="0"
+                           Foreground="#475569"
+                           FontSize="13"
+                           Padding="0"
+                           Content="↺ Réinitialiser"
+                           Command="{Binding ResetFiltersCommand}"
+                           Cursor="Hand"/>
+                </Border>
+            </WrapPanel>
         </Border>
-    </Grid>
+
+            <!-- LISTE DES UTILISATEURS -->
+            <ItemsControl ItemsSource="{Binding Users}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource ModernCard}" Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Avatar de l'utilisateur -->
+                                <Border Grid.Column="0" 
+                                        Width="80" 
+                                        Height="80" 
+                                        Margin="0,0,20,0"
+                                        CornerRadius="40"
+                                        ClipToBounds="True">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#6366F1" Offset="0"/>
+                                            <GradientStop Color="#8B5CF6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Grid>
+                                        <!-- Image avec recadrage circulaire parfait -->
+                                        <Ellipse Width="80" 
+                                                Height="80"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center">
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="{Binding ImagePath, Converter={StaticResource UserImagePathConverter}}"
+                                                           Stretch="UniformToFill"
+                                                           AlignmentX="Center"
+                                                           AlignmentY="Center"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                        
+                                        <!-- Icône par défaut -->
+                                        <TextBlock Text="👤" 
+                                                  FontSize="40" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"
+                                                  Opacity="0.4">
+                                            <TextBlock.Visibility>
+                                                <Binding Path="ImagePath">
+                                                    <Binding.Converter>
+                                                        <helpers:NullToVisibilityConverter/>
+                                                    </Binding.Converter>
+                                                    <Binding.ConverterParameter>Inverse</Binding.ConverterParameter>
+                                                </Binding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Informations de l'utilisateur -->
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Nom et Rôle -->
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding FullName}" 
+                                                   FontSize="20" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="#1E293B"
+                                                   VerticalAlignment="Center"/>
+                                        
+                                        <!-- Badge de rôle -->
+                                        <Border Margin="12,0,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="12"/>
+                                                    <Setter Property="Padding" Value="10,5"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Role}" Value="SuperAdmin">
+                                                            <Setter Property="Background" Value="#FEE2E2"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Role}" Value="Admin">
+                                                            <Setter Property="Background" Value="#DBEAFE"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Role}" Value="User">
+                                                            <Setter Property="Background" Value="#D1FAE5"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding Role}" 
+                                                       FontSize="12" 
+                                                       FontWeight="Bold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Role}" Value="SuperAdmin">
+                                                                <Setter Property="Foreground" Value="#DC2626"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Role}" Value="Admin">
+                                                                <Setter Property="Foreground" Value="#2563EB"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Role}" Value="User">
+                                                                <Setter Property="Foreground" Value="#059669"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+
+                                        <!-- Badge de statut actif -->
+                                        <Border Background="#D1FAE5" 
+                                                CornerRadius="8" 
+                                                Padding="8,4" 
+                                                Margin="8,0,0,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="6" Height="6" Fill="#059669" Margin="0,0,6,0"/>
+                                                <TextBlock Text="Actif" 
+                                                           FontSize="12" 
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#059669"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Nom d'utilisateur -->
+                                    <TextBlock Grid.Row="1" 
+                                               Text="{Binding Username}" 
+                                               FontSize="16" 
+                                               FontWeight="Medium"
+                                               Foreground="#64748B" 
+                                               Margin="0,0,0,8"/>
+
+                                    <!-- Détails de l'utilisateur -->
+                                    <StackPanel Grid.Row="2" Orientation="Horizontal">
+                                        <Border Background="#F1F5F9" 
+                                                CornerRadius="8" 
+                                                Padding="8,4" 
+                                                Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📧" FontSize="12" Margin="0,0,4,0"/>
+                                                <TextBlock Text="{Binding Email}" 
+                                                           FontSize="13" 
+                                                           Foreground="#475569"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Background="#F1F5F9" 
+                                                CornerRadius="8" 
+                                                Padding="8,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📅" FontSize="12" Margin="0,0,4,0"/>
+                                                <TextBlock FontSize="13" Foreground="#475569">
+                                                    <Run Text="Créé le"/>
+                                                    <Run Text="{Binding CreatedAt, StringFormat=dd/MM/yyyy}"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Boutons d'action -->
+                                <StackPanel Grid.Column="2" 
+                                           VerticalAlignment="Center"
+                                           Orientation="Horizontal">
+                                    <Button Content="✏️ Modifier"
+                                            Command="{Binding DataContext.EditUserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource SecondaryButton}"
+                                            Margin="0,0,8,0"
+                                            ToolTip="Modifier l'utilisateur"/>
+                                    <Button Content="🗑️ Supprimer"
+                                            Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource DangerButton}"
+                                            ToolTip="Supprimer l'utilisateur"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

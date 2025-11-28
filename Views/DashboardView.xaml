@@ -1,310 +1,490 @@
-<!-- Views/DashboardView.xaml -->
 <UserControl x:Class="FleetManager.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:FleetManager.Views"
-             xmlns:viewmodels="clr-namespace:FleetManager.ViewModels"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
-             mc:Ignorable="d"
-             d:DesignHeight="800" d:DesignWidth="1200">
+             xmlns:helpers="clr-namespace:FleetManager.Helpers"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1200"
+             Background="#F8FAFC">
 
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <!-- Styles personnalisés -->
-        <Style x:Key="MetricCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="10"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="0,20,0,10"/>
-            <Setter Property="Foreground" Value="#333333"/>
-        </Style>
-
-        <Style x:Key="MetricValueStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="28"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,5"/>
-        </Style>
-
-        <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Foreground" Value="#666666"/>
-        </Style>
-
-        <Style x:Key="AlertHighStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FFEBEE"/>
-            <Setter Property="BorderBrush" Value="#F44336"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="2"/>
-        </Style>
-
-        <Style x:Key="AlertMediumStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FFF8E1"/>
-            <Setter Property="BorderBrush" Value="#FF9800"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="2"/>
-        </Style>
-
-        <Style x:Key="AlertLowStyle" TargetType="Border">
-            <Setter Property="Background" Value="#E8F5E8"/>
-            <Setter Property="BorderBrush" Value="#4CAF50"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="2"/>
-        </Style>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        <helpers:VehicleImagePathConverter x:Key="VehicleImagePathConverter"/>
+        <helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        
+        <!-- Animation pour les cartes -->
+        <Storyboard x:Key="CardHoverAnimation">
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                           To="1.02" Duration="0:0:0.2"/>
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                           To="1.02" Duration="0:0:0.2"/>
+        </Storyboard>
     </UserControl.Resources>
 
-    <Grid Background="#F5F5F5">
-        <!-- En-tête avec indicateur de chargement -->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <!-- Header -->
-        <Border Grid.Row="0" Background="White" Padding="20,15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-            <Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24">
+            <!-- EN-TÊTE Dashboard -->
+            <Grid Margin="0,0,0,24">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <TextBlock Text="📊 Tableau de bord" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding LastUpdated}" FontSize="12" Foreground="#666666"
-                               VerticalAlignment="Bottom" Margin="20,0,0,2"/>
+                
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Dashboard" 
+                              FontFamily="Inter, Segoe UI"
+                              FontSize="28" 
+                              FontWeight="Bold" 
+                              Foreground="#0F172A" 
+                              Margin="0,0,0,6"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Obtenez vos dernières mises à jour pour les 7 derniers jours" 
+                                  FontSize="14" 
+                                  Foreground="#64748B"/>
+                        <TextBlock Text=" • " 
+                                  FontSize="14" 
+                                  Foreground="#94A3B8"
+                                  Margin="4,0,4,0"/>
+                        <TextBlock Text="{Binding LastUpdated}" 
+                                  FontSize="14" 
+                                  Foreground="#3B82F6"
+                                  FontWeight="Medium"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Content="🔄 Actualiser" Command="{Binding RefreshCommand}"
-                            Padding="10,5" Margin="5" Background="#2196F3" Foreground="White"
-                            BorderThickness="0"/>
-                    <ProgressBar IsIndeterminate="{Binding IsLoading}" Width="100" Height="4"
-                                 Margin="10,0" VerticalAlignment="Center"
-                                 Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <Border Background="Transparent"
+                           BorderBrush="#E2E8F0"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Padding="12,8"
+                           Height="40"
+                           Margin="0,0,12,0"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="#475569"
+                               FontSize="14"
+                               Padding="0"
+                               Content="🔄 Actualiser"
+                               Command="{Binding RefreshCommand}"
+                               Cursor="Hand"/>
+                    </Border>
+                    <Border Background="#3B82F6"
+                           CornerRadius="8"
+                           Padding="12,8"
+                           Height="40"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="White"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Padding="0"
+                               Content="📊 Statistiques"
+                               Command="{Binding ViewDetailedStatisticsCommand}"
+                               Cursor="Hand"/>
+                    </Border>
                 </StackPanel>
             </Grid>
-        </Border>
 
-        <!-- Contenu principal avec ScrollViewer -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
-            <StackPanel>
+            <!-- ALERTES (si présentes) -->
+            <Border Background="#FEF2F2"
+                   BorderBrush="#FCA5A5"
+                   BorderThickness="1"
+                   CornerRadius="12"
+                   Padding="16"
+                   Margin="0,0,0,24"
+                   Visibility="{Binding AlertCount, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="⚠️" FontSize="18" Margin="0,0,12,0"/>
+                        <TextBlock Text="Alertes Critiques" 
+                                  FontSize="16" 
+                                  FontWeight="Bold" 
+                                  Foreground="#DC2626"/>
+                        <Border Background="#DC2626"
+                               CornerRadius="12"
+                               Padding="8,4"
+                               Margin="12,0,0,0">
+                            <TextBlock Text="{Binding Alerts.Count}" 
+                                      FontSize="12" 
+                                      FontWeight="Bold" 
+                                      Foreground="White"/>
+                        </Border>
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding Alerts}" MaxHeight="200">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White"
+                                       CornerRadius="8"
+                                       Padding="12"
+                                       Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" 
+                                                  FontSize="14" 
+                                                  FontWeight="SemiBold" 
+                                                  Foreground="#0F172A"
+                                                  Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding Message}" 
+                                                  FontSize="13" 
+                                                  Foreground="#64748B"
+                                                  TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
 
-                <!-- Alertes critiques -->
-                <Border Style="{StaticResource MetricCardStyle}"
-                    Visibility="{Binding CriticalAlerts, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <!-- KPI CARDS (4 cartes en haut) -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Carte 1: Véhicules Totaux -->
+                <Border Grid.Column="0" 
+                       Background="#FFFFFF" 
+                       BorderBrush="#E2E8F0" 
+                       BorderThickness="1" 
+                       CornerRadius="12" 
+                       Padding="20"
+                       Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#3B82F6" Opacity="0.12" BlurRadius="12" ShadowDepth="4"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="BorderBrush" Value="#3B82F6"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <StackPanel>
-                        <TextBlock Text="⚠️ Alertes critiques" FontSize="16" FontWeight="Bold"
-                                   Foreground="#F44336" Margin="0,0,0,10"/>
-                        <ItemsControl ItemsSource="{Binding Alerts}" MaxHeight="100">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                            <Border Margin="2" Padding="8" CornerRadius="3" Background="#FFEBEE"
-                                            Visibility="{Binding Priority, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="🚨" Margin="0,0,8,0"/>
-                                            <TextBlock Text="{Binding VehicleRegistration}" FontWeight="Bold" Margin="0,0,8,0"/>
-                                            <TextBlock Text="-" Margin="0,0,8,0"/>
-                                            <TextBlock Text="{Binding Message}"/>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Width="48" Height="48" Background="#EFF6FF" CornerRadius="10">
+                                <TextBlock Text="🚗" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Véhicules" 
+                                          FontSize="12" 
+                                          Foreground="#64748B"/>
+                                <TextBlock Text="{Binding TotalVehicles}" 
+                                          FontSize="24" 
+                                          FontWeight="Bold" 
+                                          Foreground="#0F172A"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Background="#EFF6FF" CornerRadius="6" Padding="6,4">
+                            <TextBlock FontSize="12" Foreground="#3B82F6" FontWeight="Medium">
+                                <Run Text="{Binding ActiveVehicles}"/>
+                                <Run Text="actifs"/>
+                            </TextBlock>
+                        </Border>
                     </StackPanel>
                 </Border>
 
-                <!-- Indicateurs clés de performance (KPI) -->
-                <TextBlock Style="{StaticResource SectionTitleStyle}" Text="📈 Indicateurs clés"/>
+                <!-- Carte 2: Carburant -->
+                <Border Grid.Column="2" 
+                       Background="#FFFFFF" 
+                       BorderBrush="#E2E8F0" 
+                       BorderThickness="1" 
+                       CornerRadius="12" 
+                       Padding="20"
+                       Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#10B981" Opacity="0.12" BlurRadius="12" ShadowDepth="4"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="BorderBrush" Value="#10B981"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Width="48" Height="48" Background="#F0FDF4" CornerRadius="10">
+                                <TextBlock Text="⛽" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Pleins" 
+                                          FontSize="12" 
+                                          Foreground="#64748B"/>
+                                <TextBlock Text="{Binding TotalFuelRecords}" 
+                                          FontSize="24" 
+                                          FontWeight="Bold" 
+                                          Foreground="#0F172A"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Background="#F0FDF4" CornerRadius="6" Padding="6,4">
+                            <TextBlock FontSize="12" Foreground="#10B981" FontWeight="Medium">
+                                <Run Text="{Binding MonthlyFuelCost, StringFormat={}{0:C0}}"/>
+                                <Run Text="/mois"/>
+                            </TextBlock>
+                        </Border>
+                    </StackPanel>
+                </Border>
 
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Carte 3: Consommation -->
+                <Border Grid.Column="4" 
+                       Background="#FFFFFF" 
+                       BorderBrush="#E2E8F0" 
+                       BorderThickness="1" 
+                       CornerRadius="12" 
+                       Padding="20"
+                       Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#F59E0B" Opacity="0.12" BlurRadius="12" ShadowDepth="4"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="BorderBrush" Value="#F59E0B"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Width="48" Height="48" Background="#FEF3C7" CornerRadius="10">
+                                <TextBlock Text="📊" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Consommation" 
+                                          FontSize="12" 
+                                          Foreground="#64748B"/>
+                                <TextBlock FontSize="24" FontWeight="Bold" Foreground="#0F172A">
+                                    <Run Text="{Binding AverageFuelConsumption, StringFormat={}{0:F1}}"/>
+                                    <Run Text="L/100km" FontSize="16"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Background="#FEF3C7" CornerRadius="6" Padding="6,4">
+                            <TextBlock FontSize="12" Foreground="#D97706" FontWeight="Medium">
+                                <Run Text="Moyenne flotte"/>
+                            </TextBlock>
+                        </Border>
+                    </StackPanel>
+                </Border>
 
-                    <!-- Total véhicules -->
-                    <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}" Background="#E3F2FD">
+                <!-- Carte 4: Coût Total -->
+                <Border Grid.Column="6" 
+                       Background="#FFFFFF" 
+                       BorderBrush="#E2E8F0" 
+                       BorderThickness="1" 
+                       CornerRadius="12" 
+                       Padding="20"
+                       Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#EF4444" Opacity="0.12" BlurRadius="12" ShadowDepth="4"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="BorderBrush" Value="#EF4444"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Width="48" Height="48" Background="#FEE2E2" CornerRadius="10">
+                                <TextBlock Text="💳" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Coût Total" 
+                                          FontSize="12" 
+                                          Foreground="#64748B"/>
+                                <TextBlock FontSize="24" FontWeight="Bold" Foreground="#0F172A">
+                                    <Run Text="{Binding TotalFuelCost, StringFormat={}{0:N0}}"/>
+                                    <Run Text="€" FontSize="16"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Background="#FEE2E2" CornerRadius="6" Padding="6,4">
+                            <TextBlock FontSize="12" Foreground="#DC2626" FontWeight="Medium">
+                                <Run Text="{Binding TotalMaintenanceCost, StringFormat={}{0:N0}}"/>
+                                <Run Text="€ maintenance"/>
+                            </TextBlock>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- GRAPHIQUES ET VÉHICULES (Layout 2 colonnes) -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- COLONNE GAUCHE: Graphiques -->
+                <StackPanel Grid.Column="0">
+                    <!-- Graphique Consommation -->
+                    <Border Background="#FFFFFF" 
+                           BorderBrush="#E2E8F0" 
+                           BorderThickness="1" 
+                           CornerRadius="12" 
+                           Padding="20" 
+                           Margin="0,0,0,16">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                        </Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="🚗" FontSize="30" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalVehicles}" Style="{StaticResource MetricValueStyle}" Foreground="#1976D2"/>
-                            <TextBlock Text="Véhicules" Style="{StaticResource MetricLabelStyle}"/>
-                            <TextBlock Text="{Binding ActiveVehiclePercentage, StringFormat={}{0:F0}% actifs}"
-                                       FontSize="10" HorizontalAlignment="Center" Foreground="#4CAF50"/>
+                            <TextBlock Text="📈 Tendance de Consommation" 
+                                      FontSize="16" 
+                                      FontWeight="Bold" 
+                                      Foreground="#0F172A" 
+                                      Margin="0,0,0,16"/>
+                            <lvc:CartesianChart Series="{Binding ConsumptionSeries}"
+                                               Height="220"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Total pleins -->
-                    <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}" Background="#E8F5E8">
+                    <!-- Graphique Coûts -->
+                    <Border Background="#FFFFFF" 
+                           BorderBrush="#E2E8F0" 
+                           BorderThickness="1" 
+                           CornerRadius="12" 
+                           Padding="20">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                        </Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="⛽" FontSize="30" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalFuelRecords}" Style="{StaticResource MetricValueStyle}" Foreground="#388E3C"/>
-                            <TextBlock Text="Pleins" Style="{StaticResource MetricLabelStyle}"/>
-                            <TextBlock Text="{Binding MonthlyFuelCost, StringFormat={}{0:C} ce mois}"
-                                       FontSize="10" HorizontalAlignment="Center" Foreground="#FF9800"/>
+                            <TextBlock Text="💰 Évolution des Coûts" 
+                                      FontSize="16" 
+                                      FontWeight="Bold" 
+                                      Foreground="#0F172A" 
+                                      Margin="0,0,0,16"/>
+                            <lvc:CartesianChart Series="{Binding CostSeries}"
+                                               Height="220"/>
                         </StackPanel>
                     </Border>
+                </StackPanel>
 
-                    <!-- Consommation moyenne -->
-                    <Border Grid.Column="2" Style="{StaticResource MetricCardStyle}" Background="#FFF3E0">
+                <!-- COLONNE DROITE: Top Véhicules -->
+                <StackPanel Grid.Column="2">
+                    <Border Background="#FFFFFF" 
+                           BorderBrush="#E2E8F0" 
+                           BorderThickness="1" 
+                           CornerRadius="12" 
+                           Padding="20">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                        </Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="📊" FontSize="30" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding AverageFuelConsumption, StringFormat={}{0:F1}}" Style="{StaticResource MetricValueStyle}" Foreground="#F57C00"/>
-                            <TextBlock Text="L/100km" Style="{StaticResource MetricLabelStyle}"/>
-                            <TextBlock Text="Moyenne flotte" FontSize="10" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Coût total -->
-                    <Border Grid.Column="3" Style="{StaticResource MetricCardStyle}" Background="#FCE4EC">
-                        <StackPanel>
-                            <TextBlock Text="💰" FontSize="30" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalFuelCost, StringFormat={}{0:C}}" Style="{StaticResource MetricValueStyle}" Foreground="#C2185B"/>
-                            <TextBlock Text="Carburant" Style="{StaticResource MetricLabelStyle}"/>
-                            <TextBlock Text="{Binding FuelToMaintenanceRatio, StringFormat=Ratio: {0:F1}}"
-                                       FontSize="10" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Maintenance -->
-                    <Border Grid.Column="4" Style="{StaticResource MetricCardStyle}" Background="#F3E5F5">
-                        <StackPanel>
-                            <TextBlock Text="🔧" FontSize="30" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalMaintenanceCost, StringFormat={}{0:C}}" Style="{StaticResource MetricValueStyle}" Foreground="#7B1FA2"/>
-                            <TextBlock Text="Maintenance" Style="{StaticResource MetricLabelStyle}"/>
-                            <TextBlock Text="{Binding VehiclesInMaintenance, StringFormat={}{0} en cours}"
-                                       FontSize="10" HorizontalAlignment="Center" Foreground="#FF5722"/>
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <!-- Graphiques et analyses -->
-                <Grid Margin="0,20,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Graphiques des tendances -->
-                    <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}" Margin="0,0,10,0">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="📈 Tendances sur 30 jours"/>
-
-                            <TabControl Background="Transparent" BorderThickness="0">
-                                <TabItem Header="Consommation" Background="White">
-                                    <Grid Height="200" Margin="10">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="28"/>
-                                        </Grid.RowDefinitions>
-                                        <lvc:CartesianChart x:Name="DashboardConsumptionChart" Series="{Binding ConsumptionSeries}" Grid.Row="0" LegendPosition="Top" />
-                                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                            <ItemsControl ItemsSource="{Binding TrendLabels}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal"/>
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding}" FontSize="10" Margin="6,0" HorizontalAlignment="Center">
-                                                            <TextBlock.RenderTransform>
-                                                                <RotateTransform Angle="45"/>
-                                                            </TextBlock.RenderTransform>
-                                                        </TextBlock>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </ScrollViewer>
-                                    </Grid>
-                                </TabItem>
-
-                                <TabItem Header="Coûts" Background="White">
-                                    <Grid Height="200" Margin="10">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="*"/>
-                                            <RowDefinition Height="28"/>
-                                        </Grid.RowDefinitions>
-                                        <lvc:CartesianChart x:Name="DashboardCostChart" Series="{Binding CostSeries}" Grid.Row="0" LegendPosition="Top" />
-                                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                            <ItemsControl ItemsSource="{Binding TrendLabels}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal"/>
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding}" FontSize="10" Margin="6,0" HorizontalAlignment="Center">
-                                                            <TextBlock.RenderTransform>
-                                                                <RotateTransform Angle="45"/>
-                                                            </TextBlock.RenderTransform>
-                                                        </TextBlock>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </ScrollViewer>
-                                    </Grid>
-                                </TabItem>
-                            </TabControl>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Répartition par type -->
-                    <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="🚙 Répartition par type"/>
-
-                            <ItemsControl ItemsSource="{Binding VehicleTypeStats}" MaxHeight="200">
+                            <TextBlock Text="🏆 Top Véhicules" 
+                                      FontSize="16" 
+                                      FontWeight="Bold" 
+                                      Foreground="#0F172A" 
+                                      Margin="0,0,0,16"/>
+                            
+                            <ItemsControl ItemsSource="{Binding TopVehiclesByCost}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
-                                                CornerRadius="4" Padding="8" Margin="2">
+                                        <Border Background="#F8FAFC"
+                                               CornerRadius="8"
+                                               Padding="12"
+                                               Margin="0,0,0,8"
+                                               Cursor="Hand">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="{Binding TypeName}" FontWeight="Bold" FontSize="12"/>
-                                                    <TextBlock Text="{Binding AverageConsumption, StringFormat={}{0:F1} L/100km}"
-                                                               FontSize="10" Foreground="#666666"/>
+                                                
+                                                <Border Grid.Column="0" 
+                                                       Width="40" 
+                                                       Height="40" 
+                                                       Background="#EFF6FF" 
+                                                       CornerRadius="8" 
+                                                       Margin="0,0,12,0">
+                                                    <TextBlock Text="🚗" 
+                                                              FontSize="20" 
+                                                              HorizontalAlignment="Center" 
+                                                              VerticalAlignment="Center"/>
+                                                </Border>
+                                                
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding RegistrationNumber}" 
+                                                              FontSize="14" 
+                                                              FontWeight="SemiBold" 
+                                                              Foreground="#0F172A"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding TotalMileage, Mode=OneWay, StringFormat={}{0:N0}}" 
+                                                                  FontSize="12" 
+                                                                  Foreground="#64748B"/>
+                                                        <TextBlock Text=" km" 
+                                                                  FontSize="12" 
+                                                                  Foreground="#64748B"/>
+                                                    </StackPanel>
                                                 </StackPanel>
-
-                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding Count}" FontWeight="Bold" FontSize="14"/>
-                                                    <TextBlock Text="{Binding TotalCost, StringFormat={}{0:C}}"
-                                                               FontSize="10" Foreground="#FF9800"/>
+                                                
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding TotalCost, Mode=OneWay, StringFormat={}{0:N0}}" 
+                                                                  FontSize="14" 
+                                                                  FontWeight="Bold" 
+                                                                  Foreground="#3B82F6"/>
+                                                        <TextBlock Text=" €" 
+                                                                  FontSize="14" 
+                                                                  FontWeight="Bold" 
+                                                                  Foreground="#3B82F6"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="Coût total" 
+                                                              FontSize="10" 
+                                                              Foreground="#94A3B8"/>
                                                 </StackPanel>
                                             </Grid>
                                         </Border>
@@ -313,250 +493,256 @@
                             </ItemsControl>
                         </StackPanel>
                     </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- FILTRES ET VÉHICULES DISPONIBLES -->
+            <StackPanel>
+                <!-- En-tête Section -->
+                <Grid Margin="0,0,0,16">
+                    <TextBlock Text="Véhicules Disponibles" 
+                              FontFamily="Inter, Segoe UI"
+                              FontSize="20" 
+                              FontWeight="Bold" 
+                              Foreground="#0F172A"/>
+                    <Border HorizontalAlignment="Right"
+                           Background="Transparent"
+                           BorderBrush="#E2E8F0"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Padding="12,8"
+                           Height="36"
+                           Cursor="Hand">
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Foreground="#475569"
+                               FontSize="13"
+                               Padding="0"
+                               HorizontalContentAlignment="Center"
+                               VerticalContentAlignment="Center"
+                               Content="🔍 Filtrer"
+                               Cursor="Hand"/>
+                    </Border>
                 </Grid>
 
-                <!-- Top véhicules et alertes -->
-                <Grid Margin="0,20,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Top consommateurs -->
-                    <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="⚡ Top consommateurs"/>
-
-                            <ListView ItemsSource="{Binding TopVehiclesByConsumption}"
-                                      Background="Transparent" BorderThickness="0" MaxHeight="200">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="5">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="{Binding RegistrationNumber}" FontWeight="Bold" FontSize="12"/>
-                                                <TextBlock Text="{Binding VehicleName}" FontSize="10" Foreground="#666666"/>
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Column="1" Text="{Binding AverageConsumption, StringFormat={}{0:F1} L/100km}"
-                                                       FontWeight="Bold" FontSize="12" Foreground="#F44336"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                <!-- FILTRES COMPACTS -->
+                <Border Background="#FFFFFF" 
+                       BorderBrush="#E2E8F0" 
+                       BorderThickness="1" 
+                       CornerRadius="12" 
+                       Padding="16" 
+                       Margin="0,0,0,20">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                    </Border.Effect>
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                            <TextBlock Text="📍" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox SelectedIndex="0"
+                                     Width="160"
+                                     Height="36"
+                                     FontSize="13"
+                                     Background="#FFFFFF"
+                                     BorderBrush="#E2E8F0"
+                                     BorderThickness="1"
+                                     Padding="10,0"
+                                     VerticalContentAlignment="Center">
+                                <ComboBoxItem Content="Toutes les localisations"/>
+                                <ComboBoxItem Content="Paris, France"/>
+                                <ComboBoxItem Content="Lyon, France"/>
+                            </ComboBox>
                         </StackPanel>
-                    </Border>
-
-                    <!-- Top coûteux -->
-                    <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="💸 Top coûteux"/>
-
-                            <ListView ItemsSource="{Binding TopVehiclesByCost}"
-                                      Background="Transparent" BorderThickness="0" MaxHeight="200">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="5">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="{Binding RegistrationNumber}" FontWeight="Bold" FontSize="12"/>
-                                                <TextBlock Text="{Binding VehicleName}" FontSize="10" Foreground="#666666"/>
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Column="1" Text="{Binding TotalCost, StringFormat={}{0:C}}"
-                                                       FontWeight="Bold" FontSize="12" Foreground="#FF9800"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                            <TextBlock Text="📅" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <DatePicker SelectedDate="{Binding StartDate}"
+                                       Width="140" 
+                                       Height="36"
+                                       FontSize="13"
+                                       VerticalContentAlignment="Center"/>
                         </StackPanel>
-                    </Border>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                            <TextBlock Text="à" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#94A3B8"/>
+                            <DatePicker SelectedDate="{Binding EndDate}"
+                                       Width="140" 
+                                       Height="36"
+                                       FontSize="13"
+                                       VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <Border Background="#F8FAFC"
+                               BorderBrush="#E2E8F0"
+                               BorderThickness="1"
+                               CornerRadius="8"
+                               Padding="10,8"
+                               Height="36"
+                               VerticalAlignment="Center"
+                               Cursor="Hand">
+                            <Button Background="Transparent"
+                                   BorderThickness="0"
+                                   Foreground="#475569"
+                                   FontSize="13"
+                                   Padding="0"
+                                   Content="↺ Réinitialiser"
+                                   Cursor="Hand"/>
+                        </Border>
+                    </WrapPanel>
+                </Border>
 
-                    <!-- Alertes détaillées -->
-                    <Border Grid.Column="2" Style="{StaticResource MetricCardStyle}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="🔔 Alertes"/>
-
-                            <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
-                                <ItemsControl ItemsSource="{Binding Alerts}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                                <Border Margin="2" Padding="8" CornerRadius="4"
-                                                    Background="#FFFFFF">
-                                                <StackPanel>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="{Binding Type}" FontSize="12" FontWeight="Bold"/>
-                                                        <TextBlock Text="{Binding Priority}" FontSize="10"
-                                                                   Foreground="#666666" Margin="10,0,0,0"/>
-                                                    </StackPanel>
-                                                    <TextBlock Text="{Binding VehicleRegistration}" FontWeight="Bold" FontSize="11"/>
-                                                    <TextBlock Text="{Binding Message}" FontSize="10"
-                                                               TextWrapping="Wrap" Foreground="#444444"/>
-                                                    <TextBlock Text="{Binding Date, StringFormat=dd/MM/yyyy}"
-                                                               FontSize="9" Foreground="#999999"/>
-                                                </StackPanel>
+                <!-- GRILLE DE CARTES VÉHICULES (3 colonnes) -->
+                <ItemsControl ItemsSource="{Binding Vehicles}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#FFFFFF" 
+                                   BorderBrush="#E2E8F0" 
+                                   BorderThickness="1" 
+                                   CornerRadius="12" 
+                                   Padding="0"
+                                   Margin="0,0,12,12"
+                                   Width="320"
+                                   Cursor="Hand">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                </Border.RenderTransform>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="2"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect Color="#3B82F6" Opacity="0.15" BlurRadius="16" ShadowDepth="6"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Setter Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel>
+                                    <!-- Image du véhicule -->
+                                    <Border Height="160" 
+                                           Background="#F1F5F9" 
+                                           CornerRadius="12,12,0,0"
+                                           Margin="0,0,0,0"
+                                           ClipToBounds="True">
+                                        <Grid>
+                                            <Image Source="{Binding ImagePath, Converter={StaticResource VehicleImagePathConverter}}"
+                                                  Stretch="UniformToFill"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Visibility="{Binding ImagePath, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                            <TextBlock Text="🚗" 
+                                                      FontSize="72" 
+                                                      HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center"
+                                                      Opacity="0.4"
+                                                      Visibility="{Binding ImagePath, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                                            <!-- Bookmark icon -->
+                                            <Border Width="32" 
+                                                   Height="32" 
+                                                   Background="#FFFFFF" 
+                                                   CornerRadius="6" 
+                                                   HorizontalAlignment="Right" 
+                                                   VerticalAlignment="Top"
+                                                   Margin="12,12,0,0"
+                                                   Cursor="Hand">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#000000" Opacity="0.1" BlurRadius="4" ShadowDepth="2"/>
+                                                </Border.Effect>
+                                                <TextBlock Text="🔖" 
+                                                          FontSize="16" 
+                                                          HorizontalAlignment="Center" 
+                                                          VerticalAlignment="Center"/>
                                             </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </StackPanel>
-                    </Border>
-                </Grid>
+                                        </Grid>
+                                    </Border>
 
-                <!-- Mouvements récents -->
-                <Border Style="{StaticResource MetricCardStyle}" Margin="0,20,0,0">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="📋 Mouvements récents"/>
+                                    <!-- Détails du véhicule -->
+                                    <StackPanel Margin="16">
+                                        <TextBlock Text="{Binding DisplayName}" 
+                                                  FontSize="15" 
+                                                  FontWeight="SemiBold" 
+                                                  Foreground="#0F172A" 
+                                                  Margin="0,0,0,10"/>
+                                        
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Type" 
+                                                          FontSize="11" 
+                                                          Foreground="#94A3B8" 
+                                                          Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding VehicleType}" 
+                                                          FontSize="13" 
+                                                          FontWeight="Medium" 
+                                                          Foreground="#0F172A"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="Carburant" 
+                                                          FontSize="11" 
+                                                          Foreground="#94A3B8" 
+                                                          Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding FuelType}" 
+                                                          FontSize="13" 
+                                                          FontWeight="Medium" 
+                                                          Foreground="#0F172A"/>
+                                            </StackPanel>
+                                        </Grid>
 
-                        <DataGrid ItemsSource="{Binding RecentMovements}"
-                                  AutoGenerateColumns="False"
-                                  Background="White"
-                                  BorderThickness="0"
-                                  GridLinesVisibility="Horizontal"
-                                  HeadersVisibility="Column"
-                                  RowBackground="White"
-                                  AlternatingRowBackground="#F8F9FA"
-                                  MaxHeight="300">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Véhicule" Binding="{Binding VehicleName}" Width="200"/>
-                                <DataGridTextColumn Header="Type" Binding="{Binding MovementType}" Width="100"/>
-                                <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd/MM/yyyy HH:mm}" Width="120"/>
-                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
-                                <DataGridTextColumn Header="Coût" Binding="{Binding Cost, StringFormat={}{0:C}}" Width="80"/>
-                                <DataGridTextColumn Header="Kilométrage" Binding="{Binding Mileage, StringFormat={}{0:N0} km}" Width="100"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Statistiques mensuelles - Évolution sur 12 mois -->
-                <Border Style="{StaticResource MetricCardStyle}" Margin="0,20,0,0">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="📅 Évolution sur 12 mois"/>
-
-                        <Grid Margin="0,10,0,0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="300"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- Graphique avec LiveCharts -->
-                            <lvc:CartesianChart x:Name="MonthlyTrendsChart" 
-                                                Series="{Binding MonthlyTrendsSeries}"
-                                                Grid.Row="0"
-                                                LegendPosition="Top"
-                                                TooltipPosition="Top">
-                            </lvc:CartesianChart>
-
-                            <!-- Tableau récapitulatif des données mensuelles -->
-                            <Border Grid.Row="1" 
-                                    Background="#F8F9FA" 
-                                    CornerRadius="6" 
-                                    Padding="15" 
-                                    Margin="0,15,0,0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Totaux -->
-                                    <StackPanel Grid.Column="0" Margin="5">
-                                        <TextBlock Text="💰 Carburant Total" 
-                                                   FontSize="11" 
-                                                   FontWeight="SemiBold" 
-                                                   Foreground="#4CAF50"
-                                                   Margin="0,0,0,5"/>
-                                        <TextBlock Text="{Binding YearlyFuelTotal, StringFormat={}{0:C0}}" 
-                                                   FontSize="18" 
-                                                   FontWeight="Bold" 
-                                                   Foreground="#2E7D32"/>
+                                                        <Grid Margin="0,4,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <Border Background="#EFF6FF" 
+                                                   BorderBrush="#3B82F6" 
+                                                   BorderThickness="1" 
+                                                   CornerRadius="6" 
+                                                   Padding="8,6"
+                                                   HorizontalAlignment="Stretch">
+                                                <TextBlock Text="{Binding Status}" 
+                                                          FontSize="12" 
+                                                          FontWeight="SemiBold" 
+                                                          Foreground="#3B82F6"
+                                                          HorizontalAlignment="Center"/>
+                                            </Border>
+                                            
+                                            <TextBlock Grid.Column="1" 
+                                                      FontSize="15" 
+                                                      FontWeight="Bold" 
+                                                      Foreground="#3B82F6"
+                                                      VerticalAlignment="Center"
+                                                      Margin="12,0,0,0">
+                                                <Run Text="{Binding PurchasePrice, StringFormat={}{0:N0}}"/>
+                                                <Run Text="€"/>
+                                            </TextBlock>
+                                        </Grid>
                                     </StackPanel>
-
-                                    <StackPanel Grid.Column="1" Margin="5">
-                                        <TextBlock Text="🔧 Maintenance Total" 
-                                                   FontSize="11" 
-                                                   FontWeight="SemiBold" 
-                                                   Foreground="#FF9800"
-                                                   Margin="0,0,0,5"/>
-                                        <TextBlock Text="{Binding YearlyMaintenanceTotal, StringFormat={}{0:C0}}" 
-                                                   FontSize="18" 
-                                                   FontWeight="Bold" 
-                                                   Foreground="#E65100"/>
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="2" Margin="5">
-                                        <TextBlock Text="📊 Coût Total Annuel" 
-                                                   FontSize="11" 
-                                                   FontWeight="SemiBold" 
-                                                   Foreground="#2196F3"
-                                                   Margin="0,0,0,5"/>
-                                        <TextBlock Text="{Binding YearlyOperatingCost, StringFormat={}{0:C0}}" 
-                                                   FontSize="18" 
-                                                   FontWeight="Bold" 
-                                                   Foreground="#0D47A1"/>
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="3" Margin="5">
-                                        <TextBlock Text="📈 Moyenne Mensuelle" 
-                                                   FontSize="11" 
-                                                   FontWeight="SemiBold" 
-                                                   Foreground="#9C27B0"
-                                                   Margin="0,0,0,5"/>
-                                        <TextBlock Text="{Binding MonthlyAverageCost, StringFormat={}{0:C0}}" 
-                                                   FontSize="18" 
-                                                   FontWeight="Bold" 
-                                                   Foreground="#6A1B9A"/>
-                                    </StackPanel>
-                                </Grid>
+                                </StackPanel>
                             </Border>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Actions rapides -->
-                <Border Style="{StaticResource MetricCardStyle}" Margin="0,20,0,20">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="⚡ Actions rapides"/>
-
-                        <WrapPanel HorizontalAlignment="Center" Margin="0,10">
-                                <Button Content="📊 Voir statistiques détaillées"
-                                    Padding="15,8" Margin="5"
-                                    Background="#2196F3" Foreground="White"
-                                    BorderThickness="0"
-                                    Command="{Binding ViewDetailedStatisticsCommand}"/>
-                            <Button Content="📝 Générer rapport"
-                                    Padding="15,8" Margin="5"
-                                    Background="#4CAF50" Foreground="White"
-                                    BorderThickness="0"
-                                    Command="{Binding GenerateReportCommand}"/>
-                            <Button Content="📤 Exporter données"
-                                    Padding="15,8" Margin="5"
-                                    Background="#FF9800" Foreground="White"
-                                    BorderThickness="0"
-                                    Command="{Binding ExportDataCommand}"/>
-                            <Button Content="⚙️ Configuration"
-                                    Padding="15,8" Margin="5"
-                                    Background="#9E9E9E" Foreground="White"
-                                    BorderThickness="0"
-                                    Command="{Binding OpenSettingsCommand}"/>
-                        </WrapPanel>
-                    </StackPanel>
-                </Border>
-
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
-        </ScrollViewer>
-    </Grid>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

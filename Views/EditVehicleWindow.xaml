@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:FleetManager.Models"
+        xmlns:helpers="clr-namespace:FleetManager.Helpers"
         mc:Ignorable="d"
         Title="Modifier le véhicule"
         Height="700" Width="500"
@@ -21,18 +22,18 @@
         <!-- Titre -->
         <TextBlock Grid.Row="0"
                    Text="✏️ Modifier le véhicule"
-                   Style="{StaticResource TitleStyle}"
+                   Style="{StaticResource H1}"
                    HorizontalAlignment="Center"
                    Margin="0,0,0,20"/>
 
         <!-- Formulaire -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Border Style="{StaticResource CardStyle}">
+            <Border Style="{StaticResource ModernCard}">
                 <StackPanel>
 
                     <!-- Section Informations générales -->
                     <TextBlock Text="Informations générales"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
@@ -84,7 +85,7 @@
 
                     <!-- Section Caractéristiques techniques -->
                     <TextBlock Text="Caractéristiques techniques"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
@@ -150,7 +151,7 @@
 
                     <!-- Section Acquisition et Statut -->
                     <TextBlock Text="Informations d'acquisition et statut"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Grid>
@@ -208,9 +209,81 @@
                     <!-- Separator -->
                     <Separator Margin="0,20"/>
 
+                    <!-- Section Image -->
+                    <TextBlock Text="Photo du véhicule"
+                               Style="{StaticResource H3}"
+                               Foreground="{StaticResource PrimaryBrush}"/>
+
+                    <Grid Margin="0,10,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Aperçu de l'image -->
+                        <Border Grid.Row="0"
+                                Width="300"
+                                Height="200"
+                                Background="#F1F5F9"
+                                BorderBrush="#E2E8F0"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                HorizontalAlignment="Left"
+                                Margin="0,0,0,12">
+                            <Grid>
+                                <Image Source="{Binding SelectedImagePreview}"
+                                       Stretch="UniformToFill"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center">
+                                    <Image.Clip>
+                                        <RectangleGeometry Rect="0,0,300,200" RadiusX="8" RadiusY="8"/>
+                                    </Image.Clip>
+                                </Image>
+                                <TextBlock Text="Aucune image sélectionnée"
+                                          FontSize="12"
+                                          Foreground="#94A3B8"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center">
+                                    <TextBlock.Visibility>
+                                        <Binding Path="SelectedImagePreview">
+                                            <Binding.Converter>
+                                                <helpers:NullToVisibilityConverter/>
+                                            </Binding.Converter>
+                                            <Binding.ConverterParameter>Inverse</Binding.ConverterParameter>
+                                        </Binding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+
+                        <!-- Boutons pour gérer l'image -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Content="📷 Sélectionner une image"
+                                    Command="{Binding SelectImageCommand}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="180"
+                                    Margin="0,0,8,0"/>
+                            <Button Content="🗑️ Supprimer"
+                                    Command="{Binding RemoveImageCommand}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Width="120">
+                                <Button.Visibility>
+                                    <Binding Path="SelectedImagePreview">
+                                        <Binding.Converter>
+                                            <helpers:NullToVisibilityConverter/>
+                                        </Binding.Converter>
+                                    </Binding>
+                                </Button.Visibility>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Separator -->
+                    <Separator Margin="0,20"/>
+
                     <!-- Section Notes -->
                     <TextBlock Text="Notes et remarques"
-                               Style="{StaticResource SubtitleStyle}"
+                               Style="{StaticResource H3}"
                                Foreground="{StaticResource PrimaryBrush}"/>
 
                     <Label Content="Description / Remarques" FontWeight="SemiBold"/>

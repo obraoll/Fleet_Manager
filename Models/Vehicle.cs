@@ -69,6 +69,10 @@ namespace FleetManager.Models
         [Column("Notes")]
         public string? Notes { get; set; }
 
+        [MaxLength(500)]
+        [Column("ImagePath")]
+        public string? ImagePath { get; set; }
+
         [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

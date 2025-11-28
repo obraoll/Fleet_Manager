@@ -7,6 +7,8 @@ using System.Windows.Input;
 using FleetManager.Helpers;
 using FleetManager.Models;
 using FleetManager.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 
 namespace FleetManager.ViewModels
 {
@@ -29,6 +31,8 @@ namespace FleetManager.ViewModels
         private decimal _purchasePrice;
         private string _status = "Actif";
         private string _description = string.Empty;
+        private string? _selectedImagePath;
+        private System.Windows.Media.Imaging.BitmapImage? _selectedImagePreview;
 
         // Propriétés de validation
         private string _validationMessage = string.Empty;
@@ -43,6 +47,8 @@ namespace FleetManager.ViewModels
             // Initialiser les commandes
             SaveCommand = new AsyncRelayCommand(SaveVehicleAsync, CanExecuteSave);
             CancelCommand = new RelayCommand(param => CancelAdd(param as Window));
+            SelectImageCommand = new RelayCommand(_ => SelectImage());
+            RemoveImageCommand = new RelayCommand(_ => RemoveImage());
 
             // Validation en temps réel
             PropertyChanged += OnPropertyChanged;
@@ -146,6 +152,48 @@ namespace FleetManager.ViewModels
             set => SetProperty(ref _description, value);
         }
 
+        public string? SelectedImagePath
+        {
+            get => _selectedImagePath;
+            set
+            {
+                if (SetProperty(ref _selectedImagePath, value))
+                {
+                    UpdateImagePreview();
+                }
+            }
+        }
+
+        public System.Windows.Media.Imaging.BitmapImage? SelectedImagePreview
+        {
+            get => _selectedImagePreview;
+            set => SetProperty(ref _selectedImagePreview, value);
+        }
+
+        private void UpdateImagePreview()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(SelectedImagePath) || !System.IO.File.Exists(SelectedImagePath))
+                {
+                    SelectedImagePreview = null;
+                    return;
+                }
+
+                var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(SelectedImagePath, UriKind.Absolute);
+                bitmap.EndInit();
+                bitmap.Freeze();
+                SelectedImagePreview = bitmap;
+            }
+            catch
+            {
+                SelectedImagePreview = null;
+            }
+        }
+
         #endregion
 
         #region Propriétés de validation
@@ -174,6 +222,8 @@ namespace FleetManager.ViewModels
 
         public AsyncRelayCommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
+        public ICommand SelectImageCommand { get; }
+        public ICommand RemoveImageCommand { get; }
 
         #endregion
 
@@ -246,6 +296,27 @@ namespace FleetManager.ViewModels
                    !string.IsNullOrWhiteSpace(Brand) && !string.IsNullOrWhiteSpace(Model);
         }
 
+        private void SelectImage()
+        {
+            var openDialog = new OpenFileDialog
+            {
+                Title = "Sélectionner une image du véhicule",
+                Filter = "Images|*.jpg;*.jpeg;*.png;*.bmp;*.gif|Tous les fichiers|*.*",
+                FilterIndex = 1
+            };
+
+            if (openDialog.ShowDialog() == true)
+            {
+                SelectedImagePath = openDialog.FileName;
+            }
+        }
+
+        private void RemoveImage()
+        {
+            SelectedImagePath = null;
+            SelectedImagePreview = null;
+        }
+
         private async Task SaveVehicleAsync(object? parameter)
         {
             try
@@ -260,6 +331,15 @@ namespace FleetManager.ViewModels
                         "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
+
+                // Si une image a été sélectionnée, la sauvegarder temporairement pour obtenir le VehicleId
+                string? tempImagePath = null;
+                if (!string.IsNullOrWhiteSpace(SelectedImagePath))
+                {
+                    // On va sauvegarder l'image après avoir créé le véhicule (pour avoir l'ID)
+                    tempImagePath = SelectedImagePath;
+                }
+                // Si SelectedImagePath est null, on ne mettra pas d'image (ImagePath restera null)
 
                 // Créer l'objet véhicule
                 var vehicle = new Vehicle
@@ -282,11 +362,25 @@ namespace FleetManager.ViewModels
 
                 System.Diagnostics.Debug.WriteLine($"Création véhicule: {vehicle.RegistrationNumber} - {vehicle.Brand} {vehicle.Model}");
 
-                // Sauvegarder via le service
+                // Sauvegarder via le service (d'abord pour obtenir l'ID)
                 var (success, message) = await _vehicleService.AddVehicleAsync(vehicle);
 
                 if (success)
                 {
+                    // Si une image a été sélectionnée, la sauvegarder maintenant qu'on a l'ID
+                    if (!string.IsNullOrWhiteSpace(tempImagePath))
+                    {
+                        var imageService = App.ServiceProvider.GetRequiredService<VehicleImageService>();
+                        var savedImagePath = imageService.SaveVehicleImage(tempImagePath, vehicle.VehicleId);
+                        
+                        if (!string.IsNullOrWhiteSpace(savedImagePath))
+                        {
+                            // Mettre à jour le véhicule avec le chemin de l'image
+                            vehicle.ImagePath = savedImagePath;
+                            await _vehicleService.UpdateVehicleAsync(vehicle);
+                        }
+                    }
+
                     System.Diagnostics.Debug.WriteLine("Véhicule ajouté avec succès");
 
                     MessageBox.Show("Véhicule ajouté avec succès !", "Succès",

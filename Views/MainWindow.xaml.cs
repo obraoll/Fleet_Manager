@@ -10,5 +10,6 @@ namespace FleetManager.Views
             InitializeComponent();
             DataContext = viewModel;
         }
+
     }
 }

@@ -46,6 +46,10 @@ namespace FleetManager.Models
         [Column("LastLogin")]
         public DateTime? LastLogin { get; set; }
 
+        [MaxLength(500)]
+        [Column("ImagePath")]
+        public string? ImagePath { get; set; }
+
         // Navigation properties
         public virtual ICollection<FuelRecord> FuelRecords { get; set; } = new List<FuelRecord>();
         public virtual ICollection<MaintenanceRecord> MaintenanceRecords { get; set; } = new List<MaintenanceRecord>();

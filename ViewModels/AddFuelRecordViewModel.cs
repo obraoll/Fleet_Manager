@@ -42,21 +42,53 @@ namespace FleetManager.ViewModels
         private bool _hasValidationError;
         private bool _canSave = true;
 
-        public AddFuelRecordViewModel(FuelService fuelService, VehicleService vehicleService, AuthenticationService authService)
+        // Mode édition
+        private FuelRecord? _fuelRecordToEdit;
+        private bool _isEditMode;
+
+        public AddFuelRecordViewModel(FuelService fuelService, VehicleService vehicleService, AuthenticationService authService, FuelRecord? fuelRecordToEdit = null)
         {
             _fuelService = fuelService;
             _vehicleService = vehicleService;
             _authService = authService;
+            _fuelRecordToEdit = fuelRecordToEdit;
+            _isEditMode = fuelRecordToEdit != null;
 
             // Initialiser les commandes
             SaveCommand = new AsyncRelayCommand(SaveFuelRecordAsync, CanExecuteSave);
             CancelCommand = new RelayCommand(param => CancelAdd(param as Window));
 
-            // Charger les véhicules disponibles
-            _ = LoadAvailableVehiclesAsync();
+            // Charger les véhicules disponibles et les données si mode édition
+            _ = InitializeDataAsync();
 
             // Validation en temps réel
             PropertyChanged += OnPropertyChanged;
+            
+            // Notifier les changements de propriétés calculées
+            PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(IsEditMode))
+                {
+                    OnPropertyChanged(nameof(WindowTitle));
+                    OnPropertyChanged(nameof(SaveButtonText));
+                }
+            };
+        }
+
+        public bool IsEditMode
+        {
+            get => _isEditMode;
+            set => SetProperty(ref _isEditMode, value);
+        }
+
+        public string WindowTitle
+        {
+            get => IsEditMode ? "✏️ Modifier un plein de carburant" : "⛽ Ajouter un plein de carburant";
+        }
+
+        public string SaveButtonText
+        {
+            get => IsEditMode ? "Enregistrer les modifications" : "Enregistrer le plein";
         }
 
         #region Propriétés
@@ -206,6 +238,25 @@ namespace FleetManager.ViewModels
         #endregion
 
         #region Méthodes
+
+        private async Task InitializeDataAsync()
+        {
+            try
+            {
+                // Charger les véhicules disponibles
+                await LoadAvailableVehiclesAsync();
+
+                // Si mode édition, charger les données après que les véhicules soient chargés
+                if (_isEditMode && _fuelRecordToEdit != null)
+                {
+                    LoadFuelRecordData(_fuelRecordToEdit);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur initialisation données: {ex.Message}");
+            }
+        }
 
         private async Task LoadAvailableVehiclesAsync()
         {
@@ -359,11 +410,34 @@ namespace FleetManager.ViewModels
             return CanSave && SelectedVehicle != null && QuantityLiters > 0 && PricePerLiter > 0;
         }
 
+        private void LoadFuelRecordData(FuelRecord fuelRecord)
+        {
+            try
+            {
+                // Les véhicules sont déjà chargés par InitializeDataAsync
+                // Charger les données
+                SelectedVehicle = AvailableVehicles.FirstOrDefault(v => v.VehicleId == fuelRecord.VehicleId);
+                CurrentMileage = fuelRecord.Mileage;
+                FuelType = fuelRecord.FuelType;
+                QuantityLiters = fuelRecord.LitersRefueled;
+                PricePerLiter = fuelRecord.PricePerLiter;
+                TotalCost = fuelRecord.TotalCost;
+                RefuelDate = fuelRecord.RefuelDate;
+                StationName = fuelRecord.Station ?? string.Empty;
+                IsFullTank = fuelRecord.IsFullTank;
+                Notes = fuelRecord.Notes ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur chargement données plein: {ex.Message}");
+            }
+        }
+
         private async Task SaveFuelRecordAsync(object? parameter)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("=== AJOUT PLEIN CARBURANT DÉMARRÉ ===");
+                System.Diagnostics.Debug.WriteLine($"=== {(IsEditMode ? "MODIFICATION" : "AJOUT")} PLEIN CARBURANT DÉMARRÉ ===");
 
                 // Validation finale
                 ValidateForm();
@@ -381,7 +455,49 @@ namespace FleetManager.ViewModels
                     return;
                 }
 
-                // Créer l'enregistrement de carburant
+                if (IsEditMode && _fuelRecordToEdit != null)
+                {
+                    // MODE ÉDITION
+                    _fuelRecordToEdit.VehicleId = SelectedVehicle.VehicleId;
+                    _fuelRecordToEdit.RefuelDate = RefuelDate;
+                    _fuelRecordToEdit.FuelType = FuelType;
+                    _fuelRecordToEdit.LitersRefueled = QuantityLiters;
+                    _fuelRecordToEdit.PricePerLiter = PricePerLiter;
+                    _fuelRecordToEdit.TotalCost = TotalCost;
+                    _fuelRecordToEdit.Mileage = CurrentMileage;
+                    _fuelRecordToEdit.Station = string.IsNullOrWhiteSpace(StationName) ? null : StationName;
+                    _fuelRecordToEdit.IsFullTank = IsFullTank;
+                    _fuelRecordToEdit.Notes = string.IsNullOrWhiteSpace(Notes) ? null : Notes;
+
+                    var (updateSuccess, updateMessage) = await _fuelService.UpdateFuelRecordAsync(_fuelRecordToEdit);
+                    
+                    if (updateSuccess)
+                    {
+                        MessageBox.Show("Plein modifié avec succès.", "Succès",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                        
+                        // Mettre à jour le kilométrage du véhicule si nécessaire
+                        if (SelectedVehicle.CurrentMileage < CurrentMileage)
+                        {
+                            SelectedVehicle.CurrentMileage = CurrentMileage;
+                            await _vehicleService.UpdateVehicleAsync(SelectedVehicle);
+                        }
+
+                        if (parameter is Window window)
+                        {
+                            window.DialogResult = true;
+                            window.Close();
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Erreur lors de la modification:\n\n{updateMessage}",
+                            "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    return;
+                }
+
+                // MODE AJOUT - Créer l'enregistrement de carburant
                 var fuelRecord = new FuelRecord
                 {
                     VehicleId = SelectedVehicle.VehicleId,
@@ -400,9 +516,9 @@ namespace FleetManager.ViewModels
                 System.Diagnostics.Debug.WriteLine($"Création plein: {SelectedVehicle.RegistrationNumber} - {QuantityLiters}L à {PricePerLiter}€/L");
 
                 // Sauvegarder via le service
-                var (success, message) = await _fuelService.AddFuelRecordAsync(fuelRecord);
+                var (addSuccess, addMessage) = await _fuelService.AddFuelRecordAsync(fuelRecord);
 
-                if (success)
+                if (addSuccess)
                 {
                     System.Diagnostics.Debug.WriteLine("Plein ajouté avec succès");
 
@@ -425,8 +541,8 @@ namespace FleetManager.ViewModels
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Erreur ajout plein: {message}");
-                    MessageBox.Show($"Erreur lors de l'enregistrement du plein:\n\n{message}",
+                    System.Diagnostics.Debug.WriteLine($"Erreur ajout plein: {addMessage}");
+                    MessageBox.Show($"Erreur lors de l'enregistrement du plein:\n\n{addMessage}",
                         "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }

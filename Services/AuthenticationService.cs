@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using FleetManager.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using BCrypt.Net;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -57,8 +59,55 @@ namespace FleetManager.Services
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
 
-                var user = await context.Users
-                    .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+                // Essayer de charger l'utilisateur avec une requête qui gère l'absence de la colonne ImagePath
+                User? user = null;
+                try
+                {
+                    // Essayer d'abord avec une requête normale
+                    user = await context.Users
+                        .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+                }
+                catch (Exception ex) when (ex.Message.Contains("ImagePath") || ex.Message.Contains("unknown column"))
+                {
+                    // Si la colonne ImagePath n'existe pas encore, utiliser une requête SQL brute
+                    System.Diagnostics.Debug.WriteLine($"Colonne ImagePath non trouvée, utilisation d'une requête SQL alternative: {ex.Message}");
+                    
+                    // Utiliser une requête SQL brute pour éviter le problème de colonne manquante
+                    var connection = context.Database.GetDbConnection();
+                    await connection.OpenAsync();
+                    
+                    using var command = connection.CreateCommand();
+                    command.CommandText = @"
+                        SELECT UserId, Username, PasswordHash, FullName, Email, Role, IsActive, CreatedAt, LastLogin
+                        FROM Users
+                        WHERE Username = @username AND IsActive = 1
+                        LIMIT 1";
+                    
+                    var usernameParam = command.CreateParameter();
+                    usernameParam.ParameterName = "@username";
+                    usernameParam.Value = username;
+                    command.Parameters.Add(usernameParam);
+                    
+                    using var reader = await command.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        user = new User
+                        {
+                            UserId = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            PasswordHash = reader.GetString(2),
+                            FullName = reader.GetString(3),
+                            Email = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Role = reader.GetString(5),
+                            IsActive = reader.GetBoolean(6),
+                            CreatedAt = reader.GetDateTime(7),
+                            LastLogin = reader.IsDBNull(8) ? null : reader.GetDateTime(8),
+                            ImagePath = null // La colonne n'existe pas encore
+                        };
+                    }
+                    
+                    await connection.CloseAsync();
+                }
 
                 if (user == null)
                 {
@@ -73,15 +122,29 @@ namespace FleetManager.Services
                     return (false, "Nom d'utilisateur ou mot de passe incorrect.");
                 }
 
-                // Mettre à jour la dernière connexion
-                user.LastLogin = DateTime.Now;
-                await context.SaveChangesAsync();
+                // Mettre à jour la dernière connexion (sans ImagePath)
+                try
+                {
+                    using var updateScope = _scopeFactory.CreateScope();
+                    var updateContext = updateScope.ServiceProvider.GetRequiredService<FleetDbContext>();
+                    var userToUpdate = await updateContext.Users.FindAsync(user.UserId);
+                    if (userToUpdate != null)
+                    {
+                        userToUpdate.LastLogin = DateTime.Now;
+                        await updateContext.SaveChangesAsync();
+                    }
+                }
+                catch
+                {
+                    // Ignorer l'erreur de mise à jour si la colonne n'existe pas encore
+                }
 
                 _currentUser = user;
                 return (true, "Connexion réussie.");
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Erreur LoginAsync: {ex.Message}\n{ex.StackTrace}");
                 return (false, $"Erreur lors de la connexion: {ex.Message}");
             }
         }
@@ -123,8 +186,43 @@ namespace FleetManager.Services
                 var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
 
                 // Vérifier si l'utilisateur existe déjà
-                var existingUser = await context.Users
-                    .FirstOrDefaultAsync(u => u.Username == username);
+                User? existingUser = null;
+                try
+                {
+                    existingUser = await context.Users
+                        .FirstOrDefaultAsync(u => u.Username == username);
+                }
+                catch (Exception ex) when (ex.Message.Contains("ImagePath") || ex.Message.Contains("unknown column"))
+                {
+                    // Si la colonne ImagePath n'existe pas encore, utiliser une requête SQL brute
+                    var connection = context.Database.GetDbConnection();
+                    await connection.OpenAsync();
+                    
+                    try
+                    {
+                        using var command = connection.CreateCommand();
+                        command.CommandText = @"
+                            SELECT UserId, Username
+                            FROM Users
+                            WHERE Username = @username
+                            LIMIT 1";
+                        
+                        var usernameParam = command.CreateParameter();
+                        usernameParam.ParameterName = "@username";
+                        usernameParam.Value = username;
+                        command.Parameters.Add(usernameParam);
+                        
+                        using var reader = await command.ExecuteReaderAsync();
+                        if (await reader.ReadAsync())
+                        {
+                            existingUser = new User { UserId = reader.GetInt32(0), Username = reader.GetString(1) };
+                        }
+                    }
+                    finally
+                    {
+                        await connection.CloseAsync();
+                    }
+                }
 
                 if (existingUser != null)
                 {
@@ -222,14 +320,175 @@ namespace FleetManager.Services
         {
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
-            return await context.Users.OrderBy(u => u.Username).ToListAsync();
+            
+            try
+            {
+                // Essayer d'abord avec une requête normale
+                return await context.Users.OrderBy(u => u.Username).ToListAsync();
+            }
+            catch (Exception ex) when (ex.Message.Contains("ImagePath") || ex.Message.Contains("unknown column"))
+            {
+                // Si la colonne ImagePath n'existe pas encore, utiliser une requête SQL brute
+                System.Diagnostics.Debug.WriteLine($"Colonne ImagePath non trouvée dans GetAllUsersAsync, utilisation d'une requête SQL alternative: {ex.Message}");
+                
+                var connection = context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                
+                var users = new List<User>();
+                
+                try
+                {
+                    using var command = connection.CreateCommand();
+                    command.CommandText = @"
+                        SELECT UserId, Username, PasswordHash, FullName, Email, Role, IsActive, CreatedAt, LastLogin
+                        FROM Users
+                        ORDER BY Username";
+                    
+                    using var reader = await command.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        users.Add(new User
+                        {
+                            UserId = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            PasswordHash = reader.GetString(2),
+                            FullName = reader.GetString(3),
+                            Email = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Role = reader.GetString(5),
+                            IsActive = reader.GetBoolean(6),
+                            CreatedAt = reader.GetDateTime(7),
+                            LastLogin = reader.IsDBNull(8) ? null : reader.GetDateTime(8),
+                            ImagePath = null // La colonne n'existe pas encore
+                        });
+                    }
+                }
+                finally
+                {
+                    await connection.CloseAsync();
+                }
+                
+                return users;
+            }
         }
 
         public async Task<User?> GetUserByIdAsync(int userId)
         {
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
-            return await context.Users.FindAsync(userId);
+            
+            try
+            {
+                return await context.Users.FindAsync(userId);
+            }
+            catch (Exception ex) when (ex.Message.Contains("ImagePath") || ex.Message.Contains("unknown column"))
+            {
+                // Si la colonne ImagePath n'existe pas encore, utiliser une requête SQL brute
+                System.Diagnostics.Debug.WriteLine($"Colonne ImagePath non trouvée dans GetUserByIdAsync, utilisation d'une requête SQL alternative: {ex.Message}");
+                
+                var connection = context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                
+                User? user = null;
+                
+                try
+                {
+                    using var command = connection.CreateCommand();
+                    command.CommandText = @"
+                        SELECT UserId, Username, PasswordHash, FullName, Email, Role, IsActive, CreatedAt, LastLogin
+                        FROM Users
+                        WHERE UserId = @userId
+                        LIMIT 1";
+                    
+                    var userIdParam = command.CreateParameter();
+                    userIdParam.ParameterName = "@userId";
+                    userIdParam.Value = userId;
+                    command.Parameters.Add(userIdParam);
+                    
+                    using var reader = await command.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        user = new User
+                        {
+                            UserId = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            PasswordHash = reader.GetString(2),
+                            FullName = reader.GetString(3),
+                            Email = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Role = reader.GetString(5),
+                            IsActive = reader.GetBoolean(6),
+                            CreatedAt = reader.GetDateTime(7),
+                            LastLogin = reader.IsDBNull(8) ? null : reader.GetDateTime(8),
+                            ImagePath = null // La colonne n'existe pas encore
+                        };
+                    }
+                }
+                finally
+                {
+                    await connection.CloseAsync();
+                }
+                
+                return user;
+            }
+        }
+
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
+            
+            try
+            {
+                return await context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            }
+            catch (Exception ex) when (ex.Message.Contains("ImagePath") || ex.Message.Contains("unknown column"))
+            {
+                // Si la colonne ImagePath n'existe pas encore, utiliser une requête SQL brute
+                System.Diagnostics.Debug.WriteLine($"Colonne ImagePath non trouvée dans GetUserByUsernameAsync, utilisation d'une requête SQL alternative: {ex.Message}");
+                
+                var connection = context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                
+                User? user = null;
+                
+                try
+                {
+                    using var command = connection.CreateCommand();
+                    command.CommandText = @"
+                        SELECT UserId, Username, PasswordHash, FullName, Email, Role, IsActive, CreatedAt, LastLogin
+                        FROM Users
+                        WHERE Username = @username
+                        LIMIT 1";
+                    
+                    var usernameParam = command.CreateParameter();
+                    usernameParam.ParameterName = "@username";
+                    usernameParam.Value = username;
+                    command.Parameters.Add(usernameParam);
+                    
+                    using var reader = await command.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        user = new User
+                        {
+                            UserId = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            PasswordHash = reader.GetString(2),
+                            FullName = reader.GetString(3),
+                            Email = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Role = reader.GetString(5),
+                            IsActive = reader.GetBoolean(6),
+                            CreatedAt = reader.GetDateTime(7),
+                            LastLogin = reader.IsDBNull(8) ? null : reader.GetDateTime(8),
+                            ImagePath = null // La colonne n'existe pas encore
+                        };
+                    }
+                }
+                finally
+                {
+                    await connection.CloseAsync();
+                }
+                
+                return user;
+            }
         }
 
         public async Task<bool> UpdateUserAsync(User user)
@@ -239,7 +498,55 @@ namespace FleetManager.Services
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
                 
-                var existingUser = await context.Users.FindAsync(user.UserId);
+                User? existingUser = null;
+                try
+                {
+                    existingUser = await context.Users.FindAsync(user.UserId);
+                }
+                catch (Exception ex) when (ex.Message.Contains("ImagePath") || ex.Message.Contains("unknown column"))
+                {
+                    // Si la colonne ImagePath n'existe pas encore, utiliser une requête SQL brute
+                    var connection = context.Database.GetDbConnection();
+                    await connection.OpenAsync();
+                    
+                    try
+                    {
+                        using var command = connection.CreateCommand();
+                        command.CommandText = @"
+                            SELECT UserId, Username, PasswordHash, FullName, Email, Role, IsActive, CreatedAt, LastLogin
+                            FROM Users
+                            WHERE UserId = @userId
+                            LIMIT 1";
+                        
+                        var userIdParam = command.CreateParameter();
+                        userIdParam.ParameterName = "@userId";
+                        userIdParam.Value = user.UserId;
+                        command.Parameters.Add(userIdParam);
+                        
+                        using var reader = await command.ExecuteReaderAsync();
+                        if (await reader.ReadAsync())
+                        {
+                            existingUser = new User
+                            {
+                                UserId = reader.GetInt32(0),
+                                Username = reader.GetString(1),
+                                PasswordHash = reader.GetString(2),
+                                FullName = reader.GetString(3),
+                                Email = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                Role = reader.GetString(5),
+                                IsActive = reader.GetBoolean(6),
+                                CreatedAt = reader.GetDateTime(7),
+                                LastLogin = reader.IsDBNull(8) ? null : reader.GetDateTime(8),
+                                ImagePath = null
+                            };
+                        }
+                    }
+                    finally
+                    {
+                        await connection.CloseAsync();
+                    }
+                }
+                
                 if (existingUser == null) return false;
 
                 // Protection: Seul un SuperAdmin peut modifier un SuperAdmin
@@ -258,12 +565,70 @@ namespace FleetManager.Services
                 existingUser.Email = user.Email;
                 existingUser.Role = user.Role;
                 existingUser.IsActive = user.IsActive;
+                
+                // Mettre à jour ImagePath seulement si la colonne existe
+                try
+                {
+                    existingUser.ImagePath = user.ImagePath;
+                    await context.SaveChangesAsync();
+                }
+                catch (Exception ex) when (ex.Message.Contains("ImagePath") || ex.Message.Contains("unknown column"))
+                {
+                    // Si la colonne n'existe pas encore, mettre à jour sans ImagePath
+                    System.Diagnostics.Debug.WriteLine($"Colonne ImagePath non trouvée lors de la mise à jour, utilisation d'une requête SQL alternative: {ex.Message}");
+                    
+                    var connection = context.Database.GetDbConnection();
+                    await connection.OpenAsync();
+                    
+                    try
+                    {
+                        using var command = connection.CreateCommand();
+                        command.CommandText = @"
+                            UPDATE Users 
+                            SET FullName = @fullName, 
+                                Email = @email, 
+                                Role = @role, 
+                                IsActive = @isActive
+                            WHERE UserId = @userId";
+                        
+                        var userIdParam = command.CreateParameter();
+                        userIdParam.ParameterName = "@userId";
+                        userIdParam.Value = user.UserId;
+                        command.Parameters.Add(userIdParam);
+                        
+                        var fullNameParam = command.CreateParameter();
+                        fullNameParam.ParameterName = "@fullName";
+                        fullNameParam.Value = user.FullName;
+                        command.Parameters.Add(fullNameParam);
+                        
+                        var emailParam = command.CreateParameter();
+                        emailParam.ParameterName = "@email";
+                        emailParam.Value = user.Email ?? (object)DBNull.Value;
+                        command.Parameters.Add(emailParam);
+                        
+                        var roleParam = command.CreateParameter();
+                        roleParam.ParameterName = "@role";
+                        roleParam.Value = user.Role;
+                        command.Parameters.Add(roleParam);
+                        
+                        var isActiveParam = command.CreateParameter();
+                        isActiveParam.ParameterName = "@isActive";
+                        isActiveParam.Value = user.IsActive;
+                        command.Parameters.Add(isActiveParam);
+                        
+                        await command.ExecuteNonQueryAsync();
+                    }
+                    finally
+                    {
+                        await connection.CloseAsync();
+                    }
+                }
 
-                await context.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Erreur UpdateUserAsync: {ex.Message}\n{ex.StackTrace}");
                 return false;
             }
         }

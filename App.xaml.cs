@@ -86,6 +86,12 @@ namespace FleetManager
             services.AddSingleton<ConfigurationService>();
             services.AddSingleton<ITargetService, TargetService>();
             services.AddTransient<IEmailService, EmailService>();
+            // Service de persistance des notifications
+            services.AddSingleton<NotificationPersistenceService>();
+            // Service de gestion des images de véhicules
+            services.AddSingleton<VehicleImageService>();
+            // Service de gestion des images d'utilisateurs
+            services.AddSingleton<UserImageService>();
             // Services et Repository pour Maintenance (ADO.NET)
             services.AddTransient<MaintenanceRepository>(sp => 
             {
@@ -149,8 +155,26 @@ namespace FleetManager
 
                 // Exécuter la migration TankCapacity
                 System.Diagnostics.Debug.WriteLine("Vérification/ajout de la colonne TankCapacity...");
-                var migrationResult = await MigrationTankCapacity.ExecuteAsync(connectionString);
+                var migrationResult = await MigrationTankCapacity.ExecuteAsync(connectionString ?? "");
                 System.Diagnostics.Debug.WriteLine($"Migration TankCapacity: {migrationResult.Message}");
+
+                // Exécuter la migration ImagePath pour Vehicles AVANT SuperAdmin pour éviter les erreurs de chargement
+                System.Diagnostics.Debug.WriteLine("Vérification/ajout de la colonne ImagePath pour Vehicles...");
+                var imagePathResult = await MigrationAddImagePath.ExecuteAsync(connectionString ?? "");
+                System.Diagnostics.Debug.WriteLine($"Migration ImagePath Vehicles: {imagePathResult.Message}");
+                if (!imagePathResult.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ ATTENTION: Échec de la migration ImagePath Vehicles: {imagePathResult.Message}");
+                }
+
+                // Exécuter la migration ImagePath pour Users
+                System.Diagnostics.Debug.WriteLine("Vérification/ajout de la colonne ImagePath pour Users...");
+                var userImagePathResult = await MigrationAddUserImagePath.ExecuteAsync(connectionString ?? "");
+                System.Diagnostics.Debug.WriteLine($"Migration ImagePath Users: {userImagePathResult.Message}");
+                if (!userImagePathResult.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ ATTENTION: Échec de la migration ImagePath Users: {userImagePathResult.Message}");
+                }
 
                 // Exécuter la migration SuperAdmin
                 System.Diagnostics.Debug.WriteLine("Vérification/ajout du compte SuperAdmin...");

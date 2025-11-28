@@ -9,31 +9,11 @@
         Title="📊 Statistiques Détaillées - Fleet Manager"
         Height="700" Width="1200"
         WindowStartupLocation="CenterScreen"
-        Background="#F5F5F5">
+        Background="{StaticResource BackgroundBrush}">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         
-        <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="10"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
-            <Setter Property="Foreground" Value="#333333"/>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -70,7 +50,7 @@
             <StackPanel>
                 
                 <!-- Indicateurs globaux -->
-                <Border Style="{StaticResource CardStyle}">
+                <Border Style="{StaticResource ModernCard}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -119,7 +99,7 @@
                     <!-- Répartition des coûts -->
                     <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="💰 Répartition des Coûts"/>
+                            <TextBlock Style="{StaticResource H2}" Text="💰 Répartition des Coûts"/>
                             <lvc:PieChart Series="{Binding CostDistributionSeries}" Height="250" LegendPosition="Bottom"/>
                         </StackPanel>
                     </Border>
@@ -127,7 +107,7 @@
                     <!-- Types de véhicules -->
                     <Border Grid.Column="1" Style="{StaticResource CardStyle}">
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="🚙 Types de Véhicules"/>
+                            <TextBlock Style="{StaticResource H2}" Text="🚙 Types de Véhicules"/>
                             <lvc:PieChart Series="{Binding VehicleTypeSeries}" Height="250" LegendPosition="Bottom"/>
                         </StackPanel>
                     </Border>
@@ -136,7 +116,7 @@
                 <!-- Tendances mensuelles -->
                 <Border Style="{StaticResource CardStyle}" Margin="0,10,0,0">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="📈 Évolution Mensuelle (12 mois)"/>
+                        <TextBlock Style="{StaticResource H2}" Text="📈 Évolution Mensuelle (12 mois)"/>
                         <lvc:CartesianChart Series="{Binding MonthlyTrendsSeries}" Height="300" LegendPosition="Top"/>
                     </StackPanel>
                 </Border>
@@ -145,7 +125,7 @@
                 <Border Style="{StaticResource CardStyle}" Margin="0,10,0,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">
-                            <TextBlock Style="{StaticResource SectionTitleStyle}" Text="📋 Détails par Véhicule" Margin="0"/>
+                            <TextBlock Style="{StaticResource H2}" Text="📋 Détails par Véhicule" Margin="0"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <TextBlock Text="🔍 Rechercher:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox Width="200" Padding="5" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
@@ -186,7 +166,7 @@
                 <!-- Analyse comparative -->
                 <Border Style="{StaticResource CardStyle}" Margin="0,10,0,0">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="⚖️ Analyse Comparative"/>
+                        <TextBlock Style="{StaticResource H2}" Text="⚖️ Analyse Comparative"/>
                         
                         <Grid>
                             <Grid.ColumnDefinitions>

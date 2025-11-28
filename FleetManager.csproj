@@ -12,6 +12,8 @@
     <Company>BTS SIO</Company>
     <Product>Fleet Manager</Product>
     <Description>Application de gestion de parc automobile</Description>
+    <!-- Désactiver les avertissements de nullabilité courants -->
+    <NoWarn>$(NoWarn);CS8618;CS8604;CS8603;CS8602;CS8601;CS8600;CS8892</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,9 +30,9 @@
     <PackageReference Include="MySql.Data" Version="9.5.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />    <!-- Graphiques LiveCharts -->
 
-    <!-- Export PDF - Using iText 8 (compatible with .NET 8) -->
-    <PackageReference Include="itext" Version="8.0.6" />
-    <PackageReference Include="itext.bouncy-castle-adapter" Version="8.0.6" />
+    <!-- Export PDF - Using iText 9 (compatible with .NET 8) -->
+    <PackageReference Include="itext" Version="9.0.0" />
+    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.0.0" />
     
     <!-- Export CSV -->
     <PackageReference Include="CsvHelper" Version="33.1.0" />
